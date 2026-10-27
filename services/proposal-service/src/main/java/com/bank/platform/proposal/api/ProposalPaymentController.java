@@ -6,6 +6,7 @@ import com.bank.platform.proposal.application.ProposalWorkingStateService;
 import com.bank.platform.proposal.application.ProposalWorkingStateService.ReleaseResult;
 import com.bank.platform.proposal.domain.ProposalState;
 import com.bank.platform.proposal.domain.WorkingProposal;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -64,36 +65,45 @@ public class ProposalPaymentController {
   public record ReleaseResponse(String proposalId, ProposalState state, boolean released) {}
 
   private final ProposalWorkingStateService proposals;
+  private final ActorGuard actors;
   private final ServiceErrors errors;
 
-  public ProposalPaymentController(ProposalWorkingStateService proposals, ServiceErrors errors) {
+  public ProposalPaymentController(
+      ProposalWorkingStateService proposals, ActorGuard actors, ServiceErrors errors) {
     this.proposals = proposals;
+    this.actors = actors;
     this.errors = errors;
   }
 
   @PostMapping("/{proposalId}/payment-hold")
   public ProposalPaymentHold holdForPayment(
+      HttpServletRequest request,
       @PathVariable String proposalId,
       @RequestHeader(value = "X-Actor-Id", required = false) String actorId,
       @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-      @Valid @RequestBody PaymentHoldRequest request) {
-    requireHeaders("holdProposalForPayment", proposalId, actorId, idempotencyKey);
-    return ProposalPaymentHold.of(proposals.holdForPayment(proposalId, request.paymentId()));
+      @Valid @RequestBody PaymentHoldRequest requestBody) {
+    requireHeaders(request, "holdProposalForPayment", proposalId, actorId, idempotencyKey);
+    return ProposalPaymentHold.of(proposals.holdForPayment(proposalId, requestBody.paymentId()));
   }
 
   @PostMapping("/{proposalId}/payment-release")
   public ReleaseResponse releasePaymentHold(
+      HttpServletRequest request,
       @PathVariable String proposalId,
       @RequestHeader(value = "X-Actor-Id", required = false) String actorId,
       @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-      @Valid @RequestBody PaymentReleaseRequest request) {
-    requireHeaders("releaseProposalPaymentHold", proposalId, actorId, idempotencyKey);
-    ReleaseResult result = proposals.releasePaymentHold(proposalId, request.paymentId());
+      @Valid @RequestBody PaymentReleaseRequest requestBody) {
+    requireHeaders(request, "releaseProposalPaymentHold", proposalId, actorId, idempotencyKey);
+    ReleaseResult result = proposals.releasePaymentHold(proposalId, requestBody.paymentId());
     return new ReleaseResponse(proposalId, result.proposal().state(), result.released());
   }
 
   private void requireHeaders(
-      String operation, String proposalId, String actorId, String idempotencyKey) {
+      HttpServletRequest request,
+      String operation,
+      String proposalId,
+      String actorId,
+      String idempotencyKey) {
     if (idempotencyKey == null || idempotencyKey.isBlank()) {
       throw errors
           .error(ErrorCodes.MISSING_IDEMPOTENCY_KEY)
@@ -101,7 +111,8 @@ public class ProposalPaymentController {
           .operation(operation)
           .build();
     }
-    if (actorId == null || actorId.isBlank() || actorId.length() > 64) {
+    String actor = actors.requireActorId(request, actorId, operation);
+    if (actor.length() > 64) {
       throw invalid(operation, "X-Actor-Id is required (<= 64 chars)");
     }
     if (!proposalId.matches(ULID)) {

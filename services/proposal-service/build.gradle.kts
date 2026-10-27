@@ -14,6 +14,7 @@ val sqlite4javaNative: Configuration by configurations.creating
 
 dependencies {
     implementation(project(":libs:bank-common-error"))
+    implementation(project(":libs:bank-common-security"))
     implementation(project(":libs:bank-common-audit"))
     implementation(project(":libs:bank-common-observability"))
     // ADR-025: event envelope + EventPublisher port; Kafka adapter used only when configured.

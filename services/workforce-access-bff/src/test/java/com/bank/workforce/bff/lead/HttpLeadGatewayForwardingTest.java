@@ -31,6 +31,7 @@ class HttpLeadGatewayForwardingTest {
 
   private HttpServer lead;
   private final AtomicReference<String> idempotencyHeader = new AtomicReference<>();
+  private final AtomicReference<String> internalKeyHeader = new AtomicReference<>();
   private final AtomicReference<String> body = new AtomicReference<>();
   private HttpLeadGateway gateway;
 
@@ -41,6 +42,7 @@ class HttpLeadGatewayForwardingTest {
         "/",
         exchange -> {
           idempotencyHeader.set(exchange.getRequestHeaders().getFirst("Idempotency-Key"));
+          internalKeyHeader.set(exchange.getRequestHeaders().getFirst("X-Internal-Service-Key"));
           body.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
           byte[] out = LEAD_JSON.getBytes(StandardCharsets.UTF_8);
           exchange.getResponseHeaders().add("Content-Type", "application/json");
@@ -58,7 +60,9 @@ class HttpLeadGatewayForwardingTest {
                 "local-idp-adapter-internal-key",
                 base,
                 base,
+                "local-lead-bff-internal-key",
                 base,
+                "local-customer-bff-internal-key",
                 "http",
                 "http",
                 "local-authz-bff-internal-key"),
@@ -76,6 +80,7 @@ class HttpLeadGatewayForwardingTest {
     gateway.create(new CreateLeadCommand("cust-1", "LIFE", "TERM", "BR-1", "u-1", "idem-123456"));
 
     assertThat(idempotencyHeader.get()).isEqualTo("idem-123456");
+    assertThat(internalKeyHeader.get()).isEqualTo("local-lead-bff-internal-key");
     assertThat(body.get()).doesNotContain("idempotencyKey").contains("\"customerId\":\"cust-1\"");
   }
 

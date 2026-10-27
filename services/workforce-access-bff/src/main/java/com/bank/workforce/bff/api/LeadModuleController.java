@@ -39,6 +39,7 @@ public class LeadModuleController {
   @GetMapping("/workspace/pipeline")
   public PipelinePage pipeline(HttpServletRequest request) {
     WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "lead.read", "lead", null, null, false);
     List<LeadRecord> items = leads.pipeline(actorId(session));
     return new PipelinePage(items, null);
   }
@@ -65,6 +66,7 @@ public class LeadModuleController {
   @GetMapping("/leads/{leadId}")
   public LeadRecord get(HttpServletRequest request, @PathVariable String leadId) {
     WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "lead.read", "lead", leadId, null, false);
     return leads.get(leadId, actorId(session));
   }
 
@@ -74,6 +76,7 @@ public class LeadModuleController {
       @PathVariable String customerId,
       @RequestParam String productClass) {
     WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "lead.read", "lead", null, null, false);
     return leads.activeLeads(customerId, productClass, actorId(session));
   }
 

@@ -9,6 +9,7 @@ import com.bank.rules.engine.TestCaseRunner;
 import com.bank.rules.engine.Values;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -40,18 +41,23 @@ public class RuleSetController {
   static final String BASE = "/internal/v1/rule-sets";
 
   private final RuleSetAdministrationService service;
+  private final ActorGuard actors;
   private final ServiceErrors errors;
 
-  public RuleSetController(RuleSetAdministrationService service, ServiceErrors errors) {
+  public RuleSetController(
+      RuleSetAdministrationService service, ActorGuard actors, ServiceErrors errors) {
     this.service = service;
+    this.actors = actors;
     this.errors = errors;
   }
 
   @PostMapping(BASE + "/{ruleSetId}/versions")
   public ResponseEntity<VersionResponse> createDraft(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @PathVariable String ruleSetId,
       @RequestBody JsonNode document) {
+    String actor = actors.requireActorId(request, actorId, "createDraft");
     if (!ruleSetId.equals(document.path("ruleSetId").asText())) {
       throw errors
           .error(ErrorCodes.INVALID_REQUEST)
@@ -60,57 +66,65 @@ public class RuleSetController {
           .reason("path ruleSetId does not match the document")
           .build();
     }
-    RuleSetVersion v = service.createDraft(document.toString(), actorId);
+    RuleSetVersion v = service.createDraft(document.toString(), actor);
     return ResponseEntity.status(HttpStatus.CREATED).body(VersionResponse.full(v));
   }
 
   @PutMapping(BASE + "/{ruleSetId}/versions/{version}")
   public VersionResponse replaceDraft(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @PathVariable String ruleSetId,
       @PathVariable String version,
       @RequestBody JsonNode document) {
+    String actor = actors.requireActorId(request, actorId, "replaceDraft");
     return VersionResponse.full(
-        service.replaceDraft(ruleSetId, version, document.toString(), actorId));
+        service.replaceDraft(ruleSetId, version, document.toString(), actor));
   }
 
   @PostMapping(BASE + "/{ruleSetId}/versions/{version}:submit")
   public VersionResponse submit(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @PathVariable String ruleSetId,
       @PathVariable String version) {
-    return VersionResponse.summary(service.submit(ruleSetId, version, actorId));
+    String actor = actors.requireActorId(request, actorId, "submit");
+    return VersionResponse.summary(service.submit(ruleSetId, version, actor));
   }
 
   @PostMapping(BASE + "/{ruleSetId}/versions/{version}:approve")
   public VersionResponse approve(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @RequestHeader(name = "X-Actor-Roles", required = false) String roles,
       @RequestHeader(name = "X-Correlation-Id", required = false) String correlationId,
       @PathVariable String ruleSetId,
       @PathVariable String version,
       @RequestBody(required = false) DecisionRequest body) {
+    String actor = actors.requireActorId(request, actorId, "approve");
     return VersionResponse.summary(
         service.approve(
             ruleSetId,
             version,
-            checker(actorId, roles, "approve"),
+            checker(actor, roles, "approve"),
             body == null ? null : body.remarks(),
             correlationId));
   }
 
   @PostMapping(BASE + "/{ruleSetId}/versions/{version}:reject")
   public VersionResponse reject(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @RequestHeader(name = "X-Actor-Roles", required = false) String roles,
       @PathVariable String ruleSetId,
       @PathVariable String version,
       @RequestBody(required = false) DecisionRequest body) {
+    String actor = actors.requireActorId(request, actorId, "reject");
     return VersionResponse.summary(
         service.reject(
             ruleSetId,
             version,
-            checker(actorId, roles, "reject"),
+            checker(actor, roles, "reject"),
             body == null ? null : body.remarks()));
   }
 

@@ -33,7 +33,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:
@@ -50,6 +50,14 @@ bank:
     boundary: INTERNAL
 
 consent:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${CONSENT_BFF_INTERNAL_KEY:local-consent-bff-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"
   distributor-id: ${CONSENT_DISTRIBUTOR_ID:dist-local}
   field-key: ${CONSENT_FIELD_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
   key-id: ${CONSENT_FIELD_KEY_ID:local-dev}

@@ -12,7 +12,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:
@@ -27,3 +27,13 @@ bank:
     service-id: journey-orchestration
     layer: L6
     boundary: INTERNAL
+
+journey:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${JOURNEY_BFF_INTERNAL_KEY:local-journey-bff-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"

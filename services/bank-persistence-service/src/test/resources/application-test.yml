@@ -16,7 +16,17 @@ spring:
 
 persistence:
   internal-auth:
-    shared-secret: test-persistence-internal-key
+    callers:
+      onesb-integration-service: test-persistence-internal-key
+      local-test: test-persistence-admin-key1
+    privileges:
+      onesb-integration-service:
+        - jobs
+        - payment-sessions
+        - raw-payloads.write
+        - audit.append
+      local-test:
+        - "*"
 
 # Fixed test-only AES-256 key — never reuse outside tests.
 raw-payload:

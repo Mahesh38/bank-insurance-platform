@@ -9,11 +9,12 @@ import java.lang.annotation.Target;
 /**
  * Method-level annotation declaring required role(s).
  *
- * <p>Consuming services must register an AOP aspect or Spring Security {@code @PreAuthorize}
- * equivalent that enforces this annotation. The lib itself only defines the contract — not the
- * enforcement mechanism — so that services can choose their AOP strategy.
+ * <p><strong>Not a control by itself.</strong> This annotation is a contract only — there is no
+ * platform AOP aspect that enforces it. Business authorization is enforced by the identity-
+ * authorization PDP and by {@code InternalCallerAuth} on east-west APIs (SUG-20261027-iah). Do not
+ * treat presence of {@code @RequiresRole} as evidence that a route is authorized.
  *
- * <p>Example:
+ * <p>Example (documentation only until a service registers an enforcer):
  *
  * <pre>{@code
  * @RequiresRole(Role.RM)

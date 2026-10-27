@@ -1,48 +1,44 @@
-package com.bank.identity.authz.api;
+package com.bank.common.security.internal;
 
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrors;
-import com.bank.identity.authz.config.InternalAuthProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
- * Authenticates the calling service before anything under {@code /internal/v1} runs — the same
- * {@code X-Internal-Service-Key} scheme as identity-provider-adapter-service (READINESS-REVIEW
- * §3.7: "any in-cluster caller can resolve, create or approve partners"). Network location is not
- * trust (Deepali 04 §1). The authenticated caller id is bound as a request attribute so controllers
- * can decide whether that caller may assert {@code X-Actor-Id}.
- *
- * <p>A plain servlet filter rather than Spring Security: this service has no other security need,
- * and adding the starter would put a default-deny chain over actuator probes as well.
+ * Authenticates the calling service before a protected path prefix runs. The authenticated caller
+ * id is bound as {@link InternalCallerAuth#CALLER_ATTRIBUTE}.
  */
-public class InternalServiceAuthFilter extends OncePerRequestFilter {
+public class InternalCallerAuthFilter extends OncePerRequestFilter {
 
-  public static final String CALLER_ATTRIBUTE = "identity.internal-caller";
-
-  private final InternalAuthProperties properties;
+  private final String pathPrefix;
+  private final InternalCallerCredentials credentials;
   private final ServiceErrors errors;
   private final HandlerExceptionResolver resolver;
 
-  public InternalServiceAuthFilter(
-      InternalAuthProperties properties,
+  public InternalCallerAuthFilter(
+      String pathPrefix,
+      InternalCallerCredentials credentials,
       ServiceErrors errors,
       @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
-    this.properties = properties;
-    this.errors = errors;
-    this.resolver = resolver;
+    this.pathPrefix = Objects.requireNonNull(pathPrefix, "pathPrefix");
+    this.credentials = Objects.requireNonNull(credentials, "credentials");
+    this.errors = Objects.requireNonNull(errors, "errors");
+    this.resolver = Objects.requireNonNull(resolver, "resolver");
   }
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    return !request.getRequestURI().startsWith("/internal/v1");
+    String uri = request.getRequestURI();
+    return uri == null || !uri.startsWith(pathPrefix);
   }
 
   @Override
@@ -50,7 +46,7 @@ public class InternalServiceAuthFilter extends OncePerRequestFilter {
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     Optional<String> caller =
-        properties.authenticate(request.getHeader(InternalAuthProperties.HEADER));
+        credentials.authenticate(request.getHeader(InternalCallerAuth.HEADER));
     if (caller.isEmpty()) {
       resolver.resolveException(
           request,
@@ -58,13 +54,13 @@ public class InternalServiceAuthFilter extends OncePerRequestFilter {
           null,
           errors
               .error(ErrorCodes.UNAUTHORIZED)
-              .component("InternalServiceAuthFilter")
+              .component("InternalCallerAuthFilter")
               .operation("doFilterInternal")
               .reason("internal caller is not authenticated")
               .build());
       return;
     }
-    request.setAttribute(CALLER_ATTRIBUTE, caller.get());
+    request.setAttribute(InternalCallerAuth.CALLER_ATTRIBUTE, caller.get());
     filterChain.doFilter(request, response);
   }
 }

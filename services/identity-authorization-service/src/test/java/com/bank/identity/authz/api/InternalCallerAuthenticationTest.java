@@ -160,4 +160,74 @@ class InternalCallerAuthenticationTest {
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.code").value("FORBIDDEN"));
   }
+
+  @Test
+  void leadKeyCannotSetPassword() throws Exception {
+    mockMvc
+        .perform(
+            post("/internal/v1/login/password")
+                .header(HEADER, LEAD_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"businessUserId":"%s","newPassword":"Aa1!aaaa","confirmPassword":"Aa1!aaaa","purpose":"RESET"}
+                    """
+                        .formatted(UUID.randomUUID())))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+  }
+
+  @Test
+  void bffKeyMaySetPassword() throws Exception {
+    AuthzFixtures.insurer(jdbc, "ICICI_PRU");
+    UUID partner =
+        AuthzFixtures.activeUser(
+            jdbc, "pwd.partner", "INSURER_REPRESENTATIVE", "ICICI_PRU", "PARTNER_SR");
+
+    mockMvc
+        .perform(
+            post("/internal/v1/login/password")
+                .header(HEADER, BFF_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"businessUserId":"%s","newPassword":"Aa1!aaaaaa","confirmPassword":"Aa1!aaaaaa","purpose":"RESET"}
+                    """
+                        .formatted(partner)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.result").value("SET"));
+  }
+
+  @Test
+  void profileReturnsRoleCodes() throws Exception {
+    UUID subject =
+        AuthzFixtures.activeUser(jdbc, "profile.rm", "BANK_EMPLOYEE", null, "RELATIONSHIP_MANAGER");
+
+    mockMvc
+        .perform(
+            post("/internal/v1/identities/profile")
+                .header(HEADER, LEAD_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"subjectId\":\"" + subject + "\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.subjectId").value(subject.toString()))
+        .andExpect(jsonPath("$.userType").value("BANK_EMPLOYEE"))
+        .andExpect(jsonPath("$.status").value("ACTIVE"))
+        .andExpect(jsonPath("$.roleCodes[0]").value("RELATIONSHIP_MANAGER"));
+  }
+
+  @Test
+  void resolveIsDeniedWithoutPrivilege() throws Exception {
+    mockMvc
+        .perform(
+            post("/internal/v1/identities/resolve")
+                .header(HEADER, LEAD_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"provider":"KEYCLOAK","providerSubject":"s-1","userType":"BANK_EMPLOYEE","username":"u1"}
+                    """))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+  }
 }

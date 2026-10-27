@@ -78,14 +78,18 @@ class AuditEventReplayTest {
   }
 
   @Test
-  void internalKeyComparisonRefusesBlankAndUnset() {
-    InternalAuthProperties properties = new InternalAuthProperties("a-long-enough-secret");
-    assertThat(properties.matches(null)).isFalse();
-    assertThat(properties.matches(" ")).isFalse();
-    assertThat(properties.matches("a-long-enough-secret")).isTrue();
-    assertThat(new InternalAuthProperties(null).matches("x")).isFalse();
-    assertThat(new InternalAuthProperties(" ").matches("x")).isFalse();
-    assertThat(properties.toString()).doesNotContain("secret=a");
+  void internalCallerCredentialsAuthenticateConfiguredKeys() {
+    InternalAuthProperties properties =
+        new InternalAuthProperties(
+            java.util.Map.of("onesb-integration-service", "a-long-enough-secret"),
+            java.util.Set.of(),
+            java.util.Map.of(
+                "onesb-integration-service", java.util.Set.of("jobs", "audit.append")));
+    assertThat(properties.credentials().authenticate(null)).isEmpty();
+    assertThat(properties.credentials().authenticate(" ")).isEmpty();
+    assertThat(properties.credentials().authenticate("a-long-enough-secret"))
+        .contains("onesb-integration-service");
+    assertThat(properties.toString()).doesNotContain("a-long-enough-secret");
   }
 
   private static CreateAuditEventRequest with(CreateAuditEventRequest r, String field, Object value)

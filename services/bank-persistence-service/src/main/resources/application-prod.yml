@@ -19,7 +19,14 @@ management:
 
 persistence:
   internal-auth:
-    shared-secret: ${PERSISTENCE_INTERNAL_SHARED_SECRET}
+    callers:
+      onesb-integration-service: ${PERSISTENCE_ONESB_INTERNAL_KEY:${PERSISTENCE_INTERNAL_SHARED_SECRET}}
+    privileges:
+      onesb-integration-service:
+        - jobs
+        - payment-sessions
+        - raw-payloads.write
+        - audit.append
 
 logging:
   level:

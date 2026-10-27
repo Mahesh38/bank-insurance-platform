@@ -1,37 +1,36 @@
 package com.bank.persistence.config;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
+import com.bank.common.security.internal.InternalCallerCredentials;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * Shared internal service key for {@code /internal/v1/**} — same pattern as
- * identity-provider-adapter-service ({@code InternalAuthProperties}). The key is a stop-gap until
- * workload identity (mTLS / service JWT) lands; network location alone is not trust.
+ * Per-caller keys and privilege grants for {@code /internal/v1/**} (SUG-20261027-iah). Network
+ * location is not trust — every east-west caller must present a key that maps to a known caller id.
  */
 @Validated
 @ConfigurationProperties("persistence.internal-auth")
-public record InternalAuthProperties(@NotBlank @Size(min = 16) String sharedSecret) {
+public record InternalAuthProperties(
+    Map<String, String> callers, Set<String> actorCallers, Map<String, Set<String>> privileges) {
 
-  public static final String HEADER = "X-Internal-Service-Key";
+  public InternalAuthProperties {
+    callers = callers == null ? Map.of() : Map.copyOf(callers);
+    actorCallers = actorCallers == null ? Set.of() : Set.copyOf(actorCallers);
+    privileges = privileges == null ? Map.of() : Map.copyOf(privileges);
+  }
 
-  /** Constant-time comparison so the key cannot be guessed byte by byte. */
-  public boolean matches(String presented) {
-    if (presented == null
-        || presented.isBlank()
-        || sharedSecret == null
-        || sharedSecret.isBlank()) {
-      return false;
-    }
-    return MessageDigest.isEqual(
-        sharedSecret.getBytes(StandardCharsets.UTF_8), presented.getBytes(StandardCharsets.UTF_8));
+  public InternalCallerCredentials credentials() {
+    return new InternalCallerCredentials(callers, actorCallers, privileges);
   }
 
   @Override
   public String toString() {
-    return "InternalAuthProperties[sharedSecret=redacted]";
+    return "InternalAuthProperties[callers="
+        + callers.keySet()
+        + ", privileges="
+        + privileges.keySet()
+        + ", keys=redacted]";
   }
 }

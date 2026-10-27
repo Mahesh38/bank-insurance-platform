@@ -25,7 +25,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:
@@ -36,6 +36,17 @@ logging:
     com.bank.platform.adminconfig: INFO
 
 admin-config:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${ADMIN_CONFIG_BFF_INTERNAL_KEY:local-admin-config-bff-internal-key}
+      lead-service: ${ADMIN_CONFIG_LEAD_INTERNAL_KEY:local-admin-config-lead-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"
+      lead-service:
+        - "*"
   seed-import:
     # Imports the engine's seed rule sets as DRAFT when absent (ADR-024 section 7). Never publishes.
     enabled: ${ADMIN_CONFIG_SEED_IMPORT_ENABLED:true}

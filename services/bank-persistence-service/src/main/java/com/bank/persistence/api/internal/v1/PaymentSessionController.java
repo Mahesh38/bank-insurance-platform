@@ -1,8 +1,10 @@
 package com.bank.persistence.api.internal.v1;
 
 import com.bank.common.error.ServiceErrors;
+import com.bank.common.security.internal.InternalCallerAuth;
 import com.bank.persistence.adapter.persistence.PaymentSessionEntity;
 import com.bank.persistence.adapter.persistence.PaymentSessionRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.UUID;
@@ -21,16 +23,21 @@ public class PaymentSessionController {
 
   private final PaymentSessionRepository paymentSessionRepository;
   private final ServiceErrors serviceErrors;
+  private final PrivilegeGuard privileges;
 
   public PaymentSessionController(
-      PaymentSessionRepository paymentSessionRepository, ServiceErrors serviceErrors) {
+      PaymentSessionRepository paymentSessionRepository,
+      ServiceErrors serviceErrors,
+      PrivilegeGuard privileges) {
     this.serviceErrors = serviceErrors;
     this.paymentSessionRepository = paymentSessionRepository;
+    this.privileges = privileges;
   }
 
   @PostMapping
   public ResponseEntity<PaymentSessionResponse> create(
-      @Valid @RequestBody CreatePaymentSessionRequest request) {
+      HttpServletRequest http, @Valid @RequestBody CreatePaymentSessionRequest request) {
+    privileges.require(http, InternalCallerAuth.PRIVILEGE_PAYMENT_SESSIONS, "create");
     Instant now = Instant.now();
     PaymentSessionEntity entity = new PaymentSessionEntity();
     entity.setSessionId(
@@ -52,7 +59,8 @@ public class PaymentSessionController {
   }
 
   @GetMapping("/{sessionId}")
-  public PaymentSessionResponse get(@PathVariable String sessionId) {
+  public PaymentSessionResponse get(HttpServletRequest http, @PathVariable String sessionId) {
+    privileges.require(http, InternalCallerAuth.PRIVILEGE_PAYMENT_SESSIONS, "get");
     return paymentSessionRepository
         .findById(sessionId)
         .map(PaymentSessionController::toResponse)

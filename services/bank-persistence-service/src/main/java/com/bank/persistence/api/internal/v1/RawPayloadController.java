@@ -1,10 +1,12 @@
 package com.bank.persistence.api.internal.v1;
 
 import com.bank.common.error.ServiceErrors;
+import com.bank.common.security.internal.InternalCallerAuth;
 import com.bank.persistence.adapter.persistence.RawPayloadEntity;
 import com.bank.persistence.adapter.persistence.RawPayloadRepository;
 import com.bank.persistence.config.RawPayloadRetentionProperties;
 import com.bank.persistence.crypto.RawPayloadEncryptionService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -34,21 +36,25 @@ public class RawPayloadController {
   private final RawPayloadEncryptionService encryptionService;
   private final RawPayloadRetentionProperties retentionProperties;
   private final ServiceErrors serviceErrors;
+  private final PrivilegeGuard privileges;
 
   public RawPayloadController(
       RawPayloadRepository rawPayloadRepository,
       RawPayloadEncryptionService encryptionService,
       RawPayloadRetentionProperties retentionProperties,
-      ServiceErrors serviceErrors) {
+      ServiceErrors serviceErrors,
+      PrivilegeGuard privileges) {
     this.serviceErrors = serviceErrors;
     this.rawPayloadRepository = rawPayloadRepository;
     this.encryptionService = encryptionService;
     this.retentionProperties = retentionProperties;
+    this.privileges = privileges;
   }
 
   @PostMapping
   public ResponseEntity<RawPayloadSummaryResponse> create(
-      @Valid @RequestBody CreateRawPayloadRequest request) {
+      HttpServletRequest http, @Valid @RequestBody CreateRawPayloadRequest request) {
+    privileges.require(http, InternalCallerAuth.PRIVILEGE_RAW_PAYLOAD_WRITE, "create");
     Instant now = Instant.now();
     RawPayloadEntity entity = new RawPayloadEntity();
     entity.setPayloadId(UUID.randomUUID().toString());
@@ -71,7 +77,8 @@ public class RawPayloadController {
   }
 
   @GetMapping("/{payloadId}")
-  public RawPayloadResponse get(@PathVariable String payloadId) {
+  public RawPayloadResponse get(HttpServletRequest http, @PathVariable String payloadId) {
+    privileges.require(http, InternalCallerAuth.PRIVILEGE_RAW_PAYLOAD_DECRYPT, "get");
     RawPayloadEntity entity =
         rawPayloadRepository
             .findById(payloadId)
@@ -89,7 +96,9 @@ public class RawPayloadController {
   }
 
   @GetMapping
-  public List<RawPayloadSummaryResponse> byJobId(@RequestParam String jobId) {
+  public List<RawPayloadSummaryResponse> byJobId(
+      HttpServletRequest http, @RequestParam String jobId) {
+    privileges.require(http, InternalCallerAuth.PRIVILEGE_RAW_PAYLOAD_WRITE, "byJobId");
     return rawPayloadRepository.findByJobId(jobId).stream()
         .map(RawPayloadController::toSummary)
         .toList();

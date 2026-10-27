@@ -14,7 +14,9 @@ public record DownstreamProperties(
     @NotBlank @Size(min = 16) String providerAdapterInternalKey,
     @NotNull URI authorizationServiceBaseUrl,
     @NotNull URI leadServiceBaseUrl,
+    @NotBlank @Size(min = 16) String leadServiceInternalKey,
     @NotNull URI customerServiceBaseUrl,
+    @NotBlank @Size(min = 16) String customerServiceInternalKey,
     @NotBlank String leadMode,
     @NotBlank String customerMode,
     @NotBlank @Size(min = 16) String authorizationServiceInternalKey) {
@@ -27,6 +29,9 @@ public record DownstreamProperties(
    */
   public static final String AUTHORIZATION_INTERNAL_KEY_HEADER = "X-Internal-Service-Key";
 
+  /** Shared header name for lead-service and customer-service inbound keys (SUG-20261027-iah). */
+  public static final String INTERNAL_SERVICE_KEY_HEADER = "X-Internal-Service-Key";
+
   @Override
   public String toString() {
     return "DownstreamProperties[providerAdapterBaseUrl="
@@ -35,9 +40,9 @@ public record DownstreamProperties(
         + authorizationServiceBaseUrl
         + ", leadServiceBaseUrl="
         + leadServiceBaseUrl
-        + ", customerServiceBaseUrl="
+        + ", leadServiceInternalKey=redacted, customerServiceBaseUrl="
         + customerServiceBaseUrl
-        + ", leadMode="
+        + ", customerServiceInternalKey=redacted, leadMode="
         + leadMode
         + ", customerMode="
         + customerMode

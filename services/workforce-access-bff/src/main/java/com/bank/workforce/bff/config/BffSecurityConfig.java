@@ -27,7 +27,8 @@ public class BffSecurityConfig {
   SecurityFilterChain bffSecurityFilterChain(
       HttpSecurity http,
       BffSessionAuthenticationFilter sessionFilter,
-      BffSessionAuthenticationEntryPoint entryPoint)
+      BffSessionAuthenticationEntryPoint entryPoint,
+      WorkforceSessionProperties sessionProperties)
       throws Exception {
     CookieCsrfTokenRepository csrf = CookieCsrfTokenRepository.withHttpOnlyFalse();
     csrf.setCookieName("WORKFORCE-XSRF");
@@ -36,7 +37,8 @@ public class BffSecurityConfig {
             configurer ->
                 configurer
                     .csrfTokenRepository(csrf)
-                    .ignoringRequestMatchers(BffSessionCredentials::skipsCsrf))
+                    .ignoringRequestMatchers(
+                        request -> BffSessionCredentials.skipsCsrf(request, sessionProperties)))
         .exceptionHandling(handling -> handling.authenticationEntryPoint(entryPoint))
         .authorizeHttpRequests(
             authorize ->

@@ -1,5 +1,6 @@
 package com.bank.persistence.support;
 
+import com.bank.common.security.internal.InternalCallerAuth;
 import com.bank.persistence.config.InternalAuthProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcBuilderCustomizer;
 import org.springframework.stereotype.Component;
@@ -7,9 +8,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.ConfigurableMockMvcBuilder;
 
 /**
- * Test-only: every auto-configured MockMvc request carries the internal service key, so the API
- * tests exercise the controllers as 1SB does. {@code InternalServiceAuthFilterTest} builds its own
- * MockMvc without this default to prove the refusal path.
+ * Test-only: every auto-configured MockMvc request carries the local-test key (all privileges) so
+ * API tests exercise controllers. Auth-filter tests use onesb / wrong keys explicitly.
  */
 @Component
 public class InternalKeyMockMvcCustomizer implements MockMvcBuilderCustomizer {
@@ -22,8 +22,10 @@ public class InternalKeyMockMvcCustomizer implements MockMvcBuilderCustomizer {
 
   @Override
   public void customize(ConfigurableMockMvcBuilder<?> builder) {
-    builder.defaultRequest(
-        MockMvcRequestBuilders.get("/")
-            .header(InternalAuthProperties.HEADER, properties.sharedSecret()));
+    String key =
+        properties.callers().containsKey("local-test")
+            ? properties.callers().get("local-test")
+            : properties.callers().values().iterator().next();
+    builder.defaultRequest(MockMvcRequestBuilders.get("/").header(InternalCallerAuth.HEADER, key));
   }
 }

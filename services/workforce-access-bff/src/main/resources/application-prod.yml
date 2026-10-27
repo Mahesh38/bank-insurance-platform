@@ -4,6 +4,8 @@ workforce:
   downstream:
     provider-adapter-internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET}
     authorization-service-internal-key: ${IDENTITY_AUTHZ_BFF_INTERNAL_KEY}
+    lead-service-internal-key: ${LEAD_BFF_INTERNAL_KEY}
+    customer-service-internal-key: ${CUSTOMER_BFF_INTERNAL_KEY}
     lead-mode: http
     customer-mode: http
   session:

@@ -1,8 +1,6 @@
 package com.bank.identity.authz.config;
 
-import jakarta.validation.constraints.NotEmpty;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
+import com.bank.common.security.internal.InternalCallerCredentials;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -10,61 +8,49 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * Caller authentication for {@code /internal/v1/**} (READINESS-REVIEW §3.7: this service had none).
- *
- * <p>Same {@code X-Internal-Service-Key} scheme as identity-provider-adapter-service, but one key
- * per caller so the service knows <em>which</em> caller it is talking to. That is what lets it
- * refuse {@code X-Actor-Id} from anyone but the BFF: only callers listed in {@code actorCallers}
- * may assert a human maker or checker.
+ * Caller authentication and privilege grants for {@code /internal/v1/**} (SUG-20261027-iah /
+ * READINESS-REVIEW §3.7).
  *
  * @param callers caller id → shared key (each at least 16 characters)
  * @param actorCallers caller ids allowed to set {@code X-Actor-Id}
+ * @param privileges caller id → privilege codes ({@code *} allowed)
  */
 @Validated
 @ConfigurationProperties("identity.internal-auth")
 public record InternalAuthProperties(
-    @NotEmpty Map<String, String> callers, Set<String> actorCallers) {
-
-  public static final String HEADER = "X-Internal-Service-Key";
-  static final int MIN_KEY_LENGTH = 16;
+    Map<String, String> callers, Set<String> actorCallers, Map<String, Set<String>> privileges) {
 
   public InternalAuthProperties {
     callers = callers == null ? Map.of() : Map.copyOf(callers);
     actorCallers = actorCallers == null ? Set.of() : Set.copyOf(actorCallers);
-    callers.forEach(
-        (caller, key) -> {
-          if (key == null || key.length() < MIN_KEY_LENGTH) {
-            throw new IllegalArgumentException(
-                "identity.internal-auth.callers."
-                    + caller
-                    + " must be at least "
-                    + MIN_KEY_LENGTH
-                    + " characters");
-          }
-        });
+    privileges = privileges == null ? Map.of() : Map.copyOf(privileges);
+  }
+
+  public InternalCallerCredentials credentials() {
+    return new InternalCallerCredentials(callers, actorCallers, privileges);
   }
 
   /** The caller whose key matches, compared in constant time against every configured key. */
   public Optional<String> authenticate(String presented) {
-    if (presented == null || presented.isBlank()) {
-      return Optional.empty();
-    }
-    byte[] candidate = presented.getBytes(StandardCharsets.UTF_8);
-    String matched = null;
-    for (Map.Entry<String, String> entry : callers.entrySet()) {
-      if (MessageDigest.isEqual(entry.getValue().getBytes(StandardCharsets.UTF_8), candidate)) {
-        matched = entry.getKey();
-      }
-    }
-    return Optional.ofNullable(matched);
+    return credentials().authenticate(presented);
   }
 
   public boolean mayAssertActor(String caller) {
-    return caller != null && actorCallers.contains(caller);
+    return credentials().mayAssertActor(caller);
+  }
+
+  public boolean hasPrivilege(String caller, String privilege) {
+    return credentials().hasPrivilege(caller, privilege);
   }
 
   @Override
   public String toString() {
-    return "InternalAuthProperties[callers=" + callers.keySet() + ", keys=redacted]";
+    return "InternalAuthProperties[callers="
+        + callers.keySet()
+        + ", actorCallers="
+        + actorCallers
+        + ", privileges="
+        + privileges.keySet()
+        + ", keys=redacted]";
   }
 }

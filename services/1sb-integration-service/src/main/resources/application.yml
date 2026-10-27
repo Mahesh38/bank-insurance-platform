@@ -11,7 +11,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       show-details: when-authorized
@@ -33,6 +33,9 @@ insurance:
     schema-cache-ttl-seconds: ${INSURANCE_PROPOSALS_SCHEMA_CACHE_TTL_SECONDS:3600}
   payments:
     session-ttl-seconds: ${INSURANCE_PAYMENTS_SESSION_TTL_SECONDS:3600}
+    allowed-redirect-uri-prefixes:
+      - https://bank.example/
+      - https://bank.com/
 
 # Platform common persistence HTTP client (bank-persistence-service)
 bank:
@@ -57,8 +60,20 @@ apigee:
   connect-timeout-ms: ${APIGEE_CONNECT_TIMEOUT_MS:3000}
   read-timeout-ms: ${APIGEE_READ_TIMEOUT_MS:30000}
 
-# 1SB outbound client configuration
+# 1SB outbound client configuration + inbound caller auth for /v1/**
 onesb:
+  internal-auth:
+    callers:
+      integration-hub-service: ${ONESB_HUB_INTERNAL_KEY:local-onesb-hub-internal-key}
+      workforce-access-bff: ${ONESB_BFF_INTERNAL_KEY:local-onesb-bff-internal-key}
+      local-test: ${ONESB_LOCAL_TEST_INTERNAL_KEY:local-onesb-test-internal-key}
+    privileges:
+      integration-hub-service:
+        - "*"
+      workforce-access-bff:
+        - "*"
+      local-test:
+        - "*"
   client:
     base-url: ${ONESB_BASE_URL:https://demo.api.1silverbullet.tech}
     connect-timeout-ms: ${ONESB_CONNECT_TIMEOUT_MS:3000}

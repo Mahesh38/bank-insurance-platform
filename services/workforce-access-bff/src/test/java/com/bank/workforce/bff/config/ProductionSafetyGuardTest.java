@@ -109,7 +109,9 @@ class ProductionSafetyGuardTest {
         "local-idp-adapter-internal-key",
         uri,
         uri,
+        "local-lead-bff-internal-key",
         uri,
+        "local-customer-bff-internal-key",
         leadMode,
         customerMode,
         "local-authz-bff-internal-key");

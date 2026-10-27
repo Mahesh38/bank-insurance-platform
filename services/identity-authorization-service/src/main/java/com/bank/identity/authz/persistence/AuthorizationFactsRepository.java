@@ -25,6 +25,23 @@ public class AuthorizationFactsRepository {
     this.jdbc = jdbc;
   }
 
+  /** Active {@code role_code} values from {@code user_role} (not permission expansion). */
+  public Set<String> findRoleCodes(UUID userId, Instant now) {
+    return Set.copyOf(
+        jdbc.sql(
+                """
+                select distinct ur.role_code
+                  from user_role ur
+                 where ur.user_id = :userId
+                   and ur.valid_from <= :now
+                   and (ur.valid_until is null or ur.valid_until > :now)
+                """)
+            .param("userId", userId)
+            .param("now", Timestamp.from(now))
+            .query(String.class)
+            .list());
+  }
+
   /** Empty when the subject is not a known business user; the PDP denies rather than failing. */
   public Optional<Facts> load(UUID userId, Instant now) {
     BusinessUserEntity user = users.findById(userId).orElse(null);

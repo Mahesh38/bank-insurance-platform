@@ -11,15 +11,15 @@ import com.bank.platform.lead.domain.ExceptionOutcome;
 import com.bank.platform.lead.domain.Lead;
 import com.bank.platform.lead.domain.LeadActivityPort.MeetingType;
 import com.bank.platform.lead.domain.LeadExceptionEvidencePort.DecisionKind;
+import com.bank.platform.lead.domain.SubjectProfilePort;
+import com.bank.platform.lead.domain.SubjectProfilePort.SubjectProfile;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,18 +36,28 @@ import org.springframework.web.bind.annotation.RestController;
 public class LeadController {
 
   private final LeadApplicationService leads;
+  private final SubjectProfilePort profiles;
+  private final ActorGuard actors;
   private final ServiceErrors errors;
 
-  public LeadController(LeadApplicationService leads, ServiceErrors errors) {
+  public LeadController(
+      LeadApplicationService leads,
+      SubjectProfilePort profiles,
+      ActorGuard actors,
+      ServiceErrors errors) {
     this.leads = leads;
+    this.profiles = profiles;
+    this.actors = actors;
     this.errors = errors;
   }
 
   @PostMapping
   public ResponseEntity<LeadResponse> create(
+      HttpServletRequest httpRequest,
       @RequestHeader("X-Actor-Id") String actorId,
       @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey,
       @Valid @RequestBody CreateLeadRequest request) {
+    String actor = actors.requireActorId(httpRequest, actorId, "create");
     Lead lead =
         leads.create(
             new CreateLeadCommand(
@@ -55,18 +65,20 @@ public class LeadController {
                 request.lob(),
                 request.productClass(),
                 request.branchId(),
-                actorId),
+                actor),
             idempotencyKey);
     return ResponseEntity.status(HttpStatus.CREATED).body(LeadResponse.from(lead));
   }
 
   @GetMapping
   public LeadPageResponse list(
+      HttpServletRequest httpRequest,
       @RequestHeader("X-Actor-Id") String actorId,
       @RequestParam(name = "owner", defaultValue = "me") String owner,
       @RequestParam(required = false) String customerId,
       @RequestParam(required = false) String productClass,
       @RequestParam(defaultValue = "false") boolean unfinished) {
+    String actor = actors.requireActorId(httpRequest, actorId, "list");
     if (!"me".equals(owner)) {
       throw errors
           .error(ErrorCodes.INVALID_REQUEST)
@@ -76,7 +88,7 @@ public class LeadController {
           .build();
     }
     List<LeadResponse> items =
-        leads.listVisible(actorId, customerId, productClass, unfinished).stream()
+        leads.listVisible(actor, customerId, productClass, unfinished).stream()
             .map(LeadResponse::from)
             .toList();
     return new LeadPageResponse(items, null);
@@ -84,85 +96,90 @@ public class LeadController {
 
   @GetMapping("/{leadId}")
   public LeadResponse get(
-      @RequestHeader("X-Actor-Id") String actorId, @PathVariable String leadId) {
-    return LeadResponse.from(leads.getVisible(leadId, actorId));
+      HttpServletRequest httpRequest,
+      @RequestHeader("X-Actor-Id") String actorId,
+      @PathVariable String leadId) {
+    String actor = actors.requireActorId(httpRequest, actorId, "get");
+    return LeadResponse.from(leads.getVisible(leadId, actor));
   }
 
   @PostMapping("/{leadId}/onboarding")
   public LeadResponse startOnboarding(
-      @RequestHeader("X-Actor-Id") String actorId, @PathVariable String leadId) {
-    return LeadResponse.from(leads.startOnboarding(leadId, actorId));
+      HttpServletRequest httpRequest,
+      @RequestHeader("X-Actor-Id") String actorId,
+      @PathVariable String leadId) {
+    String actor = actors.requireActorId(httpRequest, actorId, "startOnboarding");
+    return LeadResponse.from(leads.startOnboarding(leadId, actor));
   }
 
   @PostMapping("/{leadId}/assignments")
   public LeadResponse assign(
+      HttpServletRequest httpRequest,
       @RequestHeader("X-Actor-Id") String actorId,
       @PathVariable String leadId,
       @Valid @RequestBody AssignLeadRequest request) {
+    String actor = actors.requireActorId(httpRequest, actorId, "assign");
     return LeadResponse.from(
         leads.assign(
             new AssignLeadCommand(
                 leadId,
                 request.assignedRmId(),
                 request.assignedSpId(),
-                actorId,
+                actor,
                 request.note(),
                 request.meeting() == null ? null : request.meeting().toIntent())));
   }
 
   @PostMapping("/{leadId}/close")
   public LeadResponse close(
-      @RequestHeader("X-Actor-Id") String actorId, @PathVariable String leadId) {
-    return LeadResponse.from(leads.close(leadId, actorId));
+      HttpServletRequest httpRequest,
+      @RequestHeader("X-Actor-Id") String actorId,
+      @PathVariable String leadId) {
+    String actor = actors.requireActorId(httpRequest, actorId, "close");
+    return LeadResponse.from(leads.close(leadId, actor));
   }
 
   /**
    * E6: final approval of an exception hold by a bank approver; the hold clears and assignment may
-   * proceed. {@code X-Actor-Type} and {@code X-Actor-Roles} are set by the BFF from the session.
+   * proceed. User type and roles come from identity-authorization profile — never from request
+   * headers.
    */
   @PostMapping("/{leadId}/exception-hold:release")
   public LeadResponse releaseExceptionHold(
+      HttpServletRequest httpRequest,
       @RequestHeader("X-Actor-Id") String actorId,
-      @RequestHeader(name = "X-Actor-Type", required = false) String actorType,
-      @RequestHeader(name = "X-Actor-Roles", required = false) String actorRoles,
       @PathVariable String leadId,
       @Valid @RequestBody ExceptionDecisionRequest request) {
-    return decide(leadId, DecisionKind.APPROVED, actorId, actorType, actorRoles, request);
+    return decide(httpRequest, leadId, DecisionKind.APPROVED, actorId, request);
   }
 
   /** E6: rejection — the lead is blocked for good and closes (BRD §8.8). */
   @PostMapping("/{leadId}/exception-hold:reject")
   public LeadResponse rejectExceptionHold(
+      HttpServletRequest httpRequest,
       @RequestHeader("X-Actor-Id") String actorId,
-      @RequestHeader(name = "X-Actor-Type", required = false) String actorType,
-      @RequestHeader(name = "X-Actor-Roles", required = false) String actorRoles,
       @PathVariable String leadId,
       @Valid @RequestBody ExceptionDecisionRequest request) {
-    return decide(leadId, DecisionKind.REJECTED, actorId, actorType, actorRoles, request);
+    return decide(httpRequest, leadId, DecisionKind.REJECTED, actorId, request);
   }
 
   private LeadResponse decide(
+      HttpServletRequest httpRequest,
       String leadId,
       DecisionKind kind,
       String actorId,
-      String actorType,
-      String actorRoles,
       ExceptionDecisionRequest request) {
-    Set<String> roles =
-        actorRoles == null
-            ? Set.of()
-            : Arrays.stream(actorRoles.split(","))
-                .map(String::strip)
-                .filter(r -> !r.isEmpty())
-                .collect(Collectors.toSet());
+    String operation = kind == DecisionKind.APPROVED ? "releaseHold" : "rejectHold";
+    String actor = actors.requireActorId(httpRequest, actorId, operation);
+    SubjectProfile profile = profiles.load(actor);
     return LeadResponse.from(
         leads.decideException(
             new ExceptionDecisionCommand(
                 leadId,
                 kind,
-                actorId,
-                actorType,
-                roles,
+                actor,
+                profile.userType(),
+                profile.roleCodes(),
                 request.remarks(),
                 request.decisionRef())));
   }

@@ -2,8 +2,10 @@ package com.bank.persistence.api.internal.v1;
 
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.ServiceErrors;
+import com.bank.common.security.internal.InternalCallerAuth;
 import com.bank.persistence.adapter.persistence.AuditEventEntity;
 import com.bank.persistence.adapter.persistence.AuditEventRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -44,15 +46,19 @@ public class AuditEventController {
 
   private final AuditEventRepository auditEventRepository;
   private final ServiceErrors errors;
+  private final PrivilegeGuard privileges;
 
-  public AuditEventController(AuditEventRepository auditEventRepository, ServiceErrors errors) {
+  public AuditEventController(
+      AuditEventRepository auditEventRepository, ServiceErrors errors, PrivilegeGuard privileges) {
     this.auditEventRepository = auditEventRepository;
     this.errors = errors;
+    this.privileges = privileges;
   }
 
   @PostMapping
   public ResponseEntity<AuditEventResponse> append(
-      @Valid @RequestBody CreateAuditEventRequest request) {
+      HttpServletRequest http, @Valid @RequestBody CreateAuditEventRequest request) {
+    privileges.require(http, InternalCallerAuth.PRIVILEGE_AUDIT_APPEND, "append");
     String eventId = request.eventId() != null ? request.eventId() : UUID.randomUUID().toString();
     Optional<AuditEventEntity> existing = auditEventRepository.findById(eventId);
     if (existing.isPresent()) {
@@ -81,7 +87,9 @@ public class AuditEventController {
   }
 
   @GetMapping
-  public List<AuditEventResponse> byResourceId(@RequestParam String resourceId) {
+  public List<AuditEventResponse> byResourceId(
+      HttpServletRequest http, @RequestParam String resourceId) {
+    privileges.require(http, InternalCallerAuth.PRIVILEGE_AUDIT_READ, "byResourceId");
     return auditEventRepository.findByResourceIdOrderByEventTimeAsc(resourceId).stream()
         .map(AuditEventController::toResponse)
         .toList();

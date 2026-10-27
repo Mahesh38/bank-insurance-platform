@@ -26,8 +26,10 @@ public class RuleEngineConfig {
       RestClient.Builder builder,
       @Value("${lead.rule-sets.base-url}") String baseUrl,
       @Value("${lead.rule-sets.timeout:300ms}") Duration timeout,
-      @Value("${lead.rule-sets.cache-ttl:60s}") Duration cacheTtl) {
-    return new CachingRuleSetResolver(new HttpRuleSetResolver(builder, baseUrl, timeout), cacheTtl);
+      @Value("${lead.rule-sets.cache-ttl:60s}") Duration cacheTtl,
+      @Value("${lead.rule-sets.internal-key:}") String internalKey) {
+    return new CachingRuleSetResolver(
+        new HttpRuleSetResolver(builder, baseUrl, timeout, internalKey), cacheTtl);
   }
 
   @Bean

@@ -1,6 +1,10 @@
 insurance:
   secrets:
     source: PROPERTIES
+  payments:
+    allowed-redirect-uri-prefixes:
+      - https://bank.example/
+      - https://bank.com/
 
 bank:
   persistence:
@@ -12,6 +16,12 @@ onesb:
   api-key: test-api-key
   api-secret: test-api-secret
   distributor-id: TEST_DIST
+  internal-auth:
+    callers:
+      local-test: local-onesb-test-internal-key
+    privileges:
+      local-test:
+        - "*"
   client:
     base-url: http://localhost:9
     connect-timeout-ms: 3000

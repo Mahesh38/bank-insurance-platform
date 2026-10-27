@@ -12,7 +12,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:
@@ -27,3 +27,13 @@ bank:
     service-id: integration-hub
     layer: L5
     boundary: INTERNAL
+
+integrationhub:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${INTEGRATIONHUB_BFF_INTERNAL_KEY:local-integrationhub-bff-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"

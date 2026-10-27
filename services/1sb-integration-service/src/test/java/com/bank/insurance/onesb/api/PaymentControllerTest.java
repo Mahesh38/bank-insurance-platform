@@ -17,9 +17,11 @@ import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.PlatformErrorAutoConfiguration;
 import com.bank.common.error.ServiceErrorResponse;
 import com.bank.common.error.ServiceException;
+import com.bank.insurance.onesb.config.PaymentProperties;
 import com.bank.insurance.onesb.domain.port.inbound.PaymentUseCase;
 import com.bank.insurance.onesb.domain.port.outbound.IdempotencyPort;
 import java.time.Instant;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,15 @@ class PaymentControllerTest {
   @MockBean private PaymentUseCase paymentUseCase;
 
   @MockBean private IdempotencyPort idempotencyPort;
+
+  @MockBean private PaymentProperties paymentProperties;
+
+  @BeforeEach
+  void allowConfiguredRedirects() {
+    when(paymentProperties.isAllowedRedirectUrl(
+            org.mockito.ArgumentMatchers.startsWith("https://bank.")))
+        .thenReturn(true);
+  }
 
   private static final String VALID_BODY =
       """
@@ -111,6 +122,21 @@ class PaymentControllerTest {
                                   "premiumFrequency": "YEARLY"
                                 }
                                 """))
+        .andExpect(status().isUnprocessableEntity())
+        .andExpect(jsonPath("$.code", is(ErrorCodes.VALIDATION_ERROR)));
+
+    verify(paymentUseCase, never()).createPaymentSession(any());
+  }
+
+  @Test
+  void createPaymentSession_evilRedirect_returns422() throws Exception {
+    mockMvc
+        .perform(
+            post("/v1/payments")
+                .header("Idempotency-Key", "idem-evil")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    VALID_BODY.replace("https://bank.com/return", "https://evil.example/phish")))
         .andExpect(status().isUnprocessableEntity())
         .andExpect(jsonPath("$.code", is(ErrorCodes.VALIDATION_ERROR)));
 

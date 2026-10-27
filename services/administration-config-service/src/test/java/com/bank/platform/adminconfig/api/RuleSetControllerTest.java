@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bank.platform.adminconfig.adapter.authorization.StubSubjectProfileAdapter;
 import com.bank.platform.adminconfig.application.SeedImportService;
 import com.bank.platform.adminconfig.domain.RuleSetVersion;
 import com.bank.platform.adminconfig.domain.RuleSetVersionRepository;
@@ -16,6 +17,10 @@ import com.bank.rules.engine.RuleSetSeeds;
 import com.bank.rules.engine.Values;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -39,6 +44,12 @@ class RuleSetControllerTest {
   @Autowired private JdbcTemplate jdbc;
   @Autowired private RuleSetVersionRepository repository;
   @Autowired private SeedImportService seeds;
+  @Autowired private StubSubjectProfileAdapter profiles;
+
+  @BeforeEach
+  void clearProfiles() {
+    profiles.clear();
+  }
 
   /** The HUB.ROUTING seed re-identified so each test owns its rule set and domain. */
   private static ObjectNode routing(String ruleSetId, String version, String effectiveFrom) {
@@ -78,14 +89,19 @@ class RuleSetControllerTest {
 
   private ResultActions action(String id, String v, String verb, String actor, String roles)
       throws Exception {
+    if (roles != null) {
+      Set<String> roleCodes =
+          Arrays.stream(roles.split(","))
+              .map(String::strip)
+              .filter(s -> !s.isEmpty())
+              .collect(Collectors.toUnmodifiableSet());
+      profiles.seed(actor, "BANK_EMPLOYEE", roleCodes);
+    }
     var req =
         post(BASE + id + "/versions/" + v + ":" + verb)
             .header("X-Actor-Id", actor)
             .contentType(MediaType.APPLICATION_JSON)
             .content("{\"remarks\":\"checked\"}");
-    if (roles != null) {
-      req.header("X-Actor-Roles", roles);
-    }
     return mvc.perform(req);
   }
 
@@ -233,10 +249,8 @@ class RuleSetControllerTest {
     ObjectNode doc = routing("T.REJECT", "1.0.0", "2026-11-01T00:00:00+05:30");
     create(doc, "maker-1").andExpect(status().isCreated());
     action("T.REJECT", "1.0.0", "submit", "maker-1", null).andExpect(status().isOk());
-    mvc.perform(
-            post(BASE + "T.REJECT/versions/1.0.0:reject")
-                .header("X-Actor-Id", "checker-1")
-                .header("X-Actor-Roles", "CONFIG_APPROVER"))
+    profiles.seed("checker-1", "BANK_EMPLOYEE", Set.of("CONFIG_APPROVER"));
+    mvc.perform(post(BASE + "T.REJECT/versions/1.0.0:reject").header("X-Actor-Id", "checker-1"))
         .andExpect(status().isUnprocessableEntity())
         .andExpect(jsonPath("$.code").value("MISSING_REQUIRED_FIELD"));
     action("T.REJECT", "1.0.0", "reject", "checker-1", "CONFIG_APPROVER")

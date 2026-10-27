@@ -1,6 +1,9 @@
 package com.bank.insurance.onesb.api;
 
 import com.bank.common.domain.PaymentSession;
+import com.bank.common.error.ErrorCodes;
+import com.bank.common.error.ServiceErrors;
+import com.bank.insurance.onesb.config.PaymentProperties;
 import com.bank.insurance.onesb.domain.command.CreatePaymentCommand;
 import com.bank.insurance.onesb.domain.port.inbound.PaymentUseCase;
 import jakarta.validation.Valid;
@@ -15,7 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Bank payment API — {@code POST /v1/payments} (FUNC-007). Idempotency-Key required via {@code
- * IdempotencyFilter}.
+ * IdempotencyFilter}. Redirect URL allowlist is enforced here (SUG-20261027-iah) so application
+ * stays free of config imports.
  */
 @RestController
 @RequestMapping("/v1/payments")
@@ -25,9 +29,16 @@ public class PaymentController {
   public static final String IDEMPOTENCY_HEADER = "Idempotency-Key";
 
   private final PaymentUseCase paymentUseCase;
+  private final PaymentProperties paymentProperties;
+  private final ServiceErrors serviceErrors;
 
-  public PaymentController(PaymentUseCase paymentUseCase) {
+  public PaymentController(
+      PaymentUseCase paymentUseCase,
+      PaymentProperties paymentProperties,
+      ServiceErrors serviceErrors) {
     this.paymentUseCase = paymentUseCase;
+    this.paymentProperties = paymentProperties;
+    this.serviceErrors = serviceErrors;
   }
 
   @PostMapping
@@ -35,6 +46,15 @@ public class PaymentController {
       @Valid @RequestBody CreatePaymentRequest request,
       @RequestHeader(value = IDEMPOTENCY_HEADER, required = false) String idempotencyKey,
       @RequestHeader(value = ACTOR_HEADER, required = false) String actorId) {
+
+    if (!paymentProperties.isAllowedRedirectUrl(request.redirectUrl())) {
+      throw serviceErrors
+          .error(ErrorCodes.VALIDATION_ERROR)
+          .component("PaymentController")
+          .operation("createPaymentSession")
+          .reason("redirectUrl is not an allowed bank return URI")
+          .build();
+    }
 
     CreatePaymentCommand command = toCommand(request, actorId);
     PaymentSession session = paymentUseCase.createPaymentSession(command);

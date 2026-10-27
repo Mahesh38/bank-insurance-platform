@@ -30,7 +30,13 @@ public class HttpCustomerGateway implements CustomerGateway {
       ProblemJsonReader problemJsonReader,
       ServiceErrors serviceErrors) {
     this.client =
-        restClient.mutate().baseUrl(properties.customerServiceBaseUrl().toString()).build();
+        restClient
+            .mutate()
+            .baseUrl(properties.customerServiceBaseUrl().toString())
+            .defaultHeader(
+                DownstreamProperties.INTERNAL_SERVICE_KEY_HEADER,
+                properties.customerServiceInternalKey())
+            .build();
     this.problemJsonReader = problemJsonReader;
     this.serviceErrors = serviceErrors;
   }

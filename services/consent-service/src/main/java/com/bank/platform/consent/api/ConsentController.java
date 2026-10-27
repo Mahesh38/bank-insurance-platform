@@ -12,6 +12,7 @@ import com.bank.platform.consent.application.ConsentTypes.VerifyCommand;
 import com.bank.platform.consent.application.ReadConsent;
 import com.bank.platform.consent.application.VerifyConsent;
 import com.bank.platform.consent.application.WithdrawConsent;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -39,6 +40,7 @@ public class ConsentController {
   private final WithdrawConsent withdrawals;
   private final ReadConsent reads;
   private final IdempotentExecutor idempotency;
+  private final ActorGuard actors;
 
   public ConsentController(
       CheckConsent checks,
@@ -46,13 +48,15 @@ public class ConsentController {
       VerifyConsent verifications,
       WithdrawConsent withdrawals,
       ReadConsent reads,
-      IdempotentExecutor idempotency) {
+      IdempotentExecutor idempotency,
+      ActorGuard actors) {
     this.checks = checks;
     this.captures = captures;
     this.verifications = verifications;
     this.withdrawals = withdrawals;
     this.reads = reads;
     this.idempotency = idempotency;
+    this.actors = actors;
   }
 
   @GetMapping("/consents:check")
@@ -67,10 +71,12 @@ public class ConsentController {
 
   @PostMapping("/consents")
   public ResponseEntity<String> capture(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
       @RequestHeader(value = "Idempotency-Key", required = false) String key,
       @Valid @RequestBody CaptureBody body) {
+    String actor = actors.requireActorId(request, actorId, "capture");
     return idempotency.execute(
         key,
         body,
@@ -88,7 +94,7 @@ public class ConsentController {
                             body.insurerCode(),
                             body.channel(),
                             body.language()),
-                        actorId,
+                        actor,
                         correlationId)));
   }
 
@@ -106,11 +112,13 @@ public class ConsentController {
 
   @PostMapping("/consent-challenges/{challengeId}/verify")
   public ResponseEntity<String> verify(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
       @RequestHeader(value = "Idempotency-Key", required = false) String key,
       @PathVariable String challengeId,
       @Valid @RequestBody VerifyBody body) {
+    String actor = actors.requireActorId(request, actorId, "verify");
     return idempotency.execute(
         key,
         body,
@@ -134,38 +142,44 @@ public class ConsentController {
                                             item.statementVersion(),
                                             item.affirmedAt()))
                                 .toList()),
-                    actorId,
+                    actor,
                     correlationId)));
   }
 
   @PostMapping("/consent-challenges/{challengeId}/otp:resend")
   public ResponseEntity<String> resend(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
       @RequestHeader(value = "Idempotency-Key", required = false) String key,
       @PathVariable String challengeId) {
+    String actor = actors.requireActorId(request, actorId, "resend");
     return idempotency.execute(
         key,
         challengeId,
-        () -> ResponseEntity.ok(verifications.resend(challengeId, actorId, correlationId)));
+        () -> ResponseEntity.ok(verifications.resend(challengeId, actor, correlationId)));
   }
 
   @GetMapping("/consents/{consentId}")
   public ConsentView consent(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @PathVariable String consentId,
       @RequestParam(required = false) String customerId,
       @RequestParam(required = false) String journeyId) {
-    return reads.get(consentId, customerId, actorId, journeyId);
+    String actor = actors.requireActorId(request, actorId, "consent");
+    return reads.get(consentId, customerId, actor, journeyId);
   }
 
   @PostMapping("/consents/{consentId}/withdrawals")
   public ResponseEntity<String> withdraw(
+      HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
       @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
       @RequestHeader(value = "Idempotency-Key", required = false) String key,
       @PathVariable String consentId,
       @Valid @RequestBody WithdrawalBody body) {
+    String actor = actors.requireActorId(request, actorId, "withdraw");
     return idempotency.execute(
         key,
         body,
@@ -173,7 +187,7 @@ public class ConsentController {
             ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                     withdrawals.start(
-                        consentId, body.channel(), body.reasonCode(), actorId, correlationId)));
+                        consentId, body.channel(), body.reasonCode(), actor, correlationId)));
   }
 
   public record CaptureBody(

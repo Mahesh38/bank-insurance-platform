@@ -3,6 +3,8 @@ package com.bank.workforce.bff.api;
 import com.bank.workforce.bff.application.CountryCodeCatalog;
 import com.bank.workforce.bff.application.CountryCodeCatalog.CountryCode;
 import com.bank.workforce.bff.application.CountryCodeCatalog.MobileValidationResult;
+import com.bank.workforce.bff.client.PolicyDecisionClient;
+import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -18,27 +20,34 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReferenceDataController {
 
   private final CountryCodeCatalog countryCodes;
+  private final PolicyDecisionClient authorization;
 
-  public ReferenceDataController(CountryCodeCatalog countryCodes) {
+  public ReferenceDataController(
+      CountryCodeCatalog countryCodes, PolicyDecisionClient authorization) {
     this.countryCodes = countryCodes;
+    this.authorization = authorization;
   }
 
   @GetMapping("/country-codes")
   public List<CountryCode> countryCodes(HttpServletRequest request) {
-    BffSessionInterceptor.requireSession(request);
+    WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "reference.read", "reference", "country-codes", null, false);
     return countryCodes.list();
   }
 
   @PostMapping("/mobile-numbers:validate")
   public MobileValidationResult validateMobile(
       HttpServletRequest request, @Valid @RequestBody MobileValidationRequest body) {
-    BffSessionInterceptor.requireSession(request);
+    WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(
+        session, "reference.read", "reference", "mobile-numbers:validate", null, false);
     return countryCodes.validate(body.countryCode(), body.nationalNumber());
   }
 
   @GetMapping("/catalogue/product-classes")
   public ProductClassPage productClasses(HttpServletRequest request) {
-    BffSessionInterceptor.requireSession(request);
+    WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "reference.read", "reference", "product-classes", null, false);
     return new ProductClassPage(
         List.of(
             new ProductClass("LIFE", "TERM", "Term Life"),

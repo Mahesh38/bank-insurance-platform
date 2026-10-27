@@ -33,8 +33,17 @@ identity:
     callers:
       workforce-access-bff: ${IDENTITY_AUTHZ_BFF_INTERNAL_KEY:local-authz-bff-internal-key}
       lead-service: ${IDENTITY_AUTHZ_LEAD_INTERNAL_KEY:local-authz-lead-internal-key}
+      administration-config-service: ${IDENTITY_AUTHZ_ADMIN_CONFIG_INTERNAL_KEY:local-authz-admin-config-internal-key}
     actor-callers:
       - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"
+      lead-service:
+        - authorization.decide
+        - identities.profile
+      administration-config-service:
+        - identities.profile
   provider-adapter:
     base-url: ${IDENTITY_PROVIDER_ADAPTER_BASE_URL:http://localhost:8082}
     internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET:local-idp-adapter-internal-key}
@@ -67,7 +76,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:

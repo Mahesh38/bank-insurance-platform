@@ -1,6 +1,7 @@
 package com.bank.platform.lead.api;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -10,8 +11,11 @@ import com.bank.platform.lead.adapter.rules.SampleRuleSets;
 import com.bank.platform.lead.domain.LeadAuthorizationPort;
 import com.bank.platform.lead.domain.LeadAuthorizationPort.AuthorizationDecision;
 import com.bank.platform.lead.domain.LeadExceptionFactsPort;
+import com.bank.platform.lead.domain.SubjectProfilePort;
+import com.bank.platform.lead.domain.SubjectProfilePort.SubjectProfile;
 import com.bank.rules.client.RuleSetResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -52,6 +56,7 @@ class LeadExceptionApprovalFlowTest {
   @Autowired MockMvc mockMvc;
   @Autowired ObjectMapper objectMapper;
   @MockitoBean LeadAuthorizationPort authorization;
+  @MockitoBean SubjectProfilePort profiles;
 
   @BeforeEach
   void pdpAllows() {
@@ -68,19 +73,23 @@ class LeadExceptionApprovalFlowTest {
         .andExpect(jsonPath("$.exceptionOutcome").value("APPROVAL_REQUIRED"))
         .andExpect(jsonPath("$.exceptionHold").value(true));
 
-    decide(leadId, "release", "INSURER_PARTNER_REP", "BANK_ADMIN", "ok")
+    stubProfile("partner-1", "INSURER_PARTNER_REP", "BANK_ADMIN");
+    decide(leadId, "release", "partner-1", "ok")
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.code").value("FORBIDDEN"));
-    decide(leadId, "release", "BANK_EMPLOYEE", "BANK_ADMIN", "")
-        .andExpect(status().isUnprocessableEntity());
-    decide(leadId, "release", "BANK_EMPLOYEE", "BRANCH_MANAGER", "ok")
-        .andExpect(status().isForbidden());
 
-    decide(leadId, "release", "BANK_EMPLOYEE", "BANK_ADMIN", "Approved: long relationship")
+    stubProfile("approver-empty", "BANK_EMPLOYEE", "BANK_ADMIN");
+    decide(leadId, "release", "approver-empty", "").andExpect(status().isUnprocessableEntity());
+
+    stubProfile("approver-wrong", "BANK_EMPLOYEE", "BRANCH_MANAGER");
+    decide(leadId, "release", "approver-wrong", "ok").andExpect(status().isForbidden());
+
+    stubProfile("approver-1", "BANK_EMPLOYEE", "BANK_ADMIN");
+    decide(leadId, "release", "approver-1", "Approved: long relationship")
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.exceptionHold").value(false))
         .andExpect(jsonPath("$.exceptionOutcome").value("APPROVAL_REQUIRED"));
-    decide(leadId, "reject", "BANK_EMPLOYEE", "BANK_ADMIN", "too late")
+    decide(leadId, "reject", "approver-1", "too late")
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.code").value("ILLEGAL_TRANSITION"));
 
@@ -101,7 +110,8 @@ class LeadExceptionApprovalFlowTest {
         .perform(post("/internal/v1/leads/" + leadId + "/onboarding").header("X-Actor-Id", "rm-9"))
         .andExpect(status().isOk());
 
-    decide(leadId, "reject", "BANK_EMPLOYEE", "BANK_ADMIN", "Rejected: policy")
+    stubProfile("approver-1", "BANK_EMPLOYEE", "BANK_ADMIN");
+    decide(leadId, "reject", "approver-1", "Rejected: policy")
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("DISQUALIFIED"))
         .andExpect(jsonPath("$.exceptionOutcome").value("BLOCK"));
@@ -114,6 +124,10 @@ class LeadExceptionApprovalFlowTest {
         .perform(post("/internal/v1/leads/" + leadId + "/onboarding").header("X-Actor-Id", "rm-9"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.exceptionOutcome").value("PASS"));
+  }
+
+  private void stubProfile(String actorId, String userType, String role) {
+    when(profiles.load(eq(actorId))).thenReturn(new SubjectProfile(userType, Set.of(role)));
   }
 
   private String create(String customerId) throws Exception {
@@ -133,12 +147,10 @@ class LeadExceptionApprovalFlowTest {
   }
 
   private org.springframework.test.web.servlet.ResultActions decide(
-      String leadId, String verb, String actorType, String roles, String remarks) throws Exception {
+      String leadId, String verb, String actorId, String remarks) throws Exception {
     return mockMvc.perform(
         post("/internal/v1/leads/" + leadId + "/exception-hold:" + verb)
-            .header("X-Actor-Id", "approver-1")
-            .header("X-Actor-Type", actorType)
-            .header("X-Actor-Roles", roles)
+            .header("X-Actor-Id", actorId)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(java.util.Map.of("remarks", remarks))));
   }

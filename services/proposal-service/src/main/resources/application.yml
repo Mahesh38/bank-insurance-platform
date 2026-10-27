@@ -24,6 +24,14 @@ spring:
 
 # DB-DEC-0005 — working proposal in DynamoDB until payment (schemas/20-dynamodb-working-payload.md).
 proposal:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${PROPOSAL_BFF_INTERNAL_KEY:local-proposal-bff-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"
   working-store:
     table-name: ${PROPOSAL_WORKING_TABLE:local-proposal-working}
     region: ${AWS_REGION:ap-south-1}
@@ -58,7 +66,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:

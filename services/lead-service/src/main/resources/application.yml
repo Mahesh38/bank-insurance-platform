@@ -26,7 +26,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:
@@ -37,6 +37,14 @@ logging:
     com.bank.platform.lead: INFO
 
 lead:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${LEAD_BFF_INTERNAL_KEY:local-lead-bff-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"
   authorization:
     # INV-ACT-01: Lead re-asks the PDP before create / assign. S-02 budget, fail closed.
     base-url: ${IDENTITY_AUTHORIZATION_BASE_URL:http://localhost:8083}
@@ -59,6 +67,8 @@ lead:
     # prod / uat); "classpath" = the unapproved seeds in libs/bank-rule-engine, local and test only.
     source: ${LEAD_RULE_SETS_SOURCE:classpath}
     base-url: ${ADMINISTRATION_CONFIG_BASE_URL:http://localhost:8104}
+    # Caller key for administration-config-service /internal/v1 (caller "lead-service").
+    internal-key: ${ADMIN_CONFIG_LEAD_INTERNAL_KEY:local-admin-config-lead-internal-key}
     timeout: 300ms
     cache-ttl: 60s
   # Ageing sweep (E7). The horizon itself is rule set LEAD.POLICY (expiryDays per lob); only the

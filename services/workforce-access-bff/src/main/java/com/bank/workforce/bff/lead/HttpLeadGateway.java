@@ -28,7 +28,14 @@ public class HttpLeadGateway implements LeadGateway {
       DownstreamProperties properties,
       ProblemJsonReader problemJsonReader,
       ServiceErrors serviceErrors) {
-    this.client = restClient.mutate().baseUrl(properties.leadServiceBaseUrl().toString()).build();
+    this.client =
+        restClient
+            .mutate()
+            .baseUrl(properties.leadServiceBaseUrl().toString())
+            .defaultHeader(
+                DownstreamProperties.INTERNAL_SERVICE_KEY_HEADER,
+                properties.leadServiceInternalKey())
+            .build();
     this.problemJsonReader = problemJsonReader;
     this.serviceErrors = serviceErrors;
   }

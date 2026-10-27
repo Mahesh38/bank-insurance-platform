@@ -32,6 +32,7 @@ class HttpRuleSetResolverTest {
   private final AtomicReference<String> body = new AtomicReference<>();
   private final AtomicReference<Integer> status = new AtomicReference<>(200);
   private final AtomicReference<String> lastUri = new AtomicReference<>();
+  private final AtomicReference<String> lastInternalKey = new AtomicReference<>();
   private volatile long delayMs;
   private HttpRuleSetResolver resolver;
 
@@ -42,6 +43,7 @@ class HttpRuleSetResolverTest {
         "/",
         ex -> {
           lastUri.set(ex.getRequestURI().toString());
+          lastInternalKey.set(ex.getRequestHeaders().getFirst("X-Internal-Service-Key"));
           try {
             Thread.sleep(delayMs);
           } catch (InterruptedException e) {
@@ -91,8 +93,22 @@ class HttpRuleSetResolverTest {
     assertThat(lastUri.get())
         .startsWith(
             "/internal/v1/rule-sets:resolve?domain=HUB_ROUTING&lob=LIFE&productClass=TERM&asOf=");
+    assertThat(lastInternalKey.get()).isNull();
     assertThat(resolver.version("HUB.ROUTING", "1.0.0").version()).isEqualTo("1.0.0");
     assertThat(lastUri.get()).isEqualTo("/internal/v1/rule-sets/HUB.ROUTING/versions/1.0.0");
+  }
+
+  @Test
+  void sendsOptionalInternalKeyWhenConfigured() {
+    body.set(envelope("PUBLISHED").toString());
+    HttpRuleSetResolver withKey =
+        new HttpRuleSetResolver(
+            RestClient.builder(),
+            "http://127.0.0.1:" + server.getAddress().getPort(),
+            Duration.ofSeconds(3),
+            "local-admin-config-lead-internal-key");
+    withKey.resolve(QUERY);
+    assertThat(lastInternalKey.get()).isEqualTo("local-admin-config-lead-internal-key");
   }
 
   @Test

@@ -12,7 +12,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:
@@ -27,3 +27,13 @@ bank:
     service-id: direct-insurer
     layer: L5
     boundary: INTERNAL
+
+directinsurer:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${DIRECTINSURER_BFF_INTERNAL_KEY:local-directinsurer-bff-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"

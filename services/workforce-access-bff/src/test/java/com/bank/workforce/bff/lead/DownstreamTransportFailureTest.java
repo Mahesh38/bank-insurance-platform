@@ -44,7 +44,9 @@ class DownstreamTransportFailureTest {
             "local-idp-adapter-internal-key",
             dead,
             dead,
+            "local-lead-bff-internal-key",
             dead,
+            "local-customer-bff-internal-key",
             "http",
             "http",
             "local-authz-bff-internal-key");
@@ -88,7 +90,9 @@ class DownstreamTransportFailureTest {
               "local-idp-adapter-internal-key",
               base,
               base,
+              "local-lead-bff-internal-key",
               base,
+              "local-customer-bff-internal-key",
               "http",
               "http",
               "local-authz-bff-internal-key");

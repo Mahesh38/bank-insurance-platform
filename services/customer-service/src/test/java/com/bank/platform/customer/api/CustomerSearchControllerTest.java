@@ -22,17 +22,16 @@ class CustomerSearchControllerTest {
   void searchWithoutActorIsRefused() throws Exception {
     mockMvc
         .perform(get("/internal/v1/customers/search").param("by", "PAN").param("q", "ABCDE1234F"))
-        .andExpect(status().isUnprocessableEntity())
-        .andExpect(jsonPath("$.code").value("MISSING_REQUIRED_FIELD"))
-        .andExpect(jsonPath("$.errors[0].field").value("X-Actor-Id"));
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
   }
 
   @Test
   void getWithoutActorIsRefused() throws Exception {
     mockMvc
         .perform(get("/internal/v1/customers/CUST-3210"))
-        .andExpect(status().isUnprocessableEntity())
-        .andExpect(jsonPath("$.code").value("MISSING_REQUIRED_FIELD"));
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
   }
 
   @Test

@@ -12,7 +12,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:
@@ -27,3 +27,13 @@ bank:
     service-id: reporting
     layer: L5
     boundary: INTERNAL
+
+reporting:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${REPORTING_BFF_INTERNAL_KEY:local-reporting-bff-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"

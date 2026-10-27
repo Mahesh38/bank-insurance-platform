@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(project(":libs:bank-common-error"))
+    implementation(project(":libs:bank-common-security"))
     implementation(project(":libs:bank-common-observability"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")

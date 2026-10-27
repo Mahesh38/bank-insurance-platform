@@ -767,9 +767,8 @@ public class LeadApplicationService {
   }
 
   /**
-   * An exception decision. {@code actorType} and {@code actorRoles} are asserted by the BFF from
-   * the session (headers {@code X-Actor-Type}, {@code X-Actor-Roles}); the PDP check is independent
-   * of both.
+   * An exception decision. {@code actorType} and {@code actorRoles} come from
+   * identity-authorization profile (not request headers); the PDP check is independent of both.
    */
   public record ExceptionDecisionCommand(
       String leadId,

@@ -7,6 +7,7 @@ import com.bank.platform.quotation.application.QuoteWorkingStateService.ReleaseR
 import com.bank.platform.quotation.domain.QuoteState;
 import com.bank.platform.quotation.domain.SelectedPremium;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -89,31 +90,36 @@ public class QuoteInternalController {
       String quoteId, QuoteState state, boolean paymentInFlight, boolean released) {}
 
   private final QuoteWorkingStateService quotes;
+  private final ActorGuard actors;
   private final ServiceErrors errors;
 
-  public QuoteInternalController(QuoteWorkingStateService quotes, ServiceErrors errors) {
+  public QuoteInternalController(
+      QuoteWorkingStateService quotes, ActorGuard actors, ServiceErrors errors) {
     this.quotes = quotes;
+    this.actors = actors;
     this.errors = errors;
   }
 
   @PostMapping("/{quoteId}/payment-hold")
   public SelectedOfferResponse holdForPayment(
+      HttpServletRequest httpRequest,
       @PathVariable String quoteId,
       @RequestHeader(value = "X-Actor-Id", required = false) String actorId,
       @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
       @Valid @RequestBody PaymentHoldRequest request) {
-    requireHeaders("holdForPayment", quoteId, actorId, idempotencyKey);
+    String actor = requireHeaders(httpRequest, "holdForPayment", quoteId, actorId, idempotencyKey);
     return SelectedOfferResponse.hold(
-        quotes.holdForPayment(quoteId, request.paymentId(), request.offerId(), actorId));
+        quotes.holdForPayment(quoteId, request.paymentId(), request.offerId(), actor));
   }
 
   @PostMapping("/{quoteId}/payment-release")
   public ReleaseResponse releasePaymentHold(
+      HttpServletRequest httpRequest,
       @PathVariable String quoteId,
       @RequestHeader(value = "X-Actor-Id", required = false) String actorId,
       @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
       @Valid @RequestBody PaymentReleaseRequest request) {
-    requireHeaders("releasePaymentHold", quoteId, actorId, idempotencyKey);
+    requireHeaders(httpRequest, "releasePaymentHold", quoteId, actorId, idempotencyKey);
     ReleaseResult result = quotes.releasePaymentHold(quoteId, request.paymentId());
     return new ReleaseResponse(
         quoteId, result.quote().state(), result.quote().paymentInFlight(), result.released());
@@ -129,8 +135,12 @@ public class QuoteInternalController {
     return SelectedOfferResponse.legacy(quotes.markPaymentInFlight(quoteId));
   }
 
-  private void requireHeaders(
-      String operation, String quoteId, String actorId, String idempotencyKey) {
+  private String requireHeaders(
+      HttpServletRequest request,
+      String operation,
+      String quoteId,
+      String actorId,
+      String idempotencyKey) {
     if (idempotencyKey == null || idempotencyKey.isBlank()) {
       throw errors
           .error(ErrorCodes.MISSING_IDEMPOTENCY_KEY)
@@ -138,12 +148,14 @@ public class QuoteInternalController {
           .operation(operation)
           .build();
     }
-    if (actorId == null || actorId.isBlank() || actorId.length() > 64) {
+    String actor = actors.requireActorId(request, actorId, operation);
+    if (actor.length() > 64) {
       throw invalid(operation, "X-Actor-Id is required (<= 64 chars)");
     }
     if (!quoteId.matches(ULID)) {
       throw invalid(operation, "quoteId must be a ULID");
     }
+    return actor;
   }
 
   private RuntimeException invalid(String operation, String reason) {

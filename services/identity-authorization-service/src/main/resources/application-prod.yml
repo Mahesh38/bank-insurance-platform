@@ -16,6 +16,17 @@ identity:
     callers:
       workforce-access-bff: ${IDENTITY_AUTHZ_BFF_INTERNAL_KEY}
       lead-service: ${IDENTITY_AUTHZ_LEAD_INTERNAL_KEY}
+      administration-config-service: ${IDENTITY_AUTHZ_ADMIN_CONFIG_INTERNAL_KEY}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"
+      lead-service:
+        - authorization.decide
+        - identities.profile
+      administration-config-service:
+        - identities.profile
   provider-adapter:
     internal-key: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET}
   # E5: partners are provisioned at creation, so production drains the provisioning outbox.

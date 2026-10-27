@@ -25,7 +25,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:
@@ -40,3 +40,13 @@ bank:
     service-id: suitability
     layer: L5
     boundary: INTERNAL
+
+suitability:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${SUITABILITY_BFF_INTERNAL_KEY:local-suitability-bff-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"

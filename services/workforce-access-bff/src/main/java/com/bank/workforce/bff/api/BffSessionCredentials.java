@@ -33,15 +33,36 @@ public final class BffSessionCredentials {
   }
 
   /**
-   * Cookie-only browser calls keep CSRF. Header or Bearer session transport is not cookie CSRF
-   * (SEC-C1) — {@code Authorization: Basic} does not skip.
+   * CSRF is never skipped when a session cookie is present (browser path). Skip only for Bearer (or
+   * {@code X-Session-Handle}) when no session cookie is present (SUG-20261027-iah). {@code
+   * Authorization: Basic} does not skip.
    */
-  public static boolean skipsCsrf(HttpServletRequest request) {
-    String header = request.getHeader("X-Session-Handle");
-    if (header != null && !header.isBlank()) {
-      return true;
+  public static boolean skipsCsrf(
+      HttpServletRequest request, WorkforceSessionProperties properties) {
+    if (hasSessionCookie(request, properties)) {
+      return false;
     }
     String authorization = request.getHeader("Authorization");
-    return authorization != null && authorization.regionMatches(true, 0, "Bearer ", 0, 7);
+    if (authorization != null && authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
+      return true;
+    }
+    String header = request.getHeader("X-Session-Handle");
+    return header != null && !header.isBlank();
+  }
+
+  private static boolean hasSessionCookie(
+      HttpServletRequest request, WorkforceSessionProperties properties) {
+    Cookie[] cookies = request.getCookies();
+    if (cookies == null) {
+      return false;
+    }
+    for (Cookie cookie : cookies) {
+      if (properties.cookieName().equals(cookie.getName())
+          && cookie.getValue() != null
+          && !cookie.getValue().isBlank()) {
+        return true;
+      }
+    }
+    return false;
   }
 }

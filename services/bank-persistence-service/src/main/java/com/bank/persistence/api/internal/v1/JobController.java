@@ -1,12 +1,14 @@
 package com.bank.persistence.api.internal.v1;
 
 import com.bank.common.error.ServiceErrors;
+import com.bank.common.security.internal.InternalCallerAuth;
 import com.bank.persistence.adapter.persistence.IntegrationJobEntity;
 import com.bank.persistence.adapter.persistence.IntegrationJobOfferEntity;
 import com.bank.persistence.adapter.persistence.IntegrationJobOfferRepository;
 import com.bank.persistence.adapter.persistence.IntegrationJobRepository;
 import com.bank.persistence.adapter.persistence.JobPollAttemptEntity;
 import com.bank.persistence.adapter.persistence.JobPollAttemptRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
@@ -29,20 +31,29 @@ public class JobController {
   private final IntegrationJobOfferRepository offerRepository;
   private final JobPollAttemptRepository pollAttemptRepository;
   private final ServiceErrors serviceErrors;
+  private final PrivilegeGuard privileges;
 
   public JobController(
       IntegrationJobRepository jobRepository,
       IntegrationJobOfferRepository offerRepository,
       JobPollAttemptRepository pollAttemptRepository,
-      ServiceErrors serviceErrors) {
+      ServiceErrors serviceErrors,
+      PrivilegeGuard privileges) {
     this.serviceErrors = serviceErrors;
     this.jobRepository = jobRepository;
     this.offerRepository = offerRepository;
     this.pollAttemptRepository = pollAttemptRepository;
+    this.privileges = privileges;
+  }
+
+  private void requireJobs(HttpServletRequest http, String operation) {
+    privileges.require(http, InternalCallerAuth.PRIVILEGE_JOBS, operation);
   }
 
   @PostMapping
-  public ResponseEntity<JobResponse> createJob(@Valid @RequestBody CreateJobRequest request) {
+  public ResponseEntity<JobResponse> createJob(
+      HttpServletRequest http, @Valid @RequestBody CreateJobRequest request) {
+    requireJobs(http, "createJob");
     Instant now = Instant.now();
     IntegrationJobEntity entity = new IntegrationJobEntity();
     entity.setJobId(UUID.randomUUID().toString());
@@ -62,7 +73,8 @@ public class JobController {
   }
 
   @GetMapping("/{jobId}")
-  public JobResponse getJob(@PathVariable String jobId) {
+  public JobResponse getJob(HttpServletRequest http, @PathVariable String jobId) {
+    requireJobs(http, "getJob");
     return jobRepository
         .findById(jobId)
         .map(JobController::toResponse)
@@ -71,7 +83,10 @@ public class JobController {
 
   @PatchMapping("/{jobId}/status")
   public JobResponse patchStatus(
-      @PathVariable String jobId, @Valid @RequestBody PatchJobStatusRequest request) {
+      HttpServletRequest http,
+      @PathVariable String jobId,
+      @Valid @RequestBody PatchJobStatusRequest request) {
+    requireJobs(http, "patchStatus");
     IntegrationJobEntity entity =
         jobRepository.findById(jobId).orElseThrow(() -> NotFound.of(serviceErrors, "Job", jobId));
 
@@ -94,7 +109,8 @@ public class JobController {
   }
 
   @GetMapping("/{jobId}/offers")
-  public List<OfferResponse> listOffers(@PathVariable String jobId) {
+  public List<OfferResponse> listOffers(HttpServletRequest http, @PathVariable String jobId) {
+    requireJobs(http, "listOffers");
     if (!jobRepository.existsById(jobId)) {
       throw NotFound.of(serviceErrors, "Job", jobId);
     }
@@ -103,7 +119,10 @@ public class JobController {
 
   @PostMapping("/{jobId}/offers")
   public ResponseEntity<OfferResponse> addOffer(
-      @PathVariable String jobId, @RequestBody CreateOfferRequest request) {
+      HttpServletRequest http,
+      @PathVariable String jobId,
+      @RequestBody CreateOfferRequest request) {
+    requireJobs(http, "addOffer");
     if (!jobRepository.existsById(jobId)) {
       throw NotFound.of(serviceErrors, "Job", jobId);
     }
@@ -131,7 +150,10 @@ public class JobController {
 
   @PostMapping("/{jobId}/poll-attempts")
   public ResponseEntity<PollAttemptResponse> addPollAttempt(
-      @PathVariable String jobId, @Valid @RequestBody CreatePollAttemptRequest request) {
+      HttpServletRequest http,
+      @PathVariable String jobId,
+      @Valid @RequestBody CreatePollAttemptRequest request) {
+    requireJobs(http, "addPollAttempt");
     if (!jobRepository.existsById(jobId)) {
       throw NotFound.of(serviceErrors, "Job", jobId);
     }
@@ -150,7 +172,9 @@ public class JobController {
   }
 
   @GetMapping("/{jobId}/poll-attempts")
-  public List<PollAttemptResponse> listPollAttempts(@PathVariable String jobId) {
+  public List<PollAttemptResponse> listPollAttempts(
+      HttpServletRequest http, @PathVariable String jobId) {
+    requireJobs(http, "listPollAttempts");
     if (!jobRepository.existsById(jobId)) {
       throw NotFound.of(serviceErrors, "Job", jobId);
     }

@@ -33,9 +33,20 @@ public final class HttpRuleSetResolver implements RuleSetResolver {
 
   public static final Duration DEFAULT_TIMEOUT = Duration.ofMillis(300);
 
+  private static final String INTERNAL_KEY_HEADER = "X-Internal-Service-Key";
+
   private final RestClient client;
 
   public HttpRuleSetResolver(RestClient.Builder builder, String baseUrl, Duration timeout) {
+    this(builder, baseUrl, timeout, null);
+  }
+
+  /**
+   * @param internalKey optional {@code X-Internal-Service-Key} for administration-config inbound
+   *     auth; blank or null leaves the header unset (local classpath seeds do not need it)
+   */
+  public HttpRuleSetResolver(
+      RestClient.Builder builder, String baseUrl, Duration timeout, String internalKey) {
     HttpClient httpClient =
         HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
@@ -43,7 +54,11 @@ public final class HttpRuleSetResolver implements RuleSetResolver {
             .build();
     JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
     factory.setReadTimeout(timeout);
-    this.client = builder.clone().requestFactory(factory).baseUrl(baseUrl).build();
+    RestClient.Builder configured = builder.clone().requestFactory(factory).baseUrl(baseUrl);
+    if (internalKey != null && !internalKey.isBlank()) {
+      configured = configured.defaultHeader(INTERNAL_KEY_HEADER, internalKey);
+    }
+    this.client = configured.build();
   }
 
   @Override

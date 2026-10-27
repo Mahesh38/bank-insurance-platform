@@ -18,13 +18,17 @@ class DownstreamPropertiesTest {
             "local-idp-adapter-internal-key",
             URI.create("http://authz.example.test"),
             URI.create("http://lead.example.test"),
+            "local-lead-bff-internal-key",
             URI.create("http://customer.example.test"),
+            "local-customer-bff-internal-key",
             "stub",
             "stub",
             "local-authz-bff-internal-key");
     assertThat(properties.toString())
         .contains("providerAdapterInternalKey=redacted")
         .contains("authorizationServiceInternalKey=redacted")
+        .contains("leadServiceInternalKey=redacted")
+        .contains("customerServiceInternalKey=redacted")
         .doesNotContain("local-idp-adapter-internal-key")
         .doesNotContain("local-authz-bff-internal-key");
   }

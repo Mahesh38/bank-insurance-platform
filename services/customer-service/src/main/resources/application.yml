@@ -25,7 +25,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       probes:
@@ -42,6 +42,14 @@ bank:
     boundary: INTERNAL
 
 customer:
+  internal-auth:
+    callers:
+      workforce-access-bff: ${CUSTOMER_BFF_INTERNAL_KEY:local-customer-bff-internal-key}
+    actor-callers:
+      - workforce-access-bff
+    privileges:
+      workforce-access-bff:
+        - "*"
   apigee:
     token-mode: ${CUSTOMER_APIGEE_TOKEN_MODE:stub}
     # UAT host is known (DEP-20260914-apg, 2026-10-08). Secrets stay in env. Default remains stub.

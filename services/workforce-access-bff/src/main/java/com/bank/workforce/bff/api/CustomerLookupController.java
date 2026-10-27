@@ -1,5 +1,6 @@
 package com.bank.workforce.bff.api;
 
+import com.bank.workforce.bff.client.PolicyDecisionClient;
 import com.bank.workforce.bff.customer.CustomerGateway;
 import com.bank.workforce.bff.customer.CustomerGateway.CustomerHit;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class CustomerLookupController {
 
   private final CustomerGateway customers;
+  private final PolicyDecisionClient authorization;
 
-  public CustomerLookupController(CustomerGateway customers) {
+  public CustomerLookupController(CustomerGateway customers, PolicyDecisionClient authorization) {
     this.customers = customers;
+    this.authorization = authorization;
   }
 
   @GetMapping("/customers:search")
@@ -29,6 +32,7 @@ public class CustomerLookupController {
       @RequestParam String q,
       @RequestParam(required = false) String countryCode) {
     WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "customer.search", "customer", null, null, false);
     List<CustomerHit> items = customers.search(by, q, countryCode, actorId(session));
     return new SearchPage(items);
   }
@@ -36,6 +40,7 @@ public class CustomerLookupController {
   @GetMapping("/customers/{customerId}")
   public CustomerHit get(HttpServletRequest request, @PathVariable String customerId) {
     WorkforceSession session = BffSessionInterceptor.requireSession(request);
+    authorization.require(session, "customer.read", "customer", customerId, null, false);
     return customers.get(customerId, actorId(session));
   }
 

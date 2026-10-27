@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.bank.platform.lead.domain.LeadAuthorizationPort;
 import com.bank.platform.lead.domain.LeadAuthorizationPort.AuthorizationDecision;
+import com.bank.platform.lead.domain.SubjectProfilePort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -34,6 +35,8 @@ class LeadControllerTest {
 
   // The PDP is another service; Lead's re-check is pinned to allow here (deny paths: unit tests).
   @MockitoBean LeadAuthorizationPort authorization;
+
+  @MockitoBean SubjectProfilePort profiles;
 
   @BeforeEach
   void pdpAllows() {

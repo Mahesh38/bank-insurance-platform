@@ -32,7 +32,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   endpoint:
     health:
       show-details: when-authorized
@@ -53,11 +53,18 @@ raw-payload:
   retention:
     years: ${RAW_PAYLOAD_RETENTION_YEARS:7}
 
-# Shared internal service key required on every /internal/v1/** call (InternalServiceAuthFilter).
-# The default is development-only; uat / prod have no default and must inject it.
+# Per-caller keys for /internal/v1/** (SUG-20261027-iah). Dev default matches 1sb's
+# BANK_PERSISTENCE_INTERNAL_KEY default so local boot keeps working.
 persistence:
   internal-auth:
-    shared-secret: ${PERSISTENCE_INTERNAL_SHARED_SECRET:local-persistence-internal-key}
+    callers:
+      onesb-integration-service: ${PERSISTENCE_ONESB_INTERNAL_KEY:${PERSISTENCE_INTERNAL_SHARED_SECRET:local-persistence-internal-key}}
+    privileges:
+      onesb-integration-service:
+        - jobs
+        - payment-sessions
+        - raw-payloads.write
+        - audit.append
 
 logging:
   level:

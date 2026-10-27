@@ -68,10 +68,10 @@ public class ConsentRecordEntity {
   @Column(name = "captured_at", nullable = false)
   private Instant capturedAt;
 
-  @Column(name = "otp_verified_at", nullable = false)
+  @Column(name = "otp_verified_at")
   private Instant otpVerifiedAt;
 
-  @Column(name = "otp_txn_id", nullable = false, length = 64)
+  @Column(name = "otp_txn_id", length = 64)
   private String otpTxnId;
 
   @Column(name = "source_ip", nullable = false, length = 64)

@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Minimal scaffold endpoint proving the service boots and exposes a bank-canonical route prefix.
- * Replace with real API controllers when the bounded context is implemented.
+ * Service identity for suitability. The seller journey lives on
+ * /internal/v1/suitability/assessments.
  */
 @RestController
 @RequestMapping("/internal/v1/suitability")
@@ -20,6 +20,6 @@ public class ServiceInfoController {
         Map.of(
             "service", "suitability-service",
             "boundedContext", "7",
-            "status", "SKELETON"));
+            "status", "IMPLEMENTED"));
   }
 }

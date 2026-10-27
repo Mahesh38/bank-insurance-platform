@@ -1,0 +1,33 @@
+{
+  "version": "INTERIM-BRD-22",
+  "products": [
+    {
+      "productId": "SAV-BAL-01",
+      "productType": "SAVINGS_PLAN",
+      "insurerCode": "INTERIM",
+      "name": "Interim savings plan",
+      "minAge": 18,
+      "maxAge": 60,
+      "lifeStages": ["Married"],
+      "risks": ["Balance"],
+      "goals": ["Saving and growing money"],
+      "occupations": ["Salaried"],
+      "educations": ["Graduate"],
+      "incomeBands": ["₹5L – ₹10L"]
+    },
+    {
+      "productId": "ULIP-RET-01",
+      "productType": "ULIP",
+      "insurerCode": "INTERIM",
+      "name": "Interim ULIP",
+      "minAge": 18,
+      "maxAge": 60,
+      "lifeStages": ["Married"],
+      "risks": ["High returns"],
+      "goals": ["Investing for higher returns"],
+      "occupations": ["Salaried"],
+      "educations": ["Graduate"],
+      "incomeBands": ["₹5L – ₹10L"]
+    }
+  ]
+}

@@ -25,11 +25,11 @@ class SuitabilityApplicationTest {
   void contextLoads() {}
 
   @Test
-  void infoReportsTheSkeleton() throws Exception {
+  void infoReportsTheService() throws Exception {
     mockMvc
         .perform(get("/internal/v1/suitability/info"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.service").value("suitability-service"))
-        .andExpect(jsonPath("$.status").value("SKELETON"));
+        .andExpect(jsonPath("$.status").value("IMPLEMENTED"));
   }
 }

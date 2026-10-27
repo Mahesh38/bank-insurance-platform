@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
 | SUG-20261027-iah | 2026-10-27 | human:repository-owner | Zero-tolerance fix of Board 4 AuthN/AuthZ findings: inbound service identity on unprotected APIs, least-privilege keys, PDP/actor binding, redirect allowlist, actuator/CSRF/rate-limit hardening | SF0 | SC0 | MUST | SEC | P1 / P1 | ADMITTED | [detail](#sug-20261027-iah--zero-tolerance-authnauthz-hardening) |
 | SUG-20261026-ur9 | 2026-10-26 | human:repository-owner | Raise coding standards further throughout development for all modules — enforce CODING-STANDARD via Checkstyle Naming, shared ArchUnit, maturity ladder (residual after cds) | SF5 | SC0 | SHOULD | GOV | P3 / P2 | CLOSED-DELIVERED | [EPIC-007](../../platform/ws3-platform/EPIC-007.work-item.yaml) · [detail](#sug-20261026-ur9--enforce-coding-standard-estate-wide) · related [cds](#sug-20261026-cds--platform-java-coding-standard) |
 | SUG-20261026-cds | 2026-10-26 | human:repository-owner | Adopt the important rules from the Spring Boot coding standard as this platform's Java standard, and refactor the tree to match it. | SF2 | SC1 | SHOULD | REFACTOR | P3 / P2 | CLOSED-DELIVERED | [CODING-STANDARD.md](../CODING-STANDARD.md) · [PR #158](https://github.com/Mahesh38/bank-insurance-platform/pull/158) · [detail](#sug-20261026-cds--platform-java-coding-standard) · residual [ur9](#sug-20261026-ur9--enforce-coding-standard-estate-wide) |
@@ -171,6 +172,43 @@ Row format:
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
 
+### SUG-20261027-brd · Suitability BRD current design
+
+```yaml
+id: SUG-20261027-brd
+raised_at: "2026-10-27"
+raised_by: "human:repository-owner"
+source: "Repository owner, twice: match the code 100% aligned with BRD. The pasted source is Jira AUIP-44 attachment 02. Suitability Module BRD - Updated.docx (shown 23 Oct 2026, 5:29 PM IST)."
+input: >
+  match the code 100% aligned with BRD.
+stage_fit: { code: SF3, rationale: "Current-design section 9.10 is journey behaviour on top of the consent and suitability services. The BRD is still Draft and its section 12 contradicts 9.10." }
+scope: { code: SC1, serves: "Savings Plan and ULIP suitability, and the customer quote-share consent link" }
+necessity: { now: MUST, future_necessity: MUST, target_stage: "R1 customer surface", evidence_tier: E1, confidence: C3 }
+action: ADMIT-BYPASS
+normal_recommendation: PARK
+bypass_authorised_by: "Mahesh / repository_owner (explicit: match the code 100% aligned with BRD)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  The standing recommendation is PARK. A public agree/disagree records CNS-QSH without a
+  customer-device OTP, which conflicts with CNS-R10, and the BRD approval rows are empty.
+  The owner directed implementation. Current-design sections 9.6 and 9.10 are the path that
+  was built. Section 12, BR-HANDOFF-001, AC-029 and KBR-16, which open Suitable Products
+  directly, were not implemented. Premium, premium paying term, policy term and the insurer
+  grid stay on interim rule INTERIM-BRD-22 because section 22 marks them TBD. The SMS and
+  email gateway is not connected. The public rate limit is per process and is not a WAF.
+classification: { type: FUNC, also: [SEC], breakdown: TASK, risk_tier: T3 }
+priority: { now: P2, at_target: P1 }
+risk: >
+  Public agree records CNS-QSH with acknowledgement SECURE_LINK_CUSTOMER_DEVICE and null OTP
+  columns. This does not waive CNS-R10 and does not mark the consent statement approved.
+  Disagree writes no consent_record row. GAP-006 stays open. Freshness check was WARN
+  (state_as_of is 27 days old; review_due 2026-10-28).
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261027-brd
+  status: ADMIT-BYPASS
+```
 
 ### SUG-20261027-iah · Zero-tolerance AuthN/AuthZ hardening
 

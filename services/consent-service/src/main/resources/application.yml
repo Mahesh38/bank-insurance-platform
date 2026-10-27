@@ -53,12 +53,22 @@ consent:
   internal-auth:
     callers:
       workforce-access-bff: ${CONSENT_BFF_INTERNAL_KEY:local-consent-bff-internal-key}
+      suitability-service: ${CONSENT_SUITABILITY_INTERNAL_KEY:local-consent-suitability-internal-key}
     actor-callers:
       - workforce-access-bff
+      - suitability-service
     privileges:
       workforce-access-bff:
+        - "*"
+      suitability-service:
         - "*"
   distributor-id: ${CONSENT_DISTRIBUTOR_ID:dist-local}
   field-key: ${CONSENT_FIELD_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
   key-id: ${CONSENT_FIELD_KEY_ID:local-dev}
   otp-pepper: ${CONSENT_OTP_PEPPER:local-otp-pepper}
+  link-pepper: ${CONSENT_LINK_PEPPER:local-link-pepper}
+  public-base-url: ${CONSENT_PUBLIC_BASE_URL:http://localhost:8092}
+  link-ttl-hours: ${CONSENT_LINK_TTL_HOURS:24}
+  link-max-issues-per-24h: ${CONSENT_LINK_MAX_ISSUES_PER_24H:5}
+  public-permits-per-minute: ${CONSENT_PUBLIC_PERMITS_PER_MINUTE:30}
+  public-permits-per-second: ${CONSENT_PUBLIC_PERMITS_PER_SECOND:100}

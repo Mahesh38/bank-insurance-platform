@@ -12,6 +12,7 @@ import com.bank.platform.consent.domain.ConsentRefusal;
 import com.bank.platform.consent.domain.ConsentRow;
 import com.bank.platform.consent.domain.FieldCipher;
 import com.bank.platform.consent.domain.PolicySnapshot;
+import com.bank.platform.consent.domain.QuoteShareStatement;
 import com.bank.platform.consent.domain.StatementDoc;
 import com.bank.platform.consent.domain.Ulids;
 import com.bank.rules.engine.Values;
@@ -113,6 +114,100 @@ class ConsentEvidence {
             now.plusMillis(1));
     consents.insert(granted);
     emitGranted(granted, "request", "request");
+    return consentId;
+  }
+
+  /**
+   * BRD 9.10 grant. The customer agreed on the secure link. There is no OTP transaction; the link
+   * token hash, source address and frozen statement are the evidence. A previous live grant for the
+   * same purpose is superseded in the same transaction.
+   */
+  String grantQuoteShare(
+      String customerId,
+      String leadId,
+      String journeyId,
+      byte[] contactEnc,
+      String keyId,
+      String sourceIp,
+      Instant now,
+      PolicySnapshot policy) {
+    ConsentRow previous = consents.head(customerId, QuoteShareStatement.PURPOSE, null).orElse(null);
+    String supersedes = null;
+    if (previous != null && "GRANTED".equals(previous.state())) {
+      consents.insert(
+          copyState(
+              previous, previous.recordVersion() + 1, "SUPERSEDED", previous.consentId(), now));
+      supersedes = previous.consentId();
+    }
+    PolicySnapshot.CheckpointRule rule = policy.checkpoint(QuoteShareStatement.CHECKPOINT);
+    String consentId = Ulids.mint(clock);
+    Instant until =
+        rule.validityDays() == null
+            ? null
+            : LocalDate.ofInstant(now, ZoneOffset.UTC)
+                .plusDays(rule.validityDays() + 1L)
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC);
+    ConsentRow granted =
+        new ConsentRow(
+            consentId,
+            1,
+            customerId,
+            leadId,
+            journeyId,
+            "LIFE",
+            QuoteShareStatement.PURPOSE,
+            null,
+            QuoteShareStatement.ID,
+            QuoteShareStatement.VERSION,
+            QuoteShareStatement.TEXT,
+            QuoteShareStatement.sha256(),
+            "en-IN",
+            "RM_ASSISTED",
+            QuoteShareStatement.ACK,
+            QuoteShareStatement.CHECKPOINT,
+            "GRANTED",
+            now,
+            null,
+            null,
+            sourceIp,
+            contactEnc,
+            keyId,
+            "customer-link",
+            now,
+            until,
+            supersedes,
+            null,
+            null,
+            null,
+            null,
+            null,
+            policy.versionRef(),
+            now.plusMillis(1));
+    consents.insert(granted);
+    EventEnvelope event =
+        EventEnvelope.builder()
+            .clock(clock)
+            .eventType("ConsentGranted")
+            .source("consent")
+            .aggregate("CONSENT", consentId)
+            .journeyId(journeyId)
+            .leadId(leadId)
+            .actor(Actor.of("customer-link", "CUSTOMER", null))
+            .traceId("consent-link")
+            .correlationId("consent-link")
+            .configVersionRef(policy.versionRef())
+            .data("consentId", consentId)
+            .data("customerId", customerId)
+            .data("purpose", QuoteShareStatement.PURPOSE)
+            .data("checkpoint", QuoteShareStatement.CHECKPOINT)
+            .data("statementVersion", QuoteShareStatement.VERSION)
+            .data(
+                "validUntil",
+                until == null ? null : until.truncatedTo(ChronoUnit.MILLIS).toString())
+            .build();
+    outbox.append(
+        event.eventId(), "CONSENT", consentId, event.eventType(), codec.encode(event), now);
     return consentId;
   }
 

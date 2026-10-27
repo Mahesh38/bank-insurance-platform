@@ -1,0 +1,123 @@
+# schema: work-item
+id: EPIC-008
+title: "Bank-side LifeSave / Savings quote stitch — Journey → Quotation → Hub → 1SB"
+type: FUNC
+also: [ARCH]
+breakdown: EPIC
+workstream: WS-3
+origin: ["SUG-20261028-qst"]
+owner: "Amit — Technical Head (R3); lane ws3-quote-stitch"
+risk_tier: T3
+state: READY
+priority_now: P2
+priority_at_target: P1
+target_stage: "S08/S09 Foundation Recovery (R0 quote path)"
+unpark_trigger: null
+
+outcome: >
+  After a lead exists and suitability is usable for productClass SAVINGS, the bank
+  path can create and poll a LifeSave quote (premium + PT + PPT), store working
+  state in quotation-service, route through integration-hub to 1sb-integration,
+  and advance journey-orchestration QUOTING → QUOTE_SELECTED on offer selection.
+
+epic_triggers_met:
+  - multiple_stories
+  - multiple_components
+  - multiple_acceptance_outcomes
+
+completion_definition: >
+  End-to-end internal path proven with tests: Journey POST .../quotes → Quotation
+  createQuote (C1 suitability re-check + BEFORE_MULTI_QUOTE) → Hub POST /v1/quotes
+  → 1SB LifeSave submit/poll → Quotation getQuote returns bank-canonical offers →
+  Journey selection moves stage to QUOTE_SELECTED. Attribution never caller-supplied.
+  No 1SB wire codes leak above the Hub.
+
+not_included:
+  - "Proposal, payment, policy issuance"
+  - "Full suitability engine / multi-insurer catalogue (SUG-20260904-eng)"
+  - "Hub-owned bank-language masters for BFF dropdowns (SUG-20260913-hms)"
+  - "RM Workspace BFF / Flutter quote screens (S11)"
+  - "direct-insurer-adapter path"
+  - "Editing GATE-S08 stage_status / current_phase"
+
+stories:
+  - id: FUNC-032
+    title: "integration-hub quote submit/poll forwards to 1sb-integration"
+    state: READY
+    priority_now: P2
+    priority_at_target: P1
+  - id: FUNC-033
+    title: "quotation createQuote + getQuote (C1, Hub dispatch, offer ingest)"
+    state: READY
+    priority_now: P2
+    priority_at_target: P1
+  - id: FUNC-034
+    title: "journey-orchestration quotes + selection stage transitions"
+    state: READY
+    priority_now: P2
+    priority_at_target: P1
+  - id: FUNC-035
+    title: "Savings/LifeSave field path: premium + PT + PPT bank→Hub→1SB"
+    state: READY
+    priority_now: P2
+    priority_at_target: P1
+
+story_order:
+  - FUNC-032
+  - FUNC-033
+  - FUNC-034
+  - FUNC-035
+
+serves:
+  - "R0-ASSISTED-LIFE-SALE"
+  - "CR-015 Term + Savings + ULIP"
+  - "SUG-20261028-qst"
+  - "SUG-20261021-lft / ddb (quotation working state already partial)"
+
+problem: >
+  Quotation, journey-orchestration and integration-hub are not yet stitched for
+  create/get/select quote. 1SB Saving quote submit/poll exists; quotation has
+  Dynamo working-state helpers only. An RM cannot ask "premium X, PT Y, PPT Z —
+  what quote do I get?" on the bank path after lead + suitability.
+
+description: >
+  Build the contracted hop for Life SAVINGS quotation. Hub is the only caller of
+  1sb-integration. Journey never calls Hub. Quotation re-checks suitability (C1)
+  and does not trust a journey flag. Savings maps to 1SB LifeSave
+  (/insurance/lifesave/v1/quote) with premium, policyTerm (PT) and
+  premiumPaymentTerm (PPT).
+
+acceptance_criteria:
+  - id: AC-1
+    given: "lead + usable suitability for SAVINGS + consent BEFORE_MULTI_QUOTE satisfied"
+    when: "Journey receives POST /internal/v1/journeys/{id}/quotes with premium, PT, PPT"
+    then: "Journey calls Quotation; stage becomes QUOTING; quoteId stored as journey_ref"
+  - id: AC-2
+    given: "Quotation accepted a createQuote"
+    when: "Hub and 1SB complete the LifeSave async quote"
+    then: "GET quote returns bank-canonical offers (premium, coverTerm/PT, ppt) without 1SB reqId"
+  - id: AC-3
+    given: "at least one selectable offer"
+    when: "Journey POST .../quotes/{quoteId}/selection"
+    then: "Quotation marks selectedOfferId; Journey stage becomes QUOTE_SELECTED"
+  - id: AC-4
+    given: "suitability not usable for productClass SAVINGS"
+    when: "createQuote is attempted"
+    then: "403 SUITABILITY_REQUIRED; journey stage unchanged; refusal audited"
+
+dependencies:
+  blocked_by: []
+  requires:
+    - "suitability evaluations:usable (thin endpoint or contract stub — HARD for AC-4/C1)"
+    - "consent BEFORE_MULTI_QUOTE (exists)"
+    - "1sb-integration Saving quote (exists)"
+  related_to:
+    - "SUG-20261027-iah (paused on this lane; still ADMITTED)"
+    - "SUG-20261021-lft"
+    - "SUG-20261021-ddb"
+
+evidence:
+  - "docs/platform/api-reference/interactions/journey-orchestration-pattern.md"
+  - "docs/platform/api-reference/interactions/domain-to-integration-hub.md"
+  - "docs/1sb-insurance-integration/field-guides/savings-quote.md"
+  - "docs/platform/contracts/quotation-service/openapi.yaml"

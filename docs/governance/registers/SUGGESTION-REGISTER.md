@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261028-qst | 2026-10-28 | human:repository-owner | Stitch quotation + journey-orchestration + integration-hub + 1sb-integration for bank-side LifeSave / Savings quote APIs after lead + suitability (premium, PT, PPT) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [EPIC-008](../../platform/ws3-platform/EPIC-008.work-item.yaml) · [detail](#sug-20261028-qst--lifesave-savings-quote-stitch) |
 | SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
 | SUG-20261027-iah | 2026-10-27 | human:repository-owner | Zero-tolerance fix of Board 4 AuthN/AuthZ findings: inbound service identity on unprotected APIs, least-privilege keys, PDP/actor binding, redirect allowlist, actuator/CSRF/rate-limit hardening | SF0 | SC0 | MUST | SEC | P1 / P1 | ADMITTED | [detail](#sug-20261027-iah--zero-tolerance-authnauthz-hardening) |
 | SUG-20261026-ur9 | 2026-10-26 | human:repository-owner | Raise coding standards further throughout development for all modules — enforce CODING-STANDARD via Checkstyle Naming, shared ArchUnit, maturity ladder (residual after cds) | SF5 | SC0 | SHOULD | GOV | P3 / P2 | CLOSED-DELIVERED | [EPIC-007](../../platform/ws3-platform/EPIC-007.work-item.yaml) · [detail](#sug-20261026-ur9--enforce-coding-standard-estate-wide) · related [cds](#sug-20261026-cds--platform-java-coding-standard) |
@@ -208,6 +209,135 @@ outcome:
   registered_in: "registers/SUGGESTION-REGISTER.md"
   work_item_id: SUG-20261027-brd
   status: ADMIT-BYPASS
+```
+
+### SUG-20261028-qst · LifeSave Savings quote stitch
+
+```yaml
+# schema: triage-record
+id: SUG-20261028-qst
+raised_at: "2026-10-28"
+raised_by: "human:repository-owner"
+source: "Owner ask: start stitching quotation, journey-orchestration, integration-hub, 1sb-integration for bank quotation APIs (LifeSave / Savings after lead + suitability)"
+input: >
+  Start working on the quotation service, orchestration service, integration hub
+  service, and the 1SB integration service. Start integrating and stitching all
+  the services. Complete the quotation APIs from the bank side. Scenario: lead
+  already created, suitability already done; customer wants a LifeSave / Savings
+  quote for a certain premium, PT and PPT — how do the services work together?
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation (S09 overlapped)"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261027-iah
+  freshness_disclosure: "FreshnessCheck exit 1 — state_as_of 27d; 04-STAGE_GATES.md stale"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    CURRENT-STATE WS-3 in_scope explicitly names Journey orchestration (#9) and
+    Quotation (#10) via the existing 1SB path. Standing hop is UI → BFF →
+    Journey → Quotation → Integration Hub → 1SB adapter. This is the R0 assisted
+    Life quote path, not a later LOB expansion.
+
+scope:
+  code: SC0
+  business_scope: "in scope — Quotation (#10), Journey (#9), Integration Hub (#14 via WS-1 supplier), 1SB Adapter (#15)"
+  serves: ["R0-ASSISTED-LIFE-SALE", "CR-015 Term+Savings+ULIP"]
+  failure_without_it: "RM cannot obtain a bank-side Savings quote after lead and suitability; R0 assisted sale cannot reach QUOTING"
+  minimal: true
+  authority: "CURRENT-STATE.yaml WS-3 in_scope; journey-orchestration-pattern; domain-to-integration-hub; savings-quote.md"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08/S09 Foundation Recovery → S11 assisted screens"
+  binds_when: "first assisted Life Savings quote on the bank path"
+  evidence_tier: E2
+  evidence:
+    - "WS-3 in_scope lists Quotation and Journey"
+    - "Contracts: quotation-service, journey-orchestration, integration-hub OpenAPI/LLD"
+    - "1sb-integration SavingQuoteHandler already on /insurance/lifesave/v1/quote"
+  confidence: C4
+  assumptions: ["ASM-014 quote-category common list (Hub masters) may stay deferred"]
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: >
+  SF1 × SC0 × MUST → ADMIT. Owner directed this lane to start stitching now.
+  Lane note: SUG-20261027-iah (P1 AuthN/AuthZ) remains ADMITTED; snapshot paused
+  while this epic is in flight per owner redirect (one WIP per lane).
+duplicate_of: null
+conflicts: []
+related:
+  - SUG-20261021-lft   # DynamoDB working state already partial in quotation
+  - SUG-20261021-ddb
+  - SUG-20261022-rdy
+  - SUG-20260913-acl   # no 1SB codes on UI/BFF; Hub hop
+
+classification:
+  type: FUNC
+  also: [ARCH]
+  breakdown: EPIC
+  epic: EPIC-008
+  risk_tier: T3
+  destination: "docs/platform/ws3-platform/EPIC-008.work-item.yaml"
+
+priority:
+  now: P2
+  at_target: P1
+  factors: { N: 4, S: 3, B: 3, R: 2, D: 1, E: 2 }
+  score: 20
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "On-stage R0 quote path; not a hard P1 exploit. Owner redirect over AuthN lane."
+
+dependencies:
+  edges:
+    - { id: DEP-suitability-usable, kind: HARD, on: "suitability-service evaluations:usable (skeleton today)" }
+    - { id: DEP-consent-before-quote, kind: SOFT, on: "consent-service BEFORE_MULTI_QUOTE (implemented)" }
+    - { id: DEP-1sb-saving-quote, kind: SOFT, on: "1sb-integration Saving quote submit/poll (implemented)" }
+  state: READY
+  enablement_count: 1
+  earliest_start: "immediately — Hub forwarder first; suitability usable is a HARD gate for createQuote C1"
+  cycles: none
+
+breakdown:
+  children:
+    - "FUNC-032 — integration-hub quote submit/poll → 1sb-integration"
+    - "FUNC-033 — quotation createQuote + getQuote (C1 + Hub dispatch + offer ingest)"
+    - "FUNC-034 — journey-orchestration quotes + selection stage transitions"
+    - "FUNC-035 — Savings/LifeSave field path: premium + PT + PPT through bank→Hub→1SB"
+  completion_definition: >
+    After lead exists and a usable suitability evaluation is on the journey, an RM
+    (via BFF→Journey) can create a Life SAVINGS quote with premium, PT and PPT;
+    Quotation stores working state, Hub routes to 1SB LifeSave quote, poll returns
+    bank-canonical offers; Journey stage moves QUOTING → QUOTE_SELECTED on selection.
+  not_included:
+    - "Proposal, payment, policy issuance"
+    - "Suitability engine / multi-insurer catalogue (parked SUG-20260904-eng)"
+    - "Hub-owned bank-language masters dropdowns (parked SUG-20260913-hms)"
+    - "RM Workspace BFF quote screens (S11)"
+    - "Direct-insurer adapter path"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: EPIC-008
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "EPIC-008 / SUG-20261028-qst — LifeSave Savings quote stitch (owner-directed)."
 ```
 
 ### SUG-20261027-iah · Zero-tolerance AuthN/AuthZ hardening

@@ -26,10 +26,8 @@ public class SuitabilityRefusalAdvice {
   public ResponseEntity<ServiceErrorResponse> handle(SuitabilityRefusal refusal) {
     var builder =
         errors.error(refusal.code()).component("Suitability").reason(refusal.getMessage());
-    if (refusal.valId() != null) {
-      builder.errors(
-          List.of(ServiceError.ofField(refusal.valId(), refusal.getMessage(), refusal.field())));
-    }
+    String id = refusal.valId() == null ? refusal.code() : refusal.valId();
+    builder.errors(List.of(ServiceError.ofField(id, refusal.getMessage(), refusal.field())));
     return handler.handleServiceException(builder.build());
   }
 }

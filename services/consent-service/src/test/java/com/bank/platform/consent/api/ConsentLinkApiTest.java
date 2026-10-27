@@ -146,9 +146,8 @@ class ConsentLinkApiTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(Map.of("decision", "AGREE"))))
         .andExpect(status().isOk())
-        .andExpect(
-            content()
-                .string(org.hamcrest.Matchers.containsString("Your consent has been recorded.")));
+        .andExpect(jsonPath("$.kind").value("AGREED"))
+        .andExpect(jsonPath("$.statement").value(QuoteShareStatement.TEXT));
     assertThat(
             consents
                 .head(customer, QuoteShareStatement.PURPOSE, null)

@@ -1,0 +1,74 @@
+# schema: work-item
+id: ARCH-029
+origin: ["SUG-20261026-ur9"]
+title: "Shared ArchUnit baseline for all service modules"
+type: ARCH
+also: [QA]
+breakdown: STORY
+epic: EPIC-007
+workstream: WS-3
+owner: "Amit — Technical Head (R3); Architecture consult Mahesh; lane engineering-coding-standards"
+risk_tier: T2
+
+serves:
+  - "EPIC-007"
+  - "ORG-STANDARDS AP-2 AP-6"
+  - "ENG-2 ENG-7"
+  - "templates/microservice-skeleton"
+
+problem: >
+  CODING-STANDARD requires ArchUnit to stay green, but each service still copies a
+  local ServiceArchitectureTest. Deep rules exist for 1sb-integration-service;
+  scaffolds are thin one-offs. Estate-wide consistency depends on copy-paste.
+
+description: >
+  Extract a shared ArchUnit baseline (library under libs/ or test-fixtures) covering
+  hexagonal package layout from CODING-STANDARD §5, and adapter isolation patterns
+  appropriate to module kind. Wire it into the microservice skeleton and every
+  services/* ArchitectureTest. Keep 1sb-specific rules in that service. Do not
+  re-open TD-007 as a new debt item; tighten only populated packages.
+
+acceptance_criteria:
+  - id: AC-1
+    given: "the shared ArchUnit baseline"
+    when: "a scaffold service depends on it"
+    then: "hex package fitness rules run on CI for that module"
+  - id: AC-2
+    given: "templates/microservice-skeleton"
+    when: "a new service is generated"
+    then: "it references the shared baseline rather than a one-off empty test"
+  - id: AC-3
+    given: "1sb-integration-service"
+    when: "ArchitectureTest runs"
+    then: "existing onesb-specific rules remain and still bite (ArchitectureRulesBiteTest)"
+
+out_of_scope:
+  - "Replacing domain ports that TD-009 parked"
+  - "Feature code in thin scaffolds"
+  - "Changing G1–G10 trust boundaries"
+
+state: DONE
+priority_now: P3
+priority_at_target: P2
+target_stage: null
+unpark_trigger: null
+
+dependencies:
+  blocked_by: []
+  requires: []
+  enables: []
+  related_to: ["EPIC-007", "TD-007"]
+  external: []
+  decision_dependency: []
+
+plan: null
+estimate: M
+assumptions: []
+risks: []
+evidence:
+  - "libs/bank-common-architecture HexagonalArchitecture + HexagonalArchitectureBiteTest"
+  - "Root build.gradle.kts wires testImplementation for every :services:*"
+  - "ServiceArchitectureTest on all services + skeleton template; 1sb ArchitectureTest calls shared baseline and keeps onesb rules / ArchitectureRulesBiteTest"
+  - "bank-persistence uses application+domain baseline only (api→adapter.persistence intentional thin facade; noted in test)"
+  - "./gradlew :libs:bank-common-architecture:test jacocoTestCoverageVerification green"
+variance_log: []

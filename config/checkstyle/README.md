@@ -5,8 +5,8 @@ Blocking quality rules for every Java subproject. Wired into Gradle `check`
 
 | Piece | Role |
 |---|---|
-| `checkstyle.xml` | The rule set. Failures are errors (`maxWarnings = 0`). |
-| `suppressions.xml` | Tracked baseline for pre-existing violations (S08-E02-S03). Empty at introduction. |
+| `checkstyle.xml` | The rule set, including CODING-STANDARD §7 Naming (EPIC-007 / QA-015). Failures are errors (`maxWarnings = 0`). |
+| `suppressions.xml` | Tracked baseline for pre-existing violations (S08-E02-S03; MechanicallyGenerated `$` names and Flyway `V{n}__*` types under QA-015). |
 | Spotless (root `build.gradle.kts`) | Formatting half. Google Java Format on every Java file. No ratchet. |
 
 ```bash

@@ -108,6 +108,11 @@ subprojects {
     dependencies {
         // Lombok is banned. CODING-STANDARD.md section 21. Constructors and
         // builders are written out. Checkstyle rejects a lombok import.
+
+        // EPIC-007 / ARCH-029 — every service runs the shared hexagonal ArchUnit baseline.
+        if (project.path.startsWith(":services:")) {
+            "testImplementation"(project(":libs:bank-common-architecture"))
+        }
     }
 
     // QA-001 — JaCoCo coverage reports + verification (see docs/.../COVERAGE.md)

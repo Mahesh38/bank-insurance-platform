@@ -13,6 +13,7 @@ They are **not Spring Boot applications** — they are plain JARs consumed by se
 | `bank-common-observability` | MDC / metrics helpers |
 | `bank-common-secrets` | SecretProvider SPI |
 | `bank-common-test` | S08-G6 shared test harness — Testcontainers Postgres, dual WireMock, fixtures, contract/E2E tags |
+| `bank-common-architecture` | EPIC-007 / ARCH-029 shared ArchUnit hexagonal baseline (`HexagonalArchitecture`) for every service |
 
 1SB provider DTOs and HTTP clients stay in `services/1sb-integration-service/.../adapter.onesb.*`.
 

@@ -25,9 +25,14 @@ alone reports and **does not** fail floors ([COVERAGE.md](../1sb-insurance-integ
 | Module group | Line | Branch | Test presence (same PR) |
 |---|---|---|---|
 | `libs/*` | **≥ 80%** | **≥ 70%** | New/changed public behaviour has a `FooTest` (TESTING-RULES R1–R2) |
-| `1sb-integration-service`, `bank-persistence-service` | **≥ 90%** | **≥ 70%** | R2 for `application.*` / `api.*` / adapters |
-| Other `services/*` (scaffold, including BFF and customer-service) | **≥ 50%** line | *not gated* | R2; **publish measured branch %** in the PR anyway |
+| `1sb-integration-service`, `bank-persistence-service` (Phase-1 hardened) | **≥ 90%** | **≥ 70%** | R2 for `application.*` / `api.*` / adapters |
+| Other `services/*` (H0 scaffold or implementing) | **≥ 50%** line | *not gated* | R2; **publish measured branch %** in the PR anyway |
 | New library module | 80 / 70 from the first commit | Same | No “we will cover it later” |
+
+**Maturity ladder (EPIC-007 / QA-015):** H0 scaffold → implementing → Phase-1 hardened.
+Floors and graduation triggers are in
+[COVERAGE.md — Module maturity ladder](../1sb-insurance-integration/service-ssot/COVERAGE.md#module-maturity-ladder-epic-007--qa-015).
+Do not require 90/70 on an empty scaffold; do not skip R2 tests on an implementing module.
 
 **Author, before push**
 

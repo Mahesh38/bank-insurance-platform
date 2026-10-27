@@ -4,11 +4,12 @@
     "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <!--
   S08-G4 / S08-E02-S03 — static analysis (code-quality half).
+  EPIC-007 / QA-015 — Naming modules enforce CODING-STANDARD.md §7.
 
-  Intentional scope: a small, blocking rule set that catches clear defects and
-  hygiene slips without reformatting the estate. Formatting belongs to Spotless.
-  Existing style debt outside these rules is the tracked baseline; new breaches
-  of these rules fail `./gradlew check` and application-ci.
+  Intentional scope: a small, blocking rule set that catches clear defects,
+  hygiene slips, and identifier naming. Formatting belongs to Spotless.
+  Pre-existing Naming debt is listed in suppressions.xml with a work-item id.
+  New breaches fail `./gradlew check` and application-ci.
 -->
 <module name="Checker">
     <property name="severity" value="error"/>
@@ -53,5 +54,37 @@
         <module name="MultipleVariableDeclarations"/>
         <module name="ModifierOrder"/>
         <module name="UpperEll"/>
+
+        <!-- Naming — CODING-STANDARD.md §7 (EPIC-007 / QA-015) -->
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+        </module>
+        <module name="TypeName">
+            <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+        <!-- Underscore allowed: §7 permits behaviour_expectedOutcome test names. -->
+        <module name="MethodName">
+            <property name="format" value="^[a-z][a-zA-Z0-9_]*$"/>
+        </module>
+        <!-- `log` is the platform SLF4J field name (CODING-STANDARD §18). -->
+        <module name="ConstantName">
+            <property name="format" value="^log$|^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+        </module>
+        <module name="StaticVariableName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="MemberName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="ParameterName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="LocalVariableName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+        </module>
+        <!-- Upper-snake locals are hash/equals primes and similar local constants. -->
+        <module name="LocalFinalVariableName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*$|^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+        </module>
     </module>
 </module>

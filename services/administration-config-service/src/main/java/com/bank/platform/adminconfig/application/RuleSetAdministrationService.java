@@ -51,7 +51,7 @@ public class RuleSetAdministrationService {
     this.clock = clock;
   }
 
-  /** Actor as asserted by the caller; {@code roles} come from X-Actor-Roles until the PDP. */
+  /** Actor as asserted by the caller; {@code roles} come from authoritative identity profile. */
   public record Actor(String id, Set<String> roles) {}
 
   public record SimulationResult(

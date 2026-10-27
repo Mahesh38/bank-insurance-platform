@@ -5,6 +5,7 @@ import com.bank.common.error.ServiceErrors;
 import com.bank.platform.adminconfig.application.RuleSetAdministrationService;
 import com.bank.platform.adminconfig.application.RuleSetAdministrationService.Actor;
 import com.bank.platform.adminconfig.domain.RuleSetVersion;
+import com.bank.platform.adminconfig.domain.SubjectProfilePort;
 import com.bank.rules.engine.TestCaseRunner;
 import com.bank.rules.engine.Values;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,10 +13,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
  * Internal rule-set API (ADR-024 section 5). Contract:
  * docs/platform/contracts/administration-config-service/openapi.yaml.
  *
- * <p>Approver roles come from {@code X-Actor-Roles} until the PDP decides this action (open item);
- * an approval without that header is refused — {@code X-Actor-Id} alone is never trusted for it.
+ * <p>Approver roles are loaded from identity-authorization ({@link SubjectProfilePort}) — never
+ * from {@code X-Actor-Roles} (SUG-20261027-iah).
  */
 @RestController
 public class RuleSetController {
@@ -42,12 +41,17 @@ public class RuleSetController {
 
   private final RuleSetAdministrationService service;
   private final ActorGuard actors;
+  private final SubjectProfilePort profiles;
   private final ServiceErrors errors;
 
   public RuleSetController(
-      RuleSetAdministrationService service, ActorGuard actors, ServiceErrors errors) {
+      RuleSetAdministrationService service,
+      ActorGuard actors,
+      SubjectProfilePort profiles,
+      ServiceErrors errors) {
     this.service = service;
     this.actors = actors;
+    this.profiles = profiles;
     this.errors = errors;
   }
 
@@ -96,7 +100,6 @@ public class RuleSetController {
   public VersionResponse approve(
       HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
-      @RequestHeader(name = "X-Actor-Roles", required = false) String roles,
       @RequestHeader(name = "X-Correlation-Id", required = false) String correlationId,
       @PathVariable String ruleSetId,
       @PathVariable String version,
@@ -106,7 +109,7 @@ public class RuleSetController {
         service.approve(
             ruleSetId,
             version,
-            checker(actor, roles, "approve"),
+            checker(actor, "approve"),
             body == null ? null : body.remarks(),
             correlationId));
   }
@@ -115,17 +118,13 @@ public class RuleSetController {
   public VersionResponse reject(
       HttpServletRequest request,
       @RequestHeader("X-Actor-Id") String actorId,
-      @RequestHeader(name = "X-Actor-Roles", required = false) String roles,
       @PathVariable String ruleSetId,
       @PathVariable String version,
       @RequestBody(required = false) DecisionRequest body) {
     String actor = actors.requireActorId(request, actorId, "reject");
     return VersionResponse.summary(
         service.reject(
-            ruleSetId,
-            version,
-            checker(actor, roles, "reject"),
-            body == null ? null : body.remarks()));
+            ruleSetId, version, checker(actor, "reject"), body == null ? null : body.remarks()));
   }
 
   @PostMapping(BASE + "/{ruleSetId}/versions/{version}:simulate")
@@ -164,20 +163,16 @@ public class RuleSetController {
     return VersionResponse.full(service.resolve(domain, lob, productClass, asOf));
   }
 
-  private Actor checker(String actorId, String rolesHeader, String operation) {
-    if (rolesHeader == null || rolesHeader.isBlank()) {
+  private Actor checker(String actorId, String operation) {
+    Set<String> roles = profiles.load(actorId).roleCodes();
+    if (roles.isEmpty()) {
       throw errors
           .error(ErrorCodes.FORBIDDEN)
           .component("RuleSetController")
           .operation(operation)
-          .reason("X-Actor-Roles is required for a checker decision")
+          .reason("actor has no authoritative roles for a checker decision")
           .build();
     }
-    Set<String> roles =
-        Arrays.stream(rolesHeader.split(","))
-            .map(String::strip)
-            .filter(s -> !s.isEmpty())
-            .collect(Collectors.toUnmodifiableSet());
     return new Actor(actorId, roles);
   }
 

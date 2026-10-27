@@ -47,6 +47,12 @@ admin-config:
         - "*"
       lead-service:
         - "*"
+  authorization:
+    # stub for local/tests; http loads roles from identity-authorization (never X-Actor-Roles).
+    mode: ${ADMIN_CONFIG_AUTHORIZATION_MODE:stub}
+    base-url: ${IDENTITY_AUTHORIZATION_BASE_URL:http://localhost:8083}
+    internal-key: ${ADMIN_CONFIG_AUTHZ_INTERNAL_KEY:local-authz-admin-config-internal-key}
+    timeout: ${ADMIN_CONFIG_AUTHORIZATION_TIMEOUT:300ms}
   seed-import:
     # Imports the engine's seed rule sets as DRAFT when absent (ADR-024 section 7). Never publishes.
     enabled: ${ADMIN_CONFIG_SEED_IMPORT_ENABLED:true}

@@ -171,6 +171,108 @@ Row format:
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
 
+
+### SUG-20261027-iah · Zero-tolerance AuthN/AuthZ hardening
+
+```yaml
+# schema: triage-record
+id: SUG-20261027-iah
+raised_at: "2026-10-27"
+raised_by: "human:repository-owner"
+source: "Board 4 code-first security review follow-up — fix all findings, zero tolerance"
+input: >
+  I want to fix all the issues highlighted, zero tolerance on the issue that needs fixing here
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "L4/L5 — Foundation / Connectivity"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261027-iah
+
+stage_fit:
+  code: SF0
+  rationale: "Hard P1 O2 — reachable exploitable broken authentication/authorization in shipped services"
+
+scope:
+  code: SC0
+  business_scope: "in scope — standing security constraints and trust-boundary policy"
+  serves: ["GATE-S08", "GATE-IAM-P1", "standing: same-VPC-is-not-trust"]
+  failure_without_it: "Anonymous east-west callers can invoke 1SB, lead, consent and mutate login state"
+  minimal: true
+  authority: "Deepali 04 §1; CODING-STANDARD §17; OWASP API2/API5"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  failure_without_it: "Unauthenticated /v1 and /internal/v1 surfaces remain reachable; actor and role headers stay spoofable"
+  evidence_tier: E2
+  evidence:
+    - "Code-confirmed absence of inbound auth on unprotected surfaces"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: "Hard P1 override O2 (exploitable vulnerability). Owner directed zero-tolerance remediation."
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: SEC
+  also: [BUG, NFR]
+  breakdown: STORY
+  epic: null
+  risk_tier: T3
+  destination: "registers/SUGGESTION-REGISTER.md"
+
+priority:
+  now: P1
+  at_target: P1
+  factors: { N: 4, S: 4, B: 3, R: 3, D: 1, E: 2 }
+  score: 24
+  matrix_default: P1
+  consistency: OK
+  overrides_applied: [O2]
+  override_evidence:
+    - "Unauthenticated /v1 and /internal/v1 surfaces; spoofable X-Actor-Id; login mutation with any service key"
+  caps_applied: []
+  rationale: "O2 reachable exploitable AuthN/AuthZ; owner zero-tolerance"
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: immediately
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    Inbound service identity on every /internal and 1sb /v1 surface; least-privilege
+    login/resolve/decrypt/audit; actor binding; PDP on BFF sensitive reads including
+    organisation and reference data; no trusted X-Actor-Roles headers; redirect
+    allowlist; CSRF/rate-limit/actuator hardening; tests prove 401/403 refusal paths.
+  not_included:
+    - "Workload identity / mTLS replacement for shared keys"
+    - "Human T4 Security signature"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261027-iah
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "SUG-20261027-iah — owner-directed zero-tolerance AuthN/AuthZ remediation."
+```
+
 ### SUG-20261026-ur9 · Enforce CODING-STANDARD estate-wide
 
 ```yaml

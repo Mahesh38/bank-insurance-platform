@@ -43,7 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
-| SUG-20261028-1lg | 2026-10-28 | human:repository-owner | One standardised Login BRD v3.1 auth surface only — retire IAM-001 dual `/login` vs `/sign-in`; keep CSRF; relocate partner OIDC off the password login verb | SF1 | SC0 | MUST | ARCH | P2 / P1 | ESCALATED | [detail](#sug-20261028-1lg--one-login-brd-surface) |
+| SUG-20261028-1lg | 2026-10-28 | human:repository-owner | One Login BRD v3.1 surface: Captcha+OTP for Bank RM and Insurance RM/FLS; smooth-merge `/login`←journey, retire IAM-001 session bypass; Keycloak IPR stays separate | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261028-1lg--one-login-brd-surface) · implementing steps 1–4 |
 | SUG-20261028-qst | 2026-10-28 | human:repository-owner | Stitch quotation + journey-orchestration + integration-hub + 1sb-integration for bank-side LifeSave / Savings quote APIs after lead + suitability (premium, PT, PPT) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [EPIC-008](../../platform/ws3-platform/EPIC-008.work-item.yaml) · [detail](#sug-20261028-qst--lifesave-savings-quote-stitch) |
 | SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
 | SUG-20261027-iah | 2026-10-27 | human:repository-owner | Zero-tolerance fix of Board 4 AuthN/AuthZ findings: inbound service identity on unprotected APIs, least-privilege keys, PDP/actor binding, redirect allowlist, actuator/CSRF/rate-limit hardening | SF0 | SC0 | MUST | SEC | P1 / P1 | ADMITTED | [detail](#sug-20261027-iah--zero-tolerance-authnauthz-hardening) |
@@ -233,14 +233,16 @@ necessity:
     X5_stage_necessity: true
     X9_problem_observed: true
 
-action: ESCALATED
+action: ADMIT-BYPASS
+normal_recommendation: ESCALATED
+bypass_authorised_by: "Mahesh / repository_owner (explicit: Implement step 1-4 now)"
+reviewer_type: HUMAN
+authority: repository_owner
 action_rationale: >
-  Recommendation is recorded below. Implementation removes or relocates a public
-  AuthN contract (breaking for IAM-001 /login consumers) and needs an explicit
-  owner go-ahead before code. Not ADMIT-BYPASS this turn — owner asked for the
-  best option, not execution yet. Related: SUG-20261008-otp left IAM-001 /login
-  unchanged by design; this SUG supersedes that dual-path compromise for the
-  Bank RM / Insurance RM NIP login screen.
+  Owner directed implementation of the recorded SMOOTH_MERGE_BRD_ONLY design
+  (steps 1–4). IAM-001 immediate-session /login and /sign-in are removed; BRD
+  journey owns /login; partner OIDC relocated to /partner/authorization so the
+  password login verb is not overloaded.
 
 classification:
   type: ARCH
@@ -387,11 +389,9 @@ recommendation:
 
 outcome:
   registered_in: "registers/SUGGESTION-REGISTER.md"
-  status: ESCALATED
-  next: >
-    Owner confirms go ahead on preferred SMOOTH_MERGE_BRD_ONLY (option B). Then
-    implement steps 1–4 on workforce-access-bff + contract docs; Deepali reviews
-    AuthN ceremony as A3_JOINT_REVIEW evidence (not a simulated T4 signature).
+  status: ADMIT-BYPASS
+  work_item_id: SUG-20261028-1lg
+  next: "Implement steps 1–4 on workforce-access-bff; Deepali A3_JOINT_REVIEW on AuthN ceremony remains outstanding as AGENT draft only"
 ```
 
 ### SUG-20261027-brd · Suitability BRD current design

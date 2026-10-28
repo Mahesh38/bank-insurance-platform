@@ -67,70 +67,9 @@ public class LoginService {
   }
 
   /**
-   * Bank RM credential login: adapter verifies the employee against AD (true/false for an active
-   * directory account). The BFF never validates the password itself and never stores it.
-   */
-  public BankLoginResult authenticateBank(BankLoginCommand command) {
-    if (command.employeeId() == null || command.employeeId().isBlank()) {
-      throw new IllegalArgumentException("Employee ID is required");
-    }
-    if (command.password() == null || command.password().isBlank()) {
-      throw new IllegalArgumentException("Password is required");
-    }
-    var adResult = provider.verifyAd(command.employeeId().trim(), command.password());
-    if (adResult == null || !adResult.accepted()) {
-      throw new IllegalStateException("Directory did not accept the credentials");
-    }
-    String username =
-        hasText(adResult.username()) ? adResult.username() : command.employeeId().trim();
-    var providerSession =
-        new IdentityProviderClient.ProviderSession(
-            command.employeeId().trim(),
-            username,
-            adResult.email(),
-            null,
-            null,
-            null,
-            Instant.now().plus(properties.sessionTtl()),
-            Map.of("employee_id", command.employeeId().trim(), "ad_verified", true));
-    var identity = authorization.resolve(IdentitySource.BANK_AD, providerSession);
-    if (!"ACTIVE".equals(identity.status()) || !"BANK_EMPLOYEE".equals(identity.userType())) {
-      throw new IllegalStateException("Business identity is not an active bank employee");
-    }
-    String sessionId = randomToken();
-    var session =
-        new WorkforceSession(
-            sessionId,
-            identity.businessUserId(),
-            identity.userType(),
-            identity.status(),
-            identity.policyVersion(),
-            identity.insurerCode(),
-            providerSession.providerSubjectId(),
-            providerSession.username(),
-            null,
-            null,
-            null,
-            providerSession.accessTokenExpiresAt(),
-            Instant.now(),
-            providerSession.claims());
-    sessions.putSession(session, properties.sessionTtl());
-    log.info("Bank AD login created a workforce session");
-    return new BankLoginResult(
-        command.clientType(),
-        true,
-        identity.businessUserId(),
-        identity.userType(),
-        identity.status(),
-        identity.policyVersion(),
-        command.clientType() == ClientType.WEB ? sessionId : null,
-        command.clientType() == ClientType.NATIVE ? sessionId : null,
-        properties.sessionTtl().toSeconds());
-  }
-
-  /**
-   * Session after a successful v3.1 login OTP. The password was already checked and is not
-   * presented again. Provider tokens are not stored.
+   * Session after a successful Login BRD v3.1 login OTP. The password was already checked and is
+   * not presented again. Provider tokens are not stored. IAM-001 immediate-session bank login was
+   * removed ({@code SUG-20261028-1lg}).
    */
   public BankLoginResult establishSession(ClientType clientType, EstablishedIdentity identity) {
     if (identity == null || !"ACTIVE".equals(identity.status())) {
@@ -276,13 +215,6 @@ public class LoginService {
       long policyVersion,
       String insurerCode,
       String username) {}
-
-  public record BankLoginCommand(ClientType clientType, String employeeId, String password) {
-    @Override
-    public String toString() {
-      return "BankLoginCommand[clientType=" + clientType + "]";
-    }
-  }
 
   public record BankLoginResult(
       ClientType clientType,

@@ -119,25 +119,30 @@ Keycloak is a separately deployed product, not one of the three custom Spring se
 
 ## 5. Authentication flows
 
-### 5.1 Bank employee
+### 5.1 Bank employee and Insurance RM (Login BRD v3.1)
 
-`IAM-001` (2026-10-08). Owner selected option B for `BANK_AD`: NIP-APP collects Employee ID + password and the BFF forwards them to the adapter. Captcha / OTP / lock remain parked (`SUG-20261008-otp`).
+`SUG-20261028-1lg` — single NIP password-login surface. IAM-001 immediate-session login is retired.
 
-1. Flutter calls `POST /api/v1/auth/login` with `identitySource=BANK_AD`, Employee ID and password. No OAuth token is returned.
-2. The BFF does **not** validate the password itself and does **not** persist it. It calls `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify` with `X-Internal-Service-Key` (shared service identity; network location is not trust). The adapter refuses `/internal/v1/**` without that key (`401 UNAUTHORIZED`). Production has no default secret.
-3. The adapter calls the **existing bank AD-verify API** through Apigee private (`ADR-020`) — or a local stub in `dev`/`test`. The bank API returns **true or false** for an active bank employee. LDAP from EKS is not used.
-4. On `false`, the BFF returns generic `401 AUTHENTICATION_FAILED`. On `true`, it resolves a `BANK_EMPLOYEE` business identity in `identity-authorization-service`.
-5. Login succeeds only when that identity is `ACTIVE`. The BFF stores an opaque platform session (web: HttpOnly cookie; native: opaque handle). No AD password and no OAuth token is stored for this path.
+1. Flutter obtains CSRF, then `POST /api/v1/auth/captcha`, then `POST /api/v1/auth/login` with
+   `userType` (`BANK_RM` or `INSURANCE_RM`), Login ID, password and captcha. No OAuth token and no
+   session are returned from `/login`.
+2. Bank RM: the BFF does **not** validate the AD password itself and does **not** persist it. It
+   calls `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify` with
+   `X-Internal-Service-Key`. Insurance RM: platform password verify on
+   `identity-authorization-service`.
+3. On success the BFF issues a login OTP challenge (`OTP_SENT`). The opaque platform session is
+   created only by `POST /api/v1/auth/otp/verify` after a correct OTP.
+4. Partner Keycloak OIDC is §5.2 via `POST /api/v1/auth/partner/authorization` — not this form.
 
-NIP-APP / Fireframe remains the UI chrome. Partner login stays on the authorization-code + PKCE path in §5.2. Direct credential forwarding to AD from EKS is still forbidden.
+NIP-APP / Fireframe remains the UI chrome. Direct credential forwarding to AD from EKS is still forbidden. External Captcha/SMS-email OTP gateway remains parked (`SUG-20261008-otp` remainder).
 
-### 5.2 Insurer representative
+### 5.2 Insurer partner representative (Keycloak OIDC)
 
-1. A maker creates or imports a partner business identity in `identity-authorization-service`.
-2. A different checker approves the change.
-3. An outbox command provisions the provider identity through `identity-provider-adapter-service`.
-4. Keycloak sends or requires a credential setup action. No initial password is stored in platform data.
-5. The representative authenticates using the same authorization-code, PKCE, and token-hiding BFF flow.
+1. A bank admin creates the partner business identity in `identity-authorization-service` (E5).
+2. An outbox command provisions the provider identity through `identity-provider-adapter-service`.
+3. Keycloak sends or requires a credential setup action. No initial password is stored in platform data.
+4. The representative starts OIDC at `POST /api/v1/auth/partner/authorization` (authorization-code,
+   PKCE, token-hiding BFF callback). This is not the Login BRD Captcha+OTP password form.
 
 ### 5.3 Logout, disablement, and revocation
 

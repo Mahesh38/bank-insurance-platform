@@ -77,7 +77,7 @@ class LoginJourneyIT {
     MvcResult signIn =
         mockMvc
             .perform(
-                post("/api/v1/auth/sign-in")
+                post("/api/v1/auth/login")
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
@@ -132,7 +132,7 @@ class LoginJourneyIT {
     String[] captcha = captcha();
     mockMvc
         .perform(
-            post("/api/v1/auth/sign-in")
+            post("/api/v1/auth/login")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(

@@ -4,7 +4,9 @@
 **Code:** `LoginJourneyController`, `LoginJourneyService`, `PlatformLoginService`
 **Status:** describes the journey on this branch. Not a Security sign-off. NIP-APP is not in this repository.
 
-`UC-01` remains `POST /api/v1/auth/login` (IAM-001). `UC-02` remains partner OIDC. Neither is the v3.1 Insurance RM.
+`SUG-20261028-1lg`: IAM-001 immediate-session login and `/auth/sign-in` are retired. NIP password
+login is this journey on `POST /api/v1/auth/login`. `UC-02` partner OIDC begins at
+`POST /api/v1/auth/partner/authorization`.
 
 Two workforce users use the journey below.
 
@@ -24,7 +26,7 @@ Every mutating call on `/api/v1/auth/**` still requires the CSRF cookie `WORKFOR
 | BRD step | API | Present |
 |---|---|---|
 | Captcha, including refresh | `POST /api/v1/auth/captcha` | Yes. Returns the text. No image vendor. |
-| Sign in, both user types | `POST /api/v1/auth/sign-in` | Yes |
+| Sign in, both user types | `POST /api/v1/auth/login` | Yes |
 | Login OTP verify | `POST /api/v1/auth/otp/verify` | Yes. One operation for every OTP purpose. |
 | Resend OTP | `POST /api/v1/auth/otp/resend` | Yes |
 | Unlock User, both user types | `POST /api/v1/auth/unlock` | Yes |
@@ -46,8 +48,7 @@ What is not production delivery:
 - Captcha text is returned to the caller. Information Security has not named an image provider.
 - Employee status is the platform `business_user` row plus AD-verify. There is no CBS call on this path.
 - §19 audit events are not written to an audit service by these handlers.
-- `POST /api/v1/auth/login` still creates a session after AD-verify, with no captcha and no OTP.
-- The OpenAPI file names these paths in a note under `/auth/login`. It does not publish their request schemas.
+- External Captcha image / SMS-email OTP gateway remain parked (`SUG-20261008-otp` remainder).
 
 ---
 
@@ -86,7 +87,7 @@ Both users share this order. A failure at a step does not run the later steps. C
 
 ```mermaid
 flowchart TD
-  signIn[POST /api/v1/auth/sign-in]
+  signIn[POST /api/v1/auth/login]
   captcha{Captcha matches and is unexpired}
   preview[POST /internal/v1/login/preview]
   route{Account route}
@@ -141,7 +142,7 @@ sequenceDiagram
   participant Adapter as identity-provider-adapter
   App->>BFF: POST /api/v1/auth/captcha
   BFF-->>App: CAPTCHA captchaId display expiresInSeconds
-  App->>BFF: POST /api/v1/auth/sign-in BANK_RM employeeId password captcha
+  App->>BFF: POST /api/v1/auth/login BANK_RM employeeId password captcha
   BFF->>BFF: Consume captcha hash
   BFF->>Authz: POST /internal/v1/login/preview BANK_EMPLOYEE
   Authz-->>BFF: READY
@@ -173,7 +174,7 @@ sequenceDiagram
   participant App
   participant BFF as workforce-access-bff
   participant Authz as identity-authorization
-  App->>BFF: POST /api/v1/auth/sign-in INSURANCE_RM email password captcha
+  App->>BFF: POST /api/v1/auth/login INSURANCE_RM email password captcha
   BFF->>Authz: POST /internal/v1/login/preview INSURER_REPRESENTATIVE
   Authz-->>BFF: READY
   BFF->>Authz: POST /internal/v1/login/verify-platform-password
@@ -197,7 +198,7 @@ sequenceDiagram
   participant App
   participant BFF as workforce-access-bff
   participant Authz as identity-authorization
-  App->>BFF: POST /api/v1/auth/sign-in
+  App->>BFF: POST /api/v1/auth/login
   BFF->>Authz: preview
   Authz-->>BFF: FIRST_TIME
   BFF-->>App: VAL-012 Activate your account
@@ -321,7 +322,7 @@ sequenceDiagram
   participant App
   participant BFF as workforce-access-bff
   participant Authz as identity-authorization
-  App->>BFF: POST /api/v1/auth/sign-in INSURANCE_RM
+  App->>BFF: POST /api/v1/auth/login INSURANCE_RM
   BFF->>Authz: verify-platform-password
   Authz-->>BFF: route PASSWORD_EXPIRED accepted false
   BFF-->>App: PASSWORD_EXPIRED expiry ticket

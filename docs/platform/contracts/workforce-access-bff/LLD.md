@@ -30,15 +30,15 @@ All paths are under `/api/v1`. Full schemas, status and error codes: [openapi.ya
 | Method | Path | Session | PDP | Downstream | Notes |
 |---|---|---|---|---|---|
 | GET | `/auth/csrf` | no | – | – | Sets `WORKFORCE-XSRF` |
-| POST | `/auth/login` | no | – | idp-adapter `ad-verify` / `authorization-uri`; authz `identities/resolve` | IAM-001. BANK_AD creates a session immediately. PARTNER returns an authorization URI |
 | POST | `/auth/captcha` | no | – | in-process | Single-use text captcha. The display is returned once |
-| POST | `/auth/sign-in` | no | – | authz `login/preview` then AD-verify or `verify-platform-password` | v3.1. No session cookie. `OTP_SENT` or a design-text `MESSAGE` |
+| POST | `/auth/login` | no | – | authz `login/preview` then AD-verify or `verify-platform-password` | Login BRD v3.1 only (`SUG-20261028-1lg`). No session. `OTP_SENT` or design-text `MESSAGE` |
 | POST | `/auth/otp/verify` | no | – | authz `login/complete` or `unlock/complete` | Session cookie / native handle only when `outcome` is `AUTHENTICATED` |
 | POST | `/auth/otp/resend` | no | – | in-process | New code invalidates the previous one. Attempts are not reset. Three resends |
 | POST | `/auth/unlock` | no | – | authz `login/unlock/assess` | `NOT_REQUIRED` has no message. Does not log the user in |
-| POST | `/auth/forgot-password` | no | – | authz `login/forgot/assess` | Insurance RM email + captcha. Values are not taken from sign-in |
+| POST | `/auth/forgot-password` | no | – | authz `login/forgot/assess` | Insurance RM email + captcha. Values are not taken from login |
 | POST | `/auth/password` | no | – | authz `login/password` | Continuation from unlock, forgot or expiry OTP. No session |
 | POST | `/auth/password-expired/send-otp` | no | – | in-process, then authz on verify | OTP is not sent until this call |
+| POST | `/auth/partner/authorization` | no | – | idp-adapter `authorization-uri` | Keycloak OIDC begin (UC-02). Not the BRD password form |
 | GET | `/auth/callback` | no | – | idp-adapter `token-exchange`; authz `identities/resolve` | `302` |
 | POST | `/auth/native-session` | no | – | – | completion code → handle |
 | GET | `/auth/session` | handle | – | – | missing/unknown → `400 SCHEMA_INVALID` |
@@ -75,19 +75,18 @@ All paths are under `/api/v1`. Full schemas, status and error codes: [openapi.ya
    `401 AUTHENTICATION_FAILED`; bean validation → `422 VALIDATION_ERROR`; unreadable body →
    `422 INVALID_REQUEST`. Then `toPublic()` (redaction).
 
-### 3.2 Bank RM login (`POST /auth/login`, `BANK_AD`)
+### 3.2 Login BRD v3.1 (`POST /auth/captcha` → `/auth/login` → `/auth/otp/verify`)
 
-1. Bean validation (`clientType`, `identitySource` not null).
-2. Require `employeeId`, `password` non-blank (else `400 SCHEMA_INVALID`).
-3. `POST {idp}/internal/v1/auth/ad-verify` with `X-Internal-Service-Key`; read 6 s.
-4. Not `accepted` → `401 AUTHENTICATION_FAILED`.
-5. `POST {authz}/internal/v1/identities/resolve` (`BANK_AD`, `BANK_EMPLOYEE`, `employeeId`) — first
-   login creates the business user.
-6. Require `ACTIVE` + `BANK_EMPLOYEE` (else `401 AUTHENTICATION_FAILED`).
-7. Mint 32-byte handle; store encrypted `WorkforceSession` (no provider tokens), TTL 8 h.
-8. `WEB` → cookie; `NATIVE` → `sessionHandle` in the body.
+IAM-001 immediate-session bank login and `/auth/sign-in` are retired (`SUG-20261028-1lg`).
 
-`POST /auth/login` is not the v3.1 journey. v3.1 sign-in stops on Captcha failure, unknown Login ID, inactive, first-time and lock before a password failure is counted. The workforce session is created only after the login OTP (`SEC-006`). Captcha and OTP hashes are in-process on one instance. No SMS or email gateway is called.
+1. `POST /auth/captcha` — single-use text captcha (in-process hash).
+2. `POST /auth/login` — bean validation (`clientType`, `userType`, `loginId`, `password`, captcha*).
+   Consume captcha; `login/preview`; Bank RM → AD-verify; Insurance RM → platform password.
+   No session. Outcomes: `OTP_SENT` or design-text `MESSAGE`.
+3. `POST /auth/otp/verify` — only then mint `WORKFORCE_SESSION` / native handle when
+   `outcome=AUTHENTICATED`.
+
+Captcha and OTP hashes are in-process on one instance. No SMS or email gateway is called.
 
 ```mermaid
 sequenceDiagram
@@ -96,16 +95,22 @@ sequenceDiagram
     participant IDP as idp-adapter
     participant AZ as identity-authorization
     participant V as Valkey vault
-    App->>BFF: POST /api/v1/auth/login {BANK_AD, employeeId, password}
-    BFF->>IDP: POST /internal/v1/auth/ad-verify (X-Internal-Service-Key)
-    IDP-->>BFF: {authenticated, accountActive, username, email}
-    BFF->>AZ: POST /internal/v1/identities/resolve
-    AZ-->>BFF: {businessUserId, status ACTIVE, userType BANK_EMPLOYEE, policyVersion}
-    BFF->>V: SET workforce:session:{handle} (AES-GCM, TTL 8h)
-    BFF-->>App: 200 BankLoginResponse (+ Set-Cookie for WEB)
+    App->>BFF: POST /auth/captcha
+    BFF-->>App: captchaId + display
+    App->>BFF: POST /auth/login {userType, loginId, password, captcha*}
+    alt BANK_RM
+      BFF->>IDP: POST /internal/v1/auth/ad-verify
+    else INSURANCE_RM
+      BFF->>AZ: verify-platform-password
+    end
+    BFF-->>App: OTP_SENT (no session)
+    App->>BFF: POST /auth/otp/verify
+    BFF->>AZ: login/complete
+    BFF->>V: SET workforce:session:{handle}
+    BFF-->>App: AUTHENTICATED (+ cookie / sessionHandle)
 ```
 
-### 3.3 Partner login (`PARTNER`) and callback
+### 3.3 Partner login (`POST /auth/partner/authorization`) and callback
 
 1. `begin`: `returnUri` must be in `workforce.session.allowed-return-uris` (else `400`); mint
    `state`, `nonce`, PKCE verifier; store `PendingLogin` (5 min); adapter builds the authorize URL.
@@ -124,7 +129,7 @@ sequenceDiagram
     participant KC as Keycloak
     participant IDP as idp-adapter
     participant AZ as identity-authorization
-    App->>BFF: POST /auth/login {PARTNER, returnUri}
+    App->>BFF: POST /auth/partner/authorization {returnUri}
     BFF->>IDP: POST /internal/v1/auth/authorization-uri
     BFF-->>App: {authorizationUri}
     App->>KC: authorize (PKCE S256)

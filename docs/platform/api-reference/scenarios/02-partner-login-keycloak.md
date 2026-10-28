@@ -58,7 +58,7 @@ sequenceDiagram
     participant KC as Keycloak
     participant AZ as identity-authorization
 
-    App->>BFF: POST /api/v1/auth/login {clientType, identitySource: PARTNER, returnUri, loginHint?}
+    App->>BFF: POST /api/v1/auth/partner/authorization {clientType, returnUri, loginHint?}
     BFF->>BFF: returnUri ∈ allowed-return-uris · mint state, nonce, PKCE verifier, challenge=S256(verifier)
     BFF->>KV: SET workforce:pending:{state} AES-GCM(PendingLogin) EX 300
     BFF->>IDPA: POST /internal/v1/auth/authorization-uri {state, nonce, codeChallenge, loginHint, identitySource}

@@ -58,33 +58,6 @@ class LoginServiceTest {
   }
 
   @Test
-  void bankAdLoginCreatesOpaqueSessionWithoutStoringPasswordOrProviderTokens() {
-    when(provider.verifyAd("EMP001", "local-stub-password"))
-        .thenReturn(
-            new IdentityProviderClient.AdVerifyResult(
-                true, true, "EMP001", "EMP001", "emp001@example.test"));
-    when(authorization.resolve(eq(IdentitySource.BANK_AD), any())).thenReturn(activeIdentity());
-
-    var result =
-        service.authenticateBank(
-            new LoginService.BankLoginCommand(ClientType.WEB, "EMP001", "local-stub-password"));
-
-    assertThat(result.authenticated()).isTrue();
-    assertThat(result.browserSessionId()).isNotBlank();
-    assertThat(result.nativeSessionHandle()).isNull();
-    ArgumentCaptor<WorkforceSession> session = ArgumentCaptor.forClass(WorkforceSession.class);
-    verify(sessions).putSession(session.capture(), any());
-    assertThat(session.getValue().accessToken()).isNull();
-    assertThat(session.getValue().refreshToken()).isNull();
-    assertThat(session.getValue().username()).isEqualTo("EMP001");
-    assertThat(session.getValue().toString()).doesNotContain("local-stub-password");
-    assertThat(
-            new LoginService.BankLoginCommand(ClientType.WEB, "EMP001", "local-stub-password")
-                .toString())
-        .doesNotContain("local-stub-password");
-  }
-
-  @Test
   void sessionAfterLoginOtpDoesNotCallTheDirectoryOrStoreProviderTokens() {
     UUID userId = UUID.randomUUID();
     var result =
@@ -95,77 +68,42 @@ class LoginServiceTest {
 
     assertThat(result.authenticated()).isTrue();
     assertThat(result.browserSessionId()).isNotBlank();
+    assertThat(result.nativeSessionHandle()).isNull();
     ArgumentCaptor<WorkforceSession> session = ArgumentCaptor.forClass(WorkforceSession.class);
     verify(sessions).putSession(session.capture(), any());
     assertThat(session.getValue().accessToken()).isNull();
     assertThat(session.getValue().refreshToken()).isNull();
+    assertThat(session.getValue().username()).isEqualTo("E100");
     verify(provider, never()).verifyAd(anyString(), anyString());
     verify(authorization, never()).resolve(any(), any());
   }
 
   @Test
-  void bankAdLoginRejectsFalseAndInactiveDirectoryAccountsWithoutCreatingASession() {
-    when(provider.verifyAd("EMP001", "wrong"))
-        .thenReturn(new IdentityProviderClient.AdVerifyResult(false, false, "EMP001", null, null));
-
+  void sessionAfterLoginOtpRejectsInactiveIdentity() {
     assertThatThrownBy(
             () ->
-                service.authenticateBank(
-                    new LoginService.BankLoginCommand(ClientType.WEB, "EMP001", "wrong")))
-        .isInstanceOf(IllegalStateException.class);
-    verify(authorization, never()).resolve(any(), any());
-    verify(sessions, never()).putSession(any(), any());
-
-    when(provider.verifyAd("EMP002", "local-stub-password"))
-        .thenReturn(
-            new IdentityProviderClient.AdVerifyResult(true, false, "EMP002", "EMP002", null));
-    assertThatThrownBy(
-            () ->
-                service.authenticateBank(
-                    new LoginService.BankLoginCommand(
-                        ClientType.WEB, "EMP002", "local-stub-password")))
+                service.establishSession(
+                    ClientType.WEB,
+                    new LoginService.EstablishedIdentity(
+                        UUID.randomUUID(), "BANK_EMPLOYEE", "SUSPENDED", 1, null, "E100")))
         .isInstanceOf(IllegalStateException.class);
     verify(sessions, never()).putSession(any(), any());
   }
 
   @Test
-  void bankAdLoginRejectsInactiveBusinessIdentity() {
-    when(provider.verifyAd("EMP001", "local-stub-password"))
-        .thenReturn(
-            new IdentityProviderClient.AdVerifyResult(
-                true, true, "EMP001", "EMP001", "emp001@example.test"));
-    when(authorization.resolve(eq(IdentitySource.BANK_AD), any()))
-        .thenReturn(
-            new IdentityAuthorizationClient.ResolvedIdentity(
-                UUID.randomUUID(), "SUSPENDED", 4, "BANK_EMPLOYEE", null));
-
-    assertThatThrownBy(
-            () ->
-                service.authenticateBank(
-                    new LoginService.BankLoginCommand(
-                        ClientType.NATIVE, "EMP001", "local-stub-password")))
-        .isInstanceOf(IllegalStateException.class);
-    verify(sessions, never()).putSession(any(), any());
-  }
-
-  @Test
-  void bankAdNativeLoginReturnsSessionHandleInsteadOfCookieId() {
-    when(provider.verifyAd("EMP001", "local-stub-password"))
-        .thenReturn(
-            new IdentityProviderClient.AdVerifyResult(
-                true, true, "EMP001", "EMP001", "emp001@example.test"));
-    when(authorization.resolve(eq(IdentitySource.BANK_AD), any())).thenReturn(activeIdentity());
-
+  void nativeSessionAfterLoginOtpReturnsHandleInsteadOfCookieId() {
     var result =
-        service.authenticateBank(
-            new LoginService.BankLoginCommand(ClientType.NATIVE, "EMP001", "local-stub-password"));
+        service.establishSession(
+            ClientType.NATIVE,
+            new LoginService.EstablishedIdentity(
+                UUID.randomUUID(), "INSURER_REPRESENTATIVE", "ACTIVE", 1, "ICICI", "rm@test"));
 
     assertThat(result.browserSessionId()).isNull();
     assertThat(result.nativeSessionHandle()).isNotBlank();
   }
 
   @Test
-  void beginsPkceLoginOnlyForAllowListedReturnUri() {
+  void beginsPartnerPkceLoginOnlyForAllowListedReturnUri() {
     URI authorizationUri = URI.create("https://idp.example.test/authorize");
     when(provider.authorizationUri(any())).thenReturn(authorizationUri);
 
@@ -173,7 +111,7 @@ class LoginServiceTest {
         service.begin(
             new LoginService.BeginLoginCommand(
                 ClientType.WEB,
-                IdentitySource.BANK_AD,
+                IdentitySource.PARTNER,
                 "https://app.example.test/auth/complete",
                 "rm@example.test"));
 
@@ -181,7 +119,7 @@ class LoginServiceTest {
     ArgumentCaptor<PendingLogin> pending = ArgumentCaptor.forClass(PendingLogin.class);
     verify(sessions).putPending(pending.capture(), any());
     assertThat(pending.getValue().codeVerifier()).hasSizeGreaterThan(40);
-    assertThat(pending.getValue().identitySource()).isEqualTo(IdentitySource.BANK_AD);
+    assertThat(pending.getValue().identitySource()).isEqualTo(IdentitySource.PARTNER);
   }
 
   @Test
@@ -191,7 +129,7 @@ class LoginServiceTest {
                 service.begin(
                     new LoginService.BeginLoginCommand(
                         ClientType.WEB,
-                        IdentitySource.BANK_AD,
+                        IdentitySource.PARTNER,
                         "https://evil.example/steal",
                         null)))
         .isInstanceOf(IllegalArgumentException.class)
@@ -200,12 +138,12 @@ class LoginServiceTest {
   }
 
   @Test
-  void completesWebLoginAndStoresProviderTokensOnlyInServerSession() {
+  void completesWebPartnerLoginAndStoresProviderTokensOnlyInServerSession() {
     PendingLogin pending =
-        pending(ClientType.WEB, IdentitySource.BANK_AD, "https://app.example.test/auth/complete");
+        pending(ClientType.WEB, IdentitySource.PARTNER, "https://app.example.test/auth/complete");
     when(sessions.takePending("state")).thenReturn(Optional.of(pending));
     when(provider.exchange("code", "verifier", "nonce")).thenReturn(providerSession());
-    when(authorization.resolve(eq(IdentitySource.BANK_AD), any())).thenReturn(activeIdentity());
+    when(authorization.resolve(eq(IdentitySource.PARTNER), any())).thenReturn(partnerIdentity());
 
     var result = service.complete("state", "code");
 
@@ -214,7 +152,7 @@ class LoginServiceTest {
     ArgumentCaptor<WorkforceSession> session = ArgumentCaptor.forClass(WorkforceSession.class);
     verify(sessions).putSession(session.capture(), any());
     assertThat(session.getValue().accessToken()).isEqualTo("access-token");
-    assertThat(session.getValue().businessUserId()).isEqualTo(activeIdentity().businessUserId());
+    assertThat(session.getValue().businessUserId()).isEqualTo(partnerIdentity().businessUserId());
   }
 
   @Test
@@ -223,7 +161,7 @@ class LoginServiceTest {
         pending(ClientType.NATIVE, IdentitySource.PARTNER, "bankinsurance://auth-complete");
     when(sessions.takePending("state")).thenReturn(Optional.of(pending));
     when(provider.exchange("code", "verifier", "nonce")).thenReturn(providerSession());
-    when(authorization.resolve(eq(IdentitySource.PARTNER), any())).thenReturn(activeIdentity());
+    when(authorization.resolve(eq(IdentitySource.PARTNER), any())).thenReturn(partnerIdentity());
 
     var result = service.complete("state", "code");
 
@@ -235,13 +173,13 @@ class LoginServiceTest {
   @Test
   void inactiveBusinessIdentityIsDeniedAndProviderSessionRevoked() {
     PendingLogin pending =
-        pending(ClientType.WEB, IdentitySource.BANK_AD, "https://app.example.test/auth/complete");
+        pending(ClientType.WEB, IdentitySource.PARTNER, "https://app.example.test/auth/complete");
     when(sessions.takePending("state")).thenReturn(Optional.of(pending));
     when(provider.exchange("code", "verifier", "nonce")).thenReturn(providerSession());
-    when(authorization.resolve(eq(IdentitySource.BANK_AD), any()))
+    when(authorization.resolve(eq(IdentitySource.PARTNER), any()))
         .thenReturn(
             new IdentityAuthorizationClient.ResolvedIdentity(
-                UUID.randomUUID(), "SUSPENDED", 4, "BANK_EMPLOYEE", null));
+                UUID.randomUUID(), "SUSPENDED", 4, "INSURER_REPRESENTATIVE", "ICICI"));
 
     assertThatThrownBy(() -> service.complete("state", "code"))
         .isInstanceOf(IllegalStateException.class);
@@ -285,23 +223,23 @@ class LoginServiceTest {
         Map.of("emp_id", "EMP-1"));
   }
 
-  private static IdentityAuthorizationClient.ResolvedIdentity activeIdentity() {
+  private static IdentityAuthorizationClient.ResolvedIdentity partnerIdentity() {
     return new IdentityAuthorizationClient.ResolvedIdentity(
         UUID.fromString("39c1b574-df9e-43b4-bca8-38400f3d3410"),
         "ACTIVE",
         3,
-        "BANK_EMPLOYEE",
-        null);
+        "INSURER_REPRESENTATIVE",
+        "ICICI");
   }
 
   private static WorkforceSession workforceSession() {
     return new WorkforceSession(
         "session-id",
-        activeIdentity().businessUserId(),
-        "BANK_EMPLOYEE",
+        partnerIdentity().businessUserId(),
+        "INSURER_REPRESENTATIVE",
         "ACTIVE",
         3,
-        null,
+        "ICICI",
         "provider-subject",
         "user.demo",
         "access-token",

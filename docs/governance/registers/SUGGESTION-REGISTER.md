@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261028-1lg | 2026-10-28 | human:repository-owner | One standardised Login BRD v3.1 auth surface only — retire IAM-001 dual `/login` vs `/sign-in`; keep CSRF; relocate partner OIDC off the password login verb | SF1 | SC0 | MUST | ARCH | P2 / P1 | ESCALATED | [detail](#sug-20261028-1lg--one-login-brd-surface) |
 | SUG-20261028-qst | 2026-10-28 | human:repository-owner | Stitch quotation + journey-orchestration + integration-hub + 1sb-integration for bank-side LifeSave / Savings quote APIs after lead + suitability (premium, PT, PPT) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [EPIC-008](../../platform/ws3-platform/EPIC-008.work-item.yaml) · [detail](#sug-20261028-qst--lifesave-savings-quote-stitch) |
 | SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
 | SUG-20261027-iah | 2026-10-27 | human:repository-owner | Zero-tolerance fix of Board 4 AuthN/AuthZ findings: inbound service identity on unprotected APIs, least-privilege keys, PDP/actor binding, redirect allowlist, actuator/CSRF/rate-limit hardening | SF0 | SC0 | MUST | SEC | P1 / P1 | ADMITTED | [detail](#sug-20261027-iah--zero-tolerance-authnauthz-hardening) |
@@ -172,6 +173,127 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261028-1lg · One Login BRD surface
+
+```yaml
+# schema: triage-record
+id: SUG-20261028-1lg
+raised_at: "2026-10-28"
+raised_by: "human:repository-owner"
+source: "Owner after clarifying IAM-001 /login vs Login BRD v3.1 /sign-in"
+input: >
+  Do not follow two different paths. We should have only one login and follow
+  the BRD only. CSRF from the earlier flow stays in the sign-in process. We
+  cannot have /login and /sign-in separately. Suggest the best option —
+  collaborate securely or remove one. One standardised login approach and
+  standard APIs only; no developer confusion.
+
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation (S09 overlapped)"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: "auth explanation / SUG-20261028-qst lane"
+  freshness: "WARN — state_as_of 28 days old; review_due 2026-10-28; admit/park allowed with disclosure"
+
+stage_fit:
+  code: SF1
+  rationale: >
+    Workforce login is on-stage for S08/S09 auth connectivity. Login BRD v3.1
+    is accepted behaviour SSOT (SUG-20261023-l31). Dual public entry points leave
+    an IAM-001 path that mints a session without captcha/OTP, which contradicts
+    that SSOT and confuses API consumers.
+
+scope:
+  code: SC0
+  business_scope: "in scope — Login module / workforce-access-bff AuthN"
+  serves: ["Login BRD v3.1", "IAM-001 retirement of dual entry", "SUG-20261008-otp journey"]
+  failure_without_it: "Developers keep two login APIs; clients can bypass BRD captcha/OTP via POST /auth/login"
+  minimal: true
+  authority: "Login_Module_BRD_Detailed_CONTEXT.md; workforce-access-bff README; LOGIN-BRD-V31-API-FLOWS.md"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "S08/S09 — single workforce login contract"
+  binds_when: "NIP-APP binds to one auth contract; Infosec reviews AuthN"
+  evidence_tier: E1
+  evidence:
+    - "Owner: BRD-only, one standardised login, no /login and /sign-in side by side"
+    - "Accepted Login BRD v3.1 design text (SUG-20261023-l31)"
+    - "Code: AuthenticationController /login still creates session immediately; LoginJourneyController /sign-in requires OTP"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ESCALATED
+action_rationale: >
+  Recommendation is recorded below. Implementation removes or relocates a public
+  AuthN contract (breaking for IAM-001 /login consumers) and needs an explicit
+  owner go-ahead before code. Not ADMIT-BYPASS this turn — owner asked for the
+  best option, not execution yet. Related: SUG-20261008-otp left IAM-001 /login
+  unchanged by design; this SUG supersedes that dual-path compromise for the
+  Bank RM / Insurance RM NIP login screen.
+
+classification:
+  type: ARCH
+  also: [SEC, FUNC, DOC]
+  breakdown: EPIC
+  risk_tier: T3
+priority:
+  now: P2
+  at_target: P1
+
+recommendation:
+  preferred: REMOVE_AND_STANDARDISE
+  summary: >
+    Do not merge the two ceremonies into one overloaded POST. Retire the IAM-001
+    immediate-session BANK_AD /login for the NIP login screen. Keep Login BRD
+    v3.1 as the only password login for BANK_RM and INSURANCE_RM. Keep CSRF.
+    Give partner OIDC its own named paths so it is not confused with password login.
+  options_considered:
+    - id: A
+      name: "Remove IAM-001 bank /login; keep BRD paths (/captcha, /sign-in, /otp/*)"
+      verdict: ACCEPTABLE
+      note: "Least rename churn; developers learn one journey under /sign-in."
+    - id: B
+      name: "Preferred — BRD ceremony under /login; delete /sign-in; partner OIDC relocated"
+      verdict: RECOMMENDED
+      detail: >
+        Move LoginJourney sign-in behaviour onto POST /api/v1/auth/login with the
+        v3.1 request shape (userType, loginId, password, captcha*). Delete the
+        IAM-001 BANK_AD immediate-session body and delete POST /auth/sign-in (or
+        keep a short-lived 410 Problem Details pointer). CSRF unchanged
+        (GET /auth/csrf + X-XSRF-TOKEN). Session only after POST /auth/otp/verify.
+        Relocate PARTNER OIDC begin to POST /api/v1/auth/partner/authorization
+        (callback / native-session / session / logout stay). Update OpenAPI, LLD,
+        UC-01, scenario 01, auth SSOT §5.1, Postman, tests.
+    - id: C
+      name: "Soft-merge — same handler, dual path names forever"
+      verdict: REJECT
+      note: "Keeps developer confusion; fails the owner's constraint."
+  security_note: >
+    Leaving POST /auth/login (BANK_AD) mint a WORKFORCE_SESSION without captcha
+    and OTP is a BRD control bypass (Deepali severity S1 while both exist).
+    Partner OIDC must not be forced through captcha+OTP; it is a different actor
+    and ceremony (UC-02), not Login BRD Bank/Insurance RM.
+  out_of_scope:
+    - "External Captcha image vendor / SMS-email OTP gateway (still SUG-20261008-otp parked remainder)"
+    - "mPIN; Bank RM platform password reset"
+    - "Giving OAuth tokens to Flutter (already REJECTED SUG-20261024-oat)"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  status: ESCALATED
+  next: "Owner confirms option B (or A) with go ahead / I approve — then ADMIT-BYPASS or ADMIT and implement"
+```
 
 ### SUG-20261027-brd · Suitability BRD current design
 

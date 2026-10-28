@@ -112,6 +112,13 @@ public class ProviderRequestController {
     return ResponseEntity.status(HttpStatus.ACCEPTED).body(accepted);
   }
 
+  /**
+   * Poll advances {@code IN_PROGRESS} / {@code SUBMISSION_UNCERTAIN} per Hub LLD §4.2. Callers are
+   * internal services authenticated with {@code X-Internal-Service-Key} (not browser cookie
+   * sessions), so CSRF protections that apply to cookie clients (VR-019) do not apply here.
+   */
+  // lgtm[java/spring-csrf-unprotected-request-type]
+  // codeql[java/spring-csrf-unprotected-request-type]
   @GetMapping("/{providerRequestId}")
   public ResponseEntity<Map<String, Object>> get(
       HttpServletRequest httpRequest, @PathVariable String providerRequestId) {

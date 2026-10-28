@@ -35,41 +35,41 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @Tag("FUNC-032")
 class ProviderRequestQuoteIT {
 
-  private static final WireMockServer onesb =
+  private static final WireMockServer ONESB =
       new WireMockServer(WireMockConfiguration.wireMockConfig().dynamicPort());
 
   static {
-    onesb.start();
+    ONESB.start();
   }
 
   @Autowired private MockMvc mockMvc;
 
   @AfterAll
   static void stopWireMock() {
-    onesb.stop();
+    ONESB.stop();
   }
 
   @DynamicPropertySource
   static void hubProps(DynamicPropertyRegistry registry) {
-    registry.add("hub.onesb.base-url", () -> "http://localhost:" + onesb.port());
+    registry.add("hub.onesb.base-url", () -> "http://localhost:" + ONESB.port());
     registry.add("hub.onesb.internal-service-key", () -> "local-onesb-hub-internal-key");
   }
 
   @BeforeEach
   void resetStubs() {
-    onesb.resetAll();
+    ONESB.resetAll();
   }
 
   @Test
   void savingsPremiumQuote_submitsMappedLobAndPollsOffers_AT_HUB_07() throws Exception {
-    onesb.stubFor(
+    ONESB.stubFor(
         WireMock.post(urlEqualTo("/v1/quotes"))
             .willReturn(
                 aResponse()
                     .withStatus(202)
                     .withHeader("Content-Type", "application/json")
                     .withBody("{\"jobId\":\"job-savings-1\",\"status\":\"PENDING\"}")));
-    onesb.stubFor(
+    ONESB.stubFor(
         WireMock.get(urlPathEqualTo("/v1/quotes/job-savings-1"))
             .willReturn(
                 aResponse()
@@ -140,7 +140,7 @@ class ProviderRequestQuoteIT {
         com.jayway.jsonpath.JsonPath.read(
             created.getResponse().getContentAsString(), "$.providerRequestId");
 
-    onesb.verify(
+    ONESB.verify(
         postRequestedFor(urlEqualTo("/v1/quotes"))
             .withHeader(InternalCallerAuth.HEADER, equalTo("local-onesb-hub-internal-key"))
             .withRequestBody(containing("\"lob\":\"SAVING\""))
@@ -155,12 +155,12 @@ class ProviderRequestQuoteIT {
         .andExpect(jsonPath("$.state").value("PARTIALLY_COMPLETED"))
         .andExpect(jsonPath("$.result.offers[0].providerOfferRef").value("off-1"));
 
-    onesb.verify(getRequestedFor(urlPathEqualTo("/v1/quotes/job-savings-1")));
+    ONESB.verify(getRequestedFor(urlPathEqualTo("/v1/quotes/job-savings-1")));
   }
 
   @Test
   void sameKeySameBody_replaysWithoutSecondAdapterCall_AT_HUB_02() throws Exception {
-    onesb.stubFor(
+    ONESB.stubFor(
         WireMock.post(urlEqualTo("/v1/quotes"))
             .willReturn(
                 aResponse()
@@ -178,7 +178,7 @@ class ProviderRequestQuoteIT {
 
     mockMvc.perform(quotePost(key, body)).andExpect(status().isAccepted());
 
-    onesb.verify(1, postRequestedFor(urlEqualTo("/v1/quotes")));
+    ONESB.verify(1, postRequestedFor(urlEqualTo("/v1/quotes")));
   }
 
   @Test
@@ -206,7 +206,7 @@ class ProviderRequestQuoteIT {
         .andExpect(status().isUnprocessableEntity())
         .andExpect(jsonPath("$.code").value(ErrorCodes.ATTRIBUTION_NOT_CALLER_SUPPLIED));
 
-    onesb.verify(0, postRequestedFor(urlEqualTo("/v1/quotes")));
+    ONESB.verify(0, postRequestedFor(urlEqualTo("/v1/quotes")));
   }
 
   @Test

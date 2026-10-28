@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 879
-total_bytes: 23610584
+document_count: 880
+total_bytes: 23621544
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2277,7 +2277,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 305800
+    bytes: 306088
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -4277,7 +4277,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 467930
+    bytes: 473765
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4517,7 +4517,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 42342
+    bytes: 42364
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -6781,7 +6781,7 @@ documents:
     persona: architecture
     title: "backend service catalog"
     answers: "Backend service catalogue — maps architecture bounded contexts to Gradle modules."
-    bytes: 7682
+    bytes: 7792
   - path: docs/platform/ws3-platform/00-WS3-ARCHITECTURE-REGISTRATION.md
     bucket: platform
     authority: approved-spec
@@ -7006,6 +7006,14 @@ documents:
     title: "EPIC 007.work item"
     answers: "schema: work-item"
     bytes: 4320
+  - path: docs/platform/ws3-platform/EPIC-008.work-item.yaml
+    bucket: platform
+    authority: approved-spec
+    capsules: [architecture-review, target-state-vision, code-change]
+    persona: architecture
+    title: "EPIC 008.work item"
+    answers: "schema: work-item"
+    bytes: 4705
   - path: docs/platform/ws3-platform/FUNC-029.work-item.yaml
     bucket: platform
     authority: approved-spec

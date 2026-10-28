@@ -234,7 +234,6 @@ context:
   state_as_of: "2026-09-30"
   state_provisional: false
   active_work_item: SUG-20261027-iah
-  freshness_disclosure: "FreshnessCheck exit 1 — state_as_of 27d; 04-STAGE_GATES.md stale"
 
 stage_fit:
   code: SF1
@@ -257,13 +256,14 @@ necessity:
   future_necessity: MUST
   target_stage: "S08/S09 Foundation Recovery → S11 assisted screens"
   binds_when: "first assisted Life Savings quote on the bank path"
+  failure_without_it: "RM cannot obtain a bank-side Savings quote after lead and suitability; R0 assisted sale cannot reach QUOTING"
   evidence_tier: E2
   evidence:
     - "WS-3 in_scope lists Quotation and Journey"
     - "Contracts: quotation-service, journey-orchestration, integration-hub OpenAPI/LLD"
     - "1sb-integration SavingQuoteHandler already on /insurance/lifesave/v1/quote"
   confidence: C4
-  assumptions: ["ASM-014 quote-category common list (Hub masters) may stay deferred"]
+  assumptions: ["ASM-014"]
   anti_over_engineering:
     X1_named_consumer: true
     X3_cheap_later: false
@@ -277,11 +277,6 @@ action_rationale: >
   while this epic is in flight per owner redirect (one WIP per lane).
 duplicate_of: null
 conflicts: []
-related:
-  - SUG-20261021-lft   # DynamoDB working state already partial in quotation
-  - SUG-20261021-ddb
-  - SUG-20261022-rdy
-  - SUG-20260913-acl   # no 1SB codes on UI/BFF; Hub hop
 
 classification:
   type: FUNC
@@ -304,9 +299,29 @@ priority:
 
 dependencies:
   edges:
-    - { id: DEP-suitability-usable, kind: HARD, on: "suitability-service evaluations:usable (skeleton today)" }
-    - { id: DEP-consent-before-quote, kind: SOFT, on: "consent-service BEFORE_MULTI_QUOTE (implemented)" }
-    - { id: DEP-1sb-saving-quote, kind: SOFT, on: "1sb-integration Saving quote submit/poll (implemented)" }
+    - id: DEP-20261028-sut
+      type: HARD
+      target: "suitability-service evaluations:usable"
+      relation: requires
+      state: IN-FLIGHT
+    - id: DEP-20261028-cns
+      type: SOFT
+      target: "consent-service BEFORE_MULTI_QUOTE"
+      relation: requires
+      state: DONE
+    - id: DEP-20261028-sav
+      type: SOFT
+      target: "1sb-integration Saving quote submit/poll"
+      relation: requires
+      state: DONE
+    - type: SOFT
+      target: SUG-20261021-lft
+      relation: related_to
+      state: DONE
+    - type: SOFT
+      target: SUG-20260913-acl
+      relation: related_to
+      state: DONE
   state: READY
   enablement_count: 1
   earliest_start: "immediately — Hub forwarder first; suitability usable is a HARD gate for createQuote C1"

@@ -75,16 +75,20 @@ final class QuoteCanonicalMapper {
       return Map.of();
     }
     Map<String, Object> out = new LinkedHashMap<>();
-    if (preferences.paymentFrequency() != null) {
-      String freq = preferences.paymentFrequency();
+    if (preferences.premiumFrequency() != null) {
+      String freq = preferences.premiumFrequency();
+      // Bank SSOT key premiumFrequency; HALF_YEARLY → HALF-YEARLY for adapter wire.
       if ("HALF_YEARLY".equalsIgnoreCase(freq)) {
-        out.put("paymentFrequency", "HALF-YEARLY");
+        out.put("premiumFrequency", "HALF-YEARLY");
       } else {
-        out.put("paymentFrequency", freq);
+        out.put("premiumFrequency", freq);
       }
     }
     if (preferences.policyTerm() != null) {
       out.put("policyTerm", preferences.policyTerm());
+    }
+    if (preferences.premiumPayingTerm() != null) {
+      out.put("premiumPayingTerm", preferences.premiumPayingTerm());
     }
     return Map.copyOf(out);
   }

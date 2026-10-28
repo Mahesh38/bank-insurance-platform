@@ -37,7 +37,8 @@ public record SubmitQuoteCommand(
       String pincode,
       String relationship) {}
 
-  public record Preferences(String paymentFrequency, Integer policyTerm) {}
+  public record Preferences(
+      String premiumFrequency, Integer policyTerm, Integer premiumPayingTerm) {}
 
   public record Selection(
       String insurerCode,

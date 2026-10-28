@@ -64,7 +64,7 @@ paths:
                     members:
                       - { role: LIFE_ASSURED, sequence: 1, dob: '1990-04-12', gender: MALE,
                           tobacco: false, annualIncome: 1500000, pincode: '400001' }
-                    preferences: { paymentFrequency: YEARLY }
+                    preferences: { premiumFrequency: YEARLY }
       responses:
         '202':
           description: Accepted (or replay of the original acceptance)
@@ -302,8 +302,9 @@ components:
           type: object
           additionalProperties: false
           properties:
-            paymentFrequency: { type: string, enum: [YEARLY, HALF_YEARLY, QUARTERLY, MONTHLY, SINGLE] }
+            premiumFrequency: { type: string, enum: [YEARLY, HALF_YEARLY, QUARTERLY, MONTHLY, SINGLE] }
             policyTerm: { type: integer, minimum: 1 }
+            premiumPayingTerm: { type: integer, minimum: 1 }
     Member:
       type: object
       required: [role, sequence, dob, gender]

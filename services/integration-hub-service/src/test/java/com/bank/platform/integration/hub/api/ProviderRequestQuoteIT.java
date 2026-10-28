@@ -126,7 +126,7 @@ class ProviderRequestQuoteIT {
               "role":"LIFE_ASSURED","sequence":1,"dob":"1990-04-12","gender":"MALE",
               "tobacco":false,"annualIncome":1500000,"pincode":"400001"
             }],
-            "preferences":{"paymentFrequency":"HALF_YEARLY","policyTerm":15}
+            "preferences":{"premiumFrequency":"HALF_YEARLY","policyTerm":15,"premiumPayingTerm":10}
           },
           "selection":{
             "insurerCode":"INS01",
@@ -160,7 +160,8 @@ class ProviderRequestQuoteIT {
         postRequestedFor(urlEqualTo("/v1/quotes"))
             .withHeader(InternalCallerAuth.HEADER, equalTo("local-onesb-hub-internal-key"))
             .withRequestBody(containing("\"lob\":\"SAVING\""))
-            .withRequestBody(containing("\"paymentFrequency\":\"HALF-YEARLY\""))
+            .withRequestBody(containing("\"premiumFrequency\":\"HALF-YEARLY\""))
+            .withRequestBody(containing("\"premiumPayingTerm\":10"))
             .withRequestBody(containing("\"sequenceNumber\":1"))
             .withRequestBody(containing("\"premiumPaymentTerm\":10")));
 
@@ -398,7 +399,7 @@ class ProviderRequestQuoteIT {
               "role":"LIFE_ASSURED","sequence":1,"dob":"1990-04-12","gender":"MALE",
               "tobacco":false,"annualIncome":1500000,"pincode":"400001"
             }],
-            "preferences":{"paymentFrequency":"YEARLY"}
+            "preferences":{"premiumFrequency":"YEARLY"}
           }
         }
         """

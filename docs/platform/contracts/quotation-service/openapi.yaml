@@ -389,14 +389,20 @@ components:
           type: array
           minItems: 1
           items: { $ref: '#/components/schemas/Member' }
+        premiumAmount:
+          allOf: [{ $ref: '#/components/schemas/Money' }]
+          description: Required when category is PREMIUM (Savings / LifeSave).
         preferences:
           type: object
           additionalProperties: false
           properties:
             premiumFrequency: { type: string, enum: [YEARLY, HALF_YEARLY, QUARTERLY, MONTHLY, SINGLE] }
+            policyTerm: { type: integer, minimum: 1, description: Policy term (PT). }
+            premiumPayingTerm: { type: integer, minimum: 1, description: Premium paying term (PPT). }
       description: |
         No `consentId` (resolved by the consent checkpoint) and no `distributorId` / agent fields
-        (`422 ATTRIBUTION_NOT_CALLER_SUPPLIED`, C3).
+        (`422 ATTRIBUTION_NOT_CALLER_SUPPLIED`, C3). Bank SSOT preference names: premiumFrequency,
+        policyTerm, premiumPayingTerm (I3 / FUNC-035).
     QuoteAccepted:
       type: object
       required: [quoteId, state]

@@ -29,7 +29,9 @@ public final class ProviderRequestHttpModels {
       String pincode,
       String relationship) {}
 
-  public record PreferencesHttp(String paymentFrequency, Integer policyTerm) {}
+  /** Bank SSOT preference names (I3): {@code premiumFrequency}, {@code policyTerm}, PPT. */
+  public record PreferencesHttp(
+      String premiumFrequency, Integer policyTerm, Integer premiumPayingTerm) {}
 
   public record SelectionHttp(
       @NotBlank String insurerCode,
@@ -84,8 +86,9 @@ public final class ProviderRequestHttpModels {
     if (request.body().preferences() != null) {
       preferences =
           new SubmitQuoteCommand.Preferences(
-              request.body().preferences().paymentFrequency(),
-              request.body().preferences().policyTerm());
+              request.body().preferences().premiumFrequency(),
+              request.body().preferences().policyTerm(),
+              request.body().preferences().premiumPayingTerm());
     }
     SubmitQuoteCommand.Selection selection = null;
     if (request.selection() != null) {

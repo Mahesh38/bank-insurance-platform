@@ -49,7 +49,9 @@ public final class PersistenceMessages {
       String offerStatus,
       String errorSummary,
       String rawOfferBlobId,
-      String fundsJson) {}
+      String fundsJson,
+      Integer coverTerm,
+      Integer premiumPayingTerm) {}
 
   public record OfferResponse(
       String offerId,
@@ -65,7 +67,9 @@ public final class PersistenceMessages {
       String errorSummary,
       String rawOfferBlobId,
       Instant createdAt,
-      String fundsJson) {}
+      String fundsJson,
+      Integer coverTerm,
+      Integer premiumPayingTerm) {}
 
   public record CreatePaymentSessionRequest(
       String sessionId,

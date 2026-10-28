@@ -52,6 +52,14 @@ public class IntegrationJobOfferEntity {
   @Column(name = "funds_json")
   private String fundsJson;
 
+  /** Policy term (PT) — bank {@code coverTerm}. */
+  @Column(name = "cover_term")
+  private Integer coverTerm;
+
+  /** Premium paying term (PPT) — bank {@code premiumPayingTerm}. */
+  @Column(name = "premium_paying_term")
+  private Integer premiumPayingTerm;
+
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
@@ -159,6 +167,22 @@ public class IntegrationJobOfferEntity {
 
   public void setFundsJson(String fundsJson) {
     this.fundsJson = fundsJson;
+  }
+
+  public Integer getCoverTerm() {
+    return coverTerm;
+  }
+
+  public void setCoverTerm(Integer coverTerm) {
+    this.coverTerm = coverTerm;
+  }
+
+  public Integer getPremiumPayingTerm() {
+    return premiumPayingTerm;
+  }
+
+  public void setPremiumPayingTerm(Integer premiumPayingTerm) {
+    this.premiumPayingTerm = premiumPayingTerm;
   }
 
   public Instant getCreatedAt() {

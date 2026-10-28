@@ -14,4 +14,6 @@ public record CreateOfferRequest(
     String offerStatus,
     String errorSummary,
     String rawOfferBlobId,
-    String fundsJson) {}
+    String fundsJson,
+    Integer coverTerm,
+    Integer premiumPayingTerm) {}

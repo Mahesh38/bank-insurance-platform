@@ -4,7 +4,6 @@ import com.bank.workforce.bff.application.LoginService;
 import com.bank.workforce.bff.application.SessionInvalidException;
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.ClientType;
-import com.bank.workforce.bff.session.SessionModels.IdentitySource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -58,10 +57,7 @@ public class AuthenticationController {
     var result =
         loginService.begin(
             new LoginService.BeginLoginCommand(
-                request.clientType(),
-                IdentitySource.PARTNER,
-                request.returnUri(),
-                request.loginHint()));
+                request.clientType(), request.returnUri(), request.loginHint()));
     return new PartnerAuthorizationResponse(result.authorizationUri(), result.expiresInSeconds());
   }
 

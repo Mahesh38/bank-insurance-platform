@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -14,7 +13,6 @@ import com.bank.workforce.bff.client.IdentityAuthorizationClient;
 import com.bank.workforce.bff.client.IdentityProviderClient;
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.ClientType;
-import com.bank.workforce.bff.session.SessionModels.IdentitySource;
 import com.bank.workforce.bff.session.SessionModels.NativeCompletion;
 import com.bank.workforce.bff.session.SessionModels.PendingLogin;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
@@ -75,7 +73,7 @@ class LoginServiceTest {
     assertThat(session.getValue().refreshToken()).isNull();
     assertThat(session.getValue().username()).isEqualTo("E100");
     verify(provider, never()).verifyAd(anyString(), anyString());
-    verify(authorization, never()).resolve(any(), any());
+    verify(authorization, never()).resolvePartner(any());
   }
 
   @Test
@@ -110,16 +108,16 @@ class LoginServiceTest {
     var result =
         service.begin(
             new LoginService.BeginLoginCommand(
-                ClientType.WEB,
-                IdentitySource.PARTNER,
-                "https://app.example.test/auth/complete",
-                "rm@example.test"));
+                ClientType.WEB, "https://app.example.test/auth/complete", "rm@example.test"));
 
     assertThat(result.authorizationUri()).isEqualTo(authorizationUri);
     ArgumentCaptor<PendingLogin> pending = ArgumentCaptor.forClass(PendingLogin.class);
     verify(sessions).putPending(pending.capture(), any());
     assertThat(pending.getValue().codeVerifier()).hasSizeGreaterThan(40);
-    assertThat(pending.getValue().identitySource()).isEqualTo(IdentitySource.PARTNER);
+    ArgumentCaptor<IdentityProviderClient.AuthorizationUriRequest> request =
+        ArgumentCaptor.forClass(IdentityProviderClient.AuthorizationUriRequest.class);
+    verify(provider).authorizationUri(request.capture());
+    assertThat(request.getValue().identitySource()).isEqualTo("PARTNER");
   }
 
   @Test
@@ -128,10 +126,7 @@ class LoginServiceTest {
             () ->
                 service.begin(
                     new LoginService.BeginLoginCommand(
-                        ClientType.WEB,
-                        IdentitySource.PARTNER,
-                        "https://evil.example/steal",
-                        null)))
+                        ClientType.WEB, "https://evil.example/steal", null)))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("not allowed");
     verify(provider, never()).authorizationUri(any());
@@ -139,11 +134,10 @@ class LoginServiceTest {
 
   @Test
   void completesWebPartnerLoginAndStoresProviderTokensOnlyInServerSession() {
-    PendingLogin pending =
-        pending(ClientType.WEB, IdentitySource.PARTNER, "https://app.example.test/auth/complete");
+    PendingLogin pending = pending(ClientType.WEB, "https://app.example.test/auth/complete");
     when(sessions.takePending("state")).thenReturn(Optional.of(pending));
     when(provider.exchange("code", "verifier", "nonce")).thenReturn(providerSession());
-    when(authorization.resolve(eq(IdentitySource.PARTNER), any())).thenReturn(partnerIdentity());
+    when(authorization.resolvePartner(any())).thenReturn(partnerIdentity());
 
     var result = service.complete("state", "code");
 
@@ -157,11 +151,10 @@ class LoginServiceTest {
 
   @Test
   void nativeLoginUsesSingleUseCompletionCodeInsteadOfRedirectingSessionHandle() {
-    PendingLogin pending =
-        pending(ClientType.NATIVE, IdentitySource.PARTNER, "bankinsurance://auth-complete");
+    PendingLogin pending = pending(ClientType.NATIVE, "bankinsurance://auth-complete");
     when(sessions.takePending("state")).thenReturn(Optional.of(pending));
     when(provider.exchange("code", "verifier", "nonce")).thenReturn(providerSession());
-    when(authorization.resolve(eq(IdentitySource.PARTNER), any())).thenReturn(partnerIdentity());
+    when(authorization.resolvePartner(any())).thenReturn(partnerIdentity());
 
     var result = service.complete("state", "code");
 
@@ -172,11 +165,10 @@ class LoginServiceTest {
 
   @Test
   void inactiveBusinessIdentityIsDeniedAndProviderSessionRevoked() {
-    PendingLogin pending =
-        pending(ClientType.WEB, IdentitySource.PARTNER, "https://app.example.test/auth/complete");
+    PendingLogin pending = pending(ClientType.WEB, "https://app.example.test/auth/complete");
     when(sessions.takePending("state")).thenReturn(Optional.of(pending));
     when(provider.exchange("code", "verifier", "nonce")).thenReturn(providerSession());
-    when(authorization.resolve(eq(IdentitySource.PARTNER), any()))
+    when(authorization.resolvePartner(any()))
         .thenReturn(
             new IdentityAuthorizationClient.ResolvedIdentity(
                 UUID.randomUUID(), "SUSPENDED", 4, "INSURER_REPRESENTATIVE", "ICICI"));
@@ -205,10 +197,8 @@ class LoginServiceTest {
     verify(provider).revoke("refresh-token");
   }
 
-  private static PendingLogin pending(
-      ClientType clientType, IdentitySource source, String returnUri) {
-    return new PendingLogin(
-        "state", "nonce", "verifier", clientType, source, returnUri, Instant.now());
+  private static PendingLogin pending(ClientType clientType, String returnUri) {
+    return new PendingLogin("state", "nonce", "verifier", clientType, returnUri, Instant.now());
   }
 
   private static IdentityProviderClient.ProviderSession providerSession() {

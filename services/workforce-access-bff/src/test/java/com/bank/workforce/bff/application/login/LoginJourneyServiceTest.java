@@ -130,7 +130,7 @@ class LoginJourneyServiceTest {
     when(authorization.completeLogin(USER)).thenReturn(account("READY", 3));
     when(sessions.establishSession(any(), any()))
         .thenReturn(
-            new LoginService.BankLoginResult(
+            new LoginService.EstablishedSession(
                 ClientType.WEB,
                 true,
                 USER,
@@ -184,7 +184,7 @@ class LoginJourneyServiceTest {
     when(authorization.completeLogin(USER)).thenReturn(account("READY", 3));
     when(sessions.establishSession(any(), any()))
         .thenReturn(
-            new LoginService.BankLoginResult(
+            new LoginService.EstablishedSession(
                 ClientType.WEB,
                 true,
                 USER,

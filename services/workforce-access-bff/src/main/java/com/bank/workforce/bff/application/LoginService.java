@@ -4,7 +4,6 @@ import com.bank.workforce.bff.client.IdentityAuthorizationClient;
 import com.bank.workforce.bff.client.IdentityProviderClient;
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.ClientType;
-import com.bank.workforce.bff.session.SessionModels.IdentitySource;
 import com.bank.workforce.bff.session.SessionModels.NativeCompletion;
 import com.bank.workforce.bff.session.SessionModels.PendingLogin;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
@@ -51,27 +50,20 @@ public class LoginService {
     String challenge = sha256Url(verifier);
     sessions.putPending(
         new PendingLogin(
-            state,
-            nonce,
-            verifier,
-            command.clientType(),
-            command.identitySource(),
-            command.returnUri(),
-            Instant.now()),
+            state, nonce, verifier, command.clientType(), command.returnUri(), Instant.now()),
         properties.pendingLoginTtl());
     URI authorizationUri =
         provider.authorizationUri(
             new IdentityProviderClient.AuthorizationUriRequest(
-                state, nonce, challenge, command.loginHint(), command.identitySource().name()));
+                state, nonce, challenge, command.loginHint(), "PARTNER"));
     return new BeginLoginResult(authorizationUri, properties.pendingLoginTtl().toSeconds());
   }
 
   /**
    * Session after a successful Login BRD v3.1 login OTP. The password was already checked and is
-   * not presented again. Provider tokens are not stored. IAM-001 immediate-session bank login was
-   * removed ({@code SUG-20261028-1lg}).
+   * not presented again. Provider tokens are not stored.
    */
-  public BankLoginResult establishSession(ClientType clientType, EstablishedIdentity identity) {
+  public EstablishedSession establishSession(ClientType clientType, EstablishedIdentity identity) {
     if (identity == null || !"ACTIVE".equals(identity.status())) {
       throw new IllegalStateException("Business identity is not active");
     }
@@ -97,7 +89,7 @@ public class LoginService {
             Map.of());
     sessions.putSession(session, properties.sessionTtl());
     log.info("Workforce session created after login OTP");
-    return new BankLoginResult(
+    return new EstablishedSession(
         clientType,
         true,
         identity.businessUserId(),
@@ -116,7 +108,7 @@ public class LoginService {
             .orElseThrow(
                 () -> new IllegalArgumentException("Login transaction is invalid or expired"));
     var providerSession = provider.exchange(code, pending.codeVerifier(), pending.nonce());
-    var identity = authorization.resolve(pending.identitySource(), providerSession);
+    var identity = authorization.resolvePartner(providerSession);
     if (!"ACTIVE".equals(identity.status())) {
       provider.revoke(providerSession.refreshToken());
       throw new IllegalStateException("Business identity is not active");
@@ -197,8 +189,7 @@ public class LoginService {
     }
   }
 
-  public record BeginLoginCommand(
-      ClientType clientType, IdentitySource identitySource, String returnUri, String loginHint) {}
+  public record BeginLoginCommand(ClientType clientType, String returnUri, String loginHint) {}
 
   public record BeginLoginResult(URI authorizationUri, long expiresInSeconds) {}
 
@@ -216,7 +207,7 @@ public class LoginService {
       String insurerCode,
       String username) {}
 
-  public record BankLoginResult(
+  public record EstablishedSession(
       ClientType clientType,
       boolean authenticated,
       UUID businessUserId,

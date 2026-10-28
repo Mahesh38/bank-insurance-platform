@@ -12,17 +12,12 @@ public final class SessionModels {
     NATIVE
   }
 
-  public enum IdentitySource {
-    BANK_AD,
-    PARTNER
-  }
-
+  /** Pending Keycloak OIDC login (partner representatives only). */
   public record PendingLogin(
       String state,
       String nonce,
       String codeVerifier,
       ClientType clientType,
-      IdentitySource identitySource,
       String returnUri,
       Instant createdAt) {}
 

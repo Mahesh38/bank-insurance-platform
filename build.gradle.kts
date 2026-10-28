@@ -44,6 +44,12 @@ subprojects {
     // 2.21.6). Remove once a Spring Boot release pins 2.21.6 or later.
     extra["jackson-bom.version"] = "2.21.7"
 
+    // Bank GitLab dev (02d8ea29, 2026-10-13) pins Flyway 11.20.2 so PostgreSQL 18
+    // is a recognised database. Boot 3.5.16 pins 11.7.2, which does not. Both
+    // flyway-core and flyway-database-postgresql follow this property.
+    // SUG-20261028-gls. Remove once a Boot release pins 11.20.2 or later.
+    extra["flyway.version"] = "11.20.2"
+
     // kafka-clients 3.9.2 (Boot 3.5.16) pulls at.yawk.lz4:lz4-java:1.10.1, exposed to
     // CVE-2026-106451 (native extract race in shared tmpdir; fixed in 1.11.4). Not a
     // Boot BOM property — constrain the transitive on runtimeClasspath. Remove once

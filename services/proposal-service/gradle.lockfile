@@ -1,18 +1,19 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
+at.yawk.lz4:lz4-java:1.11.4=runtimeClasspath
 ch.qos.logback:logback-classic:1.5.34=runtimeClasspath
 ch.qos.logback:logback-core:1.5.34=runtimeClasspath
 com.fasterxml.jackson.core:jackson-annotations:2.21=runtimeClasspath
 com.fasterxml.jackson.core:jackson-core:2.21.7=runtimeClasspath
 com.fasterxml.jackson.core:jackson-databind:2.21.7=runtimeClasspath
-com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.21.7=runtimeClasspath
 com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.21.7=runtimeClasspath
 com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.21.7=runtimeClasspath
 com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.7=runtimeClasspath
 com.fasterxml.jackson.module:jackson-module-parameter-names:2.21.7=runtimeClasspath
 com.fasterxml.jackson:jackson-bom:2.21.7=runtimeClasspath
 com.fasterxml:classmate:1.7.3=runtimeClasspath
+com.github.luben:zstd-jni:1.5.6-4=runtimeClasspath
 com.h2database:h2:2.3.232=runtimeClasspath
 com.sun.istack:istack-commons-runtime:4.1.2=runtimeClasspath
 com.zaxxer:HikariCP:6.3.3=runtimeClasspath
@@ -34,6 +35,7 @@ jakarta.xml.bind:jakarta.xml.bind-api:4.0.5=runtimeClasspath
 net.bytebuddy:byte-buddy:1.17.8=runtimeClasspath
 org.antlr:antlr4-runtime:4.13.2=runtimeClasspath
 org.apache.commons:commons-lang3:3.17.0=runtimeClasspath
+org.apache.kafka:kafka-clients:3.9.2=runtimeClasspath
 org.apache.logging.log4j:log4j-api:2.24.3=runtimeClasspath
 org.apache.logging.log4j:log4j-to-slf4j:2.24.3=runtimeClasspath
 org.apache.tomcat.embed:tomcat-embed-core:10.1.59=runtimeClasspath
@@ -41,8 +43,8 @@ org.apache.tomcat.embed:tomcat-embed-el:10.1.59=runtimeClasspath
 org.apache.tomcat.embed:tomcat-embed-websocket:10.1.59=runtimeClasspath
 org.aspectj:aspectjweaver:1.9.25.1=runtimeClasspath
 org.eclipse.angus:angus-activation:2.0.3=runtimeClasspath
-org.flywaydb:flyway-core:11.7.2=runtimeClasspath
-org.flywaydb:flyway-database-postgresql:11.7.2=runtimeClasspath
+org.flywaydb:flyway-core:11.20.2=runtimeClasspath
+org.flywaydb:flyway-database-postgresql:11.20.2=runtimeClasspath
 org.glassfish.jaxb:jaxb-core:4.0.9=runtimeClasspath
 org.glassfish.jaxb:jaxb-runtime:4.0.9=runtimeClasspath
 org.glassfish.jaxb:txw2:4.0.9=runtimeClasspath
@@ -87,6 +89,7 @@ org.springframework:spring-tx:6.2.19=runtimeClasspath
 org.springframework:spring-web:6.2.19=runtimeClasspath
 org.springframework:spring-webmvc:6.2.19=runtimeClasspath
 org.webjars:swagger-ui:5.17.14=runtimeClasspath
+org.xerial.snappy:snappy-java:1.1.10.5=runtimeClasspath
 org.yaml:snakeyaml:2.4=runtimeClasspath
 software.amazon.awssdk:annotations:2.55.16=runtimeClasspath
 software.amazon.awssdk:auth:2.55.16=runtimeClasspath

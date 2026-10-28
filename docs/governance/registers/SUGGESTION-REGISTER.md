@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261028-gls | 2026-10-28 | human:repository-owner | Sync GitHub with bank GitLab dev after the snapshot: keep required behaviour, rewrite bad practice, do not overlay the GitLab tree. | SF5 | SC1 | SHOULD | MIGRATION | P2 / P2 | ADMIT-BYPASS | [PLAN-013](../plans/PLAN-013-gitlab-bank-dev-sync.md) · [detail](#sug-20261028-gls--gitlab-bank-dev-sync) · remainder parked |
 | SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
 | SUG-20261027-iah | 2026-10-27 | human:repository-owner | Zero-tolerance fix of Board 4 AuthN/AuthZ findings: inbound service identity on unprotected APIs, least-privilege keys, PDP/actor binding, redirect allowlist, actuator/CSRF/rate-limit hardening | SF0 | SC0 | MUST | SEC | P1 / P1 | ADMITTED | [detail](#sug-20261027-iah--zero-tolerance-authnauthz-hardening) |
 | SUG-20261026-ur9 | 2026-10-26 | human:repository-owner | Raise coding standards further throughout development for all modules — enforce CODING-STANDARD via Checkstyle Naming, shared ArchUnit, maturity ladder (residual after cds) | SF5 | SC0 | SHOULD | GOV | P3 / P2 | CLOSED-DELIVERED | [EPIC-007](../../platform/ws3-platform/EPIC-007.work-item.yaml) · [detail](#sug-20261026-ur9--enforce-coding-standard-estate-wide) · related [cds](#sug-20261026-cds--platform-java-coding-standard) |
@@ -171,6 +172,87 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261028-gls · GitLab bank dev sync
+
+```yaml
+id: SUG-20261028-gls
+raised_at: "2026-10-28"
+raised_by: "human:repository-owner"
+source: "Repository owner. Handoff DEV_CHANGES_AND_REPLICATION_PLAN_8605.md from local Git objects of nip-backend, tip 42eb8f5d."
+input: >
+  now we have 2 different git application, one is owned by me on github and
+  another is on gitlab where bank team is working on, first commit was clone
+  or snapshot of our github repository on those specific services. now people
+  have made lots of changes on the gitlab repo some are good and required some
+  are really bad codding practices but i want to keep both the repos in sync
+  thats the reason i ask codex to create the docs what all changes are commited
+  on the repository after our first commit, now some i them need to keep and
+  some needs improvement. please help sync the repo.
+context:
+  workstream: WS-3
+  current_phase: "Foundation Recovery Increment — S08 with S09 overlapped"
+  canonical_stage: "S08 — Engineering Foundation"
+  current_objective: "R0-ASSISTED-LIFE-SALE"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261028-gls
+stage_fit:
+  code: SF5
+  rationale: "Customer, lead and BFF behaviour the bank already runs is off the 1SB hardening critical path and does not change a gate. The October snapshot is not this tree."
+  parallel_test: "dependency-safe against GATE-P4; separate lane from the suitability BRD change; no silent G1–G10 edit"
+  lane: "gitlab-dev-sync"
+  target_stage: "S08"
+  unpark_trigger: "october-first-commit.patch present and SHA-256 F7A23B0366576D89D8C476B1417367A57D7117FB5256DA2DAEE6AAD017B9CAE9"
+scope:
+  code: SC1
+  business_scope: "in scope — assisted customer lookup and lead capture the bank dev line is changing"
+  serves: "R0-ASSISTED-LIFE-SALE customer search and lead create"
+  failure_without_it: "The bank line and this line diverge on search, snapshot and lead responses"
+  minimal: true
+necessity:
+  now: SHOULD
+  future_necessity: MUST
+  target_stage: "S08"
+  binds_when: "the bank client depends on a GitLab response field this tree does not return"
+  evidence_tier: E3
+  evidence:
+    - "Handoff commit ledger and file inventory, tip 42eb8f5d"
+    - "This tree at bb99024d: CustomerSearchService, lead_lms migrations V2–V4 and V6, BFF CustomerHit"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: false
+    X5_stage_necessity: true
+    X9_problem_observed: true
+action: ADMIT-BYPASS
+normal_recommendation: PARK
+bypass_authorised_by: "Mahesh / repository_owner (explicit: help sync the repo)"
+reviewer_type: HUMAN
+authority: repository_owner
+action_rationale: >
+  The standing recommendation is PARK until october-first-commit.patch is in
+  hand. Confidence on file names is high. Confidence on column lists and JSON
+  fields is not, and an owner decision cannot invent that diff. GitLab
+  answered HTTP 403 from this environment. Executed now: the disposition in
+  PLAN-013, and the Flyway 11.20.2 pin (the one required change that does not
+  need the patch). The behavioural port stays parked.
+classification: { type: MIGRATION, also: [REFACTOR], breakdown: EPIC, risk_tier: T3 }
+priority: { now: P2, at_target: P2 }
+risk: >
+  Applying september-first-commit.patch or october-first-commit.patch onto
+  bb99024d deletes the current 1sb-integration-service tree, renames the
+  module, replaces lead JDBC with MapStruct and Spring Data, and collides
+  with lead Flyway V2–V6. Freshness check was WARN (state_as_of 28 days old;
+  review_due 2026-10-28; 04-STAGE_GATES.md past its 14-day limit).
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261028-gls
+  status: ADMIT-BYPASS
+  delivered: "Flyway 11.20.2 pin and PLAN-013 disposition"
+  parked_remainder: "customer snapshot, detail cache, BFF CORS, response-field reconciliation"
+```
 
 ### SUG-20261027-brd · Suitability BRD current design
 

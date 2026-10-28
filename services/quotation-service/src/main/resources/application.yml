@@ -23,11 +23,35 @@ quotation:
   internal-auth:
     callers:
       workforce-access-bff: ${QUOTATION_BFF_INTERNAL_KEY:local-quotation-bff-internal-key}
+      journey-orchestration-service: ${QUOTATION_JOURNEY_INTERNAL_KEY:local-quotation-journey-internal-key}
     actor-callers:
       - workforce-access-bff
+      - journey-orchestration-service
     privileges:
       workforce-access-bff:
         - "*"
+      journey-orchestration-service:
+        - "*"
+  # FUNC-033 — stub suitability/consent for local/test; Hub always uses RestClient.
+  gates:
+    stub: ${QUOTATION_GATES_STUB:false}
+  clients:
+    hub:
+      base-url: ${INTEGRATION_HUB_BASE_URL:http://localhost:8095}
+      internal-service-key: ${QUOTATION_HUB_INTERNAL_KEY:local-integrationhub-quotation-internal-key}
+      connect-timeout-ms: 1000
+      submit-read-timeout-ms: 3000
+      poll-read-timeout-ms: 30000
+    suitability:
+      base-url: ${SUITABILITY_BASE_URL:http://localhost:8092}
+      internal-service-key: ${QUOTATION_SUITABILITY_INTERNAL_KEY:local-suitability-quotation-internal-key}
+      connect-timeout-ms: 1000
+      read-timeout-ms: 500
+    consent:
+      base-url: ${CONSENT_BASE_URL:http://localhost:8093}
+      internal-service-key: ${QUOTATION_CONSENT_INTERNAL_KEY:local-consent-quotation-internal-key}
+      connect-timeout-ms: 1000
+      read-timeout-ms: 500
   working-store:
     table-name: ${QUOTATION_WORKING_TABLE:local-quotation-working}
     region: ${AWS_REGION:ap-south-1}

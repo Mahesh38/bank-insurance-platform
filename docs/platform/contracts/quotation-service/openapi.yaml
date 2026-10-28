@@ -25,7 +25,7 @@ paths:
     post:
       tags: [quotes]
       operationId: createQuote
-      x-implementation-status: PLANNED
+      x-implementation-status: BUILT
       summary: Create a quote (gate C1 + consent checkpoint BEFORE_MULTI_QUOTE), dispatch to the Hub.
       description: |
         1. Gate C1: suitability outcome for `productClass` must be in `SUITABILITY.GATE.allowedOutcomes`
@@ -84,7 +84,7 @@ paths:
     get:
       tags: [quotes]
       operationId: getQuote
-      x-implementation-status: PLANNED
+      x-implementation-status: BUILT
       summary: Quote status and offers (read-path switch — Aurora record if materialised, else DynamoDB).
       description: |
         Side-effect free except lazy expiry: a non-held quote in `QUOTED`, `PARTIALLY_QUOTED` or

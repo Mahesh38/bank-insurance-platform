@@ -1,4 +1,13 @@
 quotation:
+  gates:
+    stub: true
+  clients:
+    hub:
+      base-url: http://localhost:0
+      internal-service-key: local-integrationhub-quotation-internal-key
+      connect-timeout-ms: 500
+      submit-read-timeout-ms: 2000
+      poll-read-timeout-ms: 2000
   working-store:
     table-name: test-quotation-working
   outbox:

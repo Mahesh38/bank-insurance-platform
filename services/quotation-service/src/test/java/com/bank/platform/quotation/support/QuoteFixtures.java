@@ -40,7 +40,35 @@ public final class QuoteFixtures {
                 false,
                 new BigDecimal("1500000"),
                 MEMBER_PINCODE)),
-        "cfg-2026-10-21");
+        "cfg-2026-10-21",
+        null,
+        null);
+  }
+
+  public static NewQuote savingsQuote(String journeyId) {
+    return new NewQuote(
+        Ulid.mint(),
+        journeyId,
+        Ulid.mint(),
+        Ulid.mint(),
+        Ulid.mint(),
+        "LIFE",
+        "SAVINGS",
+        "MULTI",
+        "PREMIUM",
+        new BigDecimal("500000"),
+        List.of(
+            new QuoteMember(
+                "LIFE_ASSURED",
+                1,
+                LocalDate.of(1990, 4, 12),
+                "MALE",
+                false,
+                new BigDecimal("1500000"),
+                MEMBER_PINCODE)),
+        "cfg-2026-10-21",
+        new BigDecimal("25000"),
+        new NewQuote.Preferences("HALF_YEARLY", 15, 10));
   }
 
   public static QuoteOffer offer(String insurer, String premium) {

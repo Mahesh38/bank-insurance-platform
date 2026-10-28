@@ -43,14 +43,17 @@ not_included:
 stories:
   - id: FUNC-032
     title: "integration-hub quote submit/poll forwards to 1sb-integration"
-    state: IN-FLIGHT
+    state: Done
     priority_now: P2
     priority_at_target: P1
   - id: FUNC-033
     title: "quotation createQuote + getQuote (C1, Hub dispatch, offer ingest)"
-    state: READY
+    state: Done
     priority_now: P2
     priority_at_target: P1
+    evidence:
+      - "CreateQuoteServiceTest (FUNC-033) — Hub submit once with SAVINGS premium + PT/PPT"
+      - "CreateGetQuoteIT (FUNC-033) — EmbeddedDynamoDb + WireMock Hub create→poll→QUOTED coverTerm/ppt"
   - id: FUNC-034
     title: "journey-orchestration quotes + selection stage transitions"
     state: READY

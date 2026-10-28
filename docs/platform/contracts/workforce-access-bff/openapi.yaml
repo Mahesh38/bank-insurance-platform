@@ -878,9 +878,10 @@ components:
           schema: { $ref: '#/components/schemas/Problem' }
     AuthSchemaInvalid:
       description: |
-        Auth-path input refused (`IllegalArgumentException` → `SCHEMA_INVALID`): employee id or
-        password missing for `BANK_AD`; `returnUri` not exactly in
-        `workforce.session.allowed-return-uris` for `PARTNER`.
+        Auth-path input refused (`IllegalArgumentException` → `SCHEMA_INVALID`): for example
+        `returnUri` not exactly in `workforce.session.allowed-return-uris` on partner OIDC begin.
+        Legacy IAM-001 bodies on `/auth/login` (`identitySource` without BRD fields) are refused
+        as `422 VALIDATION_ERROR`, not this response.
       x-error-codes: [SCHEMA_INVALID]
       x-implementation-note: Target name `RETURN_LOCATION_NOT_ALLOWED` exists in ErrorCodes; the code raises SCHEMA_INVALID today.
       content:

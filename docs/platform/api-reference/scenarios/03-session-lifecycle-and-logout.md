@@ -65,4 +65,4 @@ mutation should be retried after re-login **with the same `Idempotency-Key`**.
 
 ## 5. Pages
 
-[BFF §2.5–§2.6](../services/workforce-access-bff.md#25-get-apiv1authsession) · [Session vault](../interactions/bff-session-vault.md) · [Headers and session](../conventions/headers-session-and-auth.md)
+[BFF §2.6–§2.7](../services/workforce-access-bff.md#26-get-apiv1authsession) · [Session vault](../interactions/bff-session-vault.md) · [Headers and session](../conventions/headers-session-and-auth.md)

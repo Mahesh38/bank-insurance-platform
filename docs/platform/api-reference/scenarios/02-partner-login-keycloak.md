@@ -112,4 +112,4 @@ sequenceDiagram
 
 ## 4. Pages for each hop
 
-[BFF §2.2–§2.4](../services/workforce-access-bff.md#22-post-apiv1authlogin) · [IdP adapter](../services/identity-provider-adapter-service.md) · [PDP](../services/identity-authorization-service.md) · [Session vault](../interactions/bff-session-vault.md)
+[BFF §2.3–§2.5](../services/workforce-access-bff.md#23-post-apiv1authpartnerauthorization) · [IdP adapter](../services/identity-provider-adapter-service.md) · [PDP](../services/identity-authorization-service.md) · [Session vault](../interactions/bff-session-vault.md)

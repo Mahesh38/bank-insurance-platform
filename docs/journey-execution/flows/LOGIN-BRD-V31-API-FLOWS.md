@@ -408,9 +408,13 @@ Blank-field sentences from older copy are not returned. A missing JSON field fai
 
 ---
 
-## 14. The other live login
+## 14. Partner OIDC (not the BRD password form)
 
-`POST /api/v1/auth/login` with `identitySource=BANK_AD` still calls AD-verify and creates a session immediately. It does not call preview, captcha, OTP, or the v3.1 lock counter. `identitySource` other than `BANK_AD` still returns an authorization URI; `GET /api/v1/auth/callback` finishes partner OIDC (`UC-02`). That partner is not the BRD Insurance RM.
+IAM-001 immediate-session login (`identitySource=BANK_AD` on `/auth/login`) is retired
+(`SUG-20261028-1lg`). A body that still sends `identitySource` / `employeeId` without the BRD
+fields returns `422 VALIDATION_ERROR`. Partner Keycloak OIDC begins at
+`POST /api/v1/auth/partner/authorization`; `GET /api/v1/auth/callback` finishes it (`UC-02`).
+That partner is not the BRD Insurance RM / FLS toggle.
 
 ---
 

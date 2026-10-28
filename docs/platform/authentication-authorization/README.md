@@ -276,7 +276,8 @@ Keycloak owns a separate database managed only by Keycloak. No business service 
 
 ### Public BFF
 
-- `POST /api/v1/auth/login` — `BANK_AD`: Employee ID + password → `{ authenticated }` + opaque session. `PARTNER`: authorization URI only.
+- `POST /api/v1/auth/captcha` → `POST /api/v1/auth/login` → `POST /api/v1/auth/otp/verify` — Login BRD v3.1 for Bank RM and Insurance RM/FLS (session only after OTP)
+- `POST /api/v1/auth/partner/authorization` — partner Keycloak OIDC begin (UC-02)
 - `GET /api/v1/auth/callback`
 - `GET /api/v1/auth/session`
 - `POST /api/v1/auth/logout`

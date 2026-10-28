@@ -63,6 +63,7 @@ class LoginJourneyIT {
     registry.add("workforce.downstream.provider-adapter-base-url", ADAPTER::baseUrl);
     registry.add("workforce.downstream.authorization-service-base-url", AUTHZ::baseUrl);
     registry.add("workforce.login.otp-code", () -> "482913");
+    registry.add("workforce.login.resend-delay", () -> "PT0S");
   }
 
   @Autowired private MockMvc mockMvc;
@@ -115,6 +116,24 @@ class LoginJourneyIT {
       AUTHZ.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/preview")));
       AUTHZ.verify(
           exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/verify-platform-password")));
+    }
+
+    @Test
+    void consumedCaptchaCannotBeReusedEvenWithTheRightValue() throws Exception {
+      stubBankReady(true);
+      stubAd(true, true);
+      String[] captcha = captcha();
+      mockMvc
+          .perform(loginJson("BANK_RM", "E100", "network-secret", captcha))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.outcome").value("OTP_SENT"));
+      mockMvc
+          .perform(loginJson("BANK_RM", "E100", "network-secret", captcha))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.outcome").value("MESSAGE"))
+          .andExpect(jsonPath("$.code").value("VAL-004"))
+          .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
+      ADAPTER.verify(exactly(1), postRequestedFor(urlEqualTo("/internal/v1/auth/ad-verify")));
     }
   }
 
@@ -204,6 +223,103 @@ class LoginJourneyIT {
           .andExpect(cookie().exists("WORKFORCE_SESSION"));
       AUTHZ.verify(exactly(1), postRequestedFor(urlEqualTo("/internal/v1/login/complete")));
     }
+
+    @Test
+    void unknownEmployeeStopsBeforeDirectoryAndDoesNotIssueOtp() throws Exception {
+      AUTHZ.stubFor(
+          WireMock.post(urlEqualTo("/internal/v1/login/preview"))
+              .willReturn(
+                  json(
+                      """
+                      {"found":false,"route":"UNKNOWN","businessUserId":null,"status":null,"policyVersion":0,"userType":null,"insurerCode":null,"firstName":null,"username":null,"maskedMobile":null,"maskedEmail":null,"attemptsRemaining":3,"firstLogin":false}
+                      """)));
+      String[] captcha = captcha();
+      mockMvc
+          .perform(loginJson("BANK_RM", "E404", "network-secret", captcha))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.outcome").value("MESSAGE"))
+          .andExpect(jsonPath("$.code").value("VAL-005"))
+          .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
+      ADAPTER.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/auth/ad-verify")));
+    }
+
+    @Test
+    void lockedBankAccountWithRightPasswordStillReturnsVal010() throws Exception {
+      String locked =
+          BANK_ACCOUNT
+              .replace("\"route\":\"READY\"", "\"route\":\"LOCKED_PASSWORD\"")
+              .replace("\"attemptsRemaining\":3", "\"attemptsRemaining\":0");
+      AUTHZ.stubFor(
+          WireMock.post(urlEqualTo("/internal/v1/login/preview")).willReturn(json(locked)));
+      String[] captcha = captcha();
+      mockMvc
+          .perform(loginJson("BANK_RM", "E100", "network-secret", captcha))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.outcome").value("MESSAGE"))
+          .andExpect(jsonPath("$.code").value("VAL-010"))
+          .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
+      ADAPTER.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/auth/ad-verify")));
+    }
+
+    @Test
+    void fiveWrongOtpsEndTheChallengeWithoutASession() throws Exception {
+      stubBankReady(true);
+      stubAd(true, true);
+      String[] captcha = captcha();
+      MvcResult signIn =
+          mockMvc
+              .perform(loginJson("BANK_RM", "E100", "network-secret", captcha))
+              .andExpect(jsonPath("$.outcome").value("OTP_SENT"))
+              .andReturn();
+      String challengeId =
+          JsonPath.read(signIn.getResponse().getContentAsString(), "$.challengeId");
+      for (int i = 0; i < 4; i++) {
+        mockMvc
+            .perform(otpJson(challengeId, "00000" + i))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value("VAL-014"));
+      }
+      mockMvc
+          .perform(otpJson(challengeId, "999999"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.outcome").value("MESSAGE"))
+          .andExpect(jsonPath("$.code").value("VAL-016"))
+          .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
+      mockMvc
+          .perform(otpJson(challengeId, "482913"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.code").value("VAL-015"))
+          .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
+      AUTHZ.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/complete")));
+    }
+
+    @Test
+    void otpResendIssuesANewChallengeAndStillAuthenticates() throws Exception {
+      stubBankReady(true);
+      stubAd(true, true);
+      String[] captcha = captcha();
+      MvcResult signIn =
+          mockMvc
+              .perform(loginJson("BANK_RM", "E100", "network-secret", captcha))
+              .andExpect(jsonPath("$.outcome").value("OTP_SENT"))
+              .andReturn();
+      String challengeId =
+          JsonPath.read(signIn.getResponse().getContentAsString(), "$.challengeId");
+      mockMvc
+          .perform(
+              post("/api/v1/auth/otp/resend")
+                  .with(csrf())
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"challengeId\":\"%s\"}".formatted(challengeId)))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.outcome").value("OTP_SENT"))
+          .andExpect(jsonPath("$.challengeId").value(challengeId));
+      mockMvc
+          .perform(otpJson(challengeId, "482913"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.outcome").value("AUTHENTICATED"))
+          .andExpect(cookie().exists("WORKFORCE_SESSION"));
+    }
   }
 
   @Nested
@@ -245,6 +361,27 @@ class LoginJourneyIT {
           .andExpect(jsonPath("$.code").value("VAL-008"))
           .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
       AUTHZ.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/complete")));
+    }
+
+    @Test
+    void unknownPartnerEmailStopsWithoutPlatformPasswordCheck() throws Exception {
+      AUTHZ.stubFor(
+          WireMock.post(urlEqualTo("/internal/v1/login/preview"))
+              .willReturn(
+                  json(
+                      """
+                      {"found":false,"route":"UNKNOWN","businessUserId":null,"status":null,"policyVersion":0,"userType":null,"insurerCode":null,"firstName":null,"username":null,"maskedMobile":null,"maskedEmail":null,"attemptsRemaining":3,"firstLogin":false}
+                      """)));
+      String[] captcha = captcha();
+      mockMvc
+          .perform(loginJson("INSURANCE_RM", "missing@example.test", "Horse#99", captcha))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.outcome").value("MESSAGE"))
+          .andExpect(jsonPath("$.code").value("VAL-006"))
+          .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
+      AUTHZ.verify(
+          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/verify-platform-password")));
+      ADAPTER.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/auth/ad-verify")));
     }
 
     @Test

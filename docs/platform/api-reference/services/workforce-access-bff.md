@@ -25,11 +25,12 @@
 | Method | Path | Status | Purpose | Detail |
 |---|---|---|---|---|
 | `GET` | `/api/v1/auth/csrf` | IMPLEMENTED | Get the CSRF token (web) | [§2.1](#21-get-apiv1authcsrf) |
-| `POST` | `/api/v1/auth/login` | IMPLEMENTED | Bank RM credential login (AD-verify) **or** start partner OIDC login | [§2.2](#22-post-apiv1authlogin) |
-| `GET` | `/api/v1/auth/callback` | IMPLEMENTED | OIDC redirect target after Keycloak login | [§2.3](#23-get-apiv1authcallback) |
-| `POST` | `/api/v1/auth/native-session` | IMPLEMENTED | Native app swaps one-time completion code for a session handle | [§2.4](#24-post-apiv1authnative-session) |
-| `GET` | `/api/v1/auth/session` | IMPLEMENTED | Who am I (from the vault) | [§2.5](#25-get-apiv1authsession) |
-| `POST` | `/api/v1/auth/logout` | IMPLEMENTED | Delete session; revoke provider refresh token | [§2.6](#26-post-apiv1authlogout) |
+| `POST` | `/api/v1/auth/login` | IMPLEMENTED | Login BRD v3.1 password step (Captcha → OTP; Bank RM / Insurance RM) | [§2.2](#22-post-apiv1authlogin-login-brd-v31) |
+| `POST` | `/api/v1/auth/partner/authorization` | IMPLEMENTED | Start partner Keycloak OIDC (UC-02) | [§2.3](#23-post-apiv1authpartnerauthorization) |
+| `GET` | `/api/v1/auth/callback` | IMPLEMENTED | OIDC redirect target after Keycloak login | [§2.4](#24-get-apiv1authcallback) |
+| `POST` | `/api/v1/auth/native-session` | IMPLEMENTED | Native app swaps one-time completion code for a session handle | [§2.5](#25-post-apiv1authnative-session) |
+| `GET` | `/api/v1/auth/session` | IMPLEMENTED | Who am I (from the vault) | [§2.6](#26-get-apiv1authsession) |
+| `POST` | `/api/v1/auth/logout` | IMPLEMENTED | Delete session; revoke provider refresh token | [§2.7](#27-post-apiv1authlogout) |
 
 ### 1.2 Workspace, customer and lead (`/api/v1/**`, session required)
 

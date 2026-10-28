@@ -190,9 +190,8 @@ and caps at 20. Organisation and country-code data are in-process fixtures.
 
 | Field | Rule | Error code |
 |---|---|---|
-| login `clientType`, `identitySource` | `@NotNull`, enum | `422 VALIDATION_ERROR` (field `MISSING_REQUIRED_FIELD`); unknown enum value → `422 INVALID_REQUEST` |
-| login `employeeId`, `password` (BANK_AD) | non-blank | `400 SCHEMA_INVALID` |
-| login `returnUri` (PARTNER) | exact member of allow-list | `400 SCHEMA_INVALID` |
+| login `clientType`, `userType`, `loginId`, `password`, `captchaId`, `captchaValue` | `@NotNull` / `@NotBlank` BRD fields | `422 VALIDATION_ERROR`; unknown enum → `422 INVALID_REQUEST` |
+| partner authorization `clientType`, `returnUri` | `@NotNull` / allow-list member | `422 VALIDATION_ERROR` / `400 SCHEMA_INVALID` |
 | callback `state` | live pending login, single use | `400 SCHEMA_INVALID` |
 | native-session `completionCode` | `@NotBlank`; live, single use | `422 VALIDATION_ERROR` / `400 SCHEMA_INVALID` |
 | session handle on `/auth/session`, `/auth/logout` | present (and resolvable for session) | `400 SCHEMA_INVALID` |

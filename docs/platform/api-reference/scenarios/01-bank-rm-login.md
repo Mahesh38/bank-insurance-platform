@@ -168,5 +168,5 @@ curl -s -b jar http://localhost:8084/api/v1/auth/session
 
 [Edge to BFF](../interactions/edge-to-bff.md) · [BFF to IdP adapter](../interactions/bff-to-identity-provider-adapter.md) ·
 [BFF to PDP](../interactions/bff-to-identity-authorization.md) · [Session vault](../interactions/bff-session-vault.md) ·
-[BFF service](../services/workforce-access-bff.md#22-post-apiv1authlogin) · [IdP adapter](../services/identity-provider-adapter-service.md) ·
+[BFF service](../services/workforce-access-bff.md#22-post-apiv1authlogin-login-brd-v31) · [IdP adapter](../services/identity-provider-adapter-service.md) ·
 [Authorization service](../services/identity-authorization-service.md)

@@ -22,7 +22,7 @@ row of a key); attribution injection; per-provider bulkhead + breaker; single ad
 ## 3. Operations
 
 [openapi.yaml](./openapi.yaml): `submitProviderRequest` (`QUOTE`, `PROPOSAL_SUBMIT`),
-`getProviderRequest`, `runProviderQuery` (`APPLICATION_STATUS`, eligibility criteria, form schema,
+`pollProviderRequest`, `runProviderQuery` (`APPLICATION_STATUS`, eligibility criteria, form schema,
 masters, product content, ULIP funds).
 
 ## 4. Data owned

@@ -166,7 +166,7 @@ class ProviderRequestQuoteIT {
 
     mockMvc
         .perform(
-            MockMvcRequestBuilders.get("/internal/v1/provider-requests/" + providerRequestId)
+            MockMvcRequestBuilders.post("/internal/v1/provider-requests/" + providerRequestId)
                 .header(InternalCallerAuth.HEADER, quotationKey()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("PARTIALLY_COMPLETED"))
@@ -332,7 +332,7 @@ class ProviderRequestQuoteIT {
 
     mockMvc
         .perform(
-            MockMvcRequestBuilders.get("/internal/v1/provider-requests/" + id)
+            MockMvcRequestBuilders.post("/internal/v1/provider-requests/" + id)
                 .header(InternalCallerAuth.HEADER, "local-integrationhub-proposal-internal-key"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.code").value(ErrorCodes.RESOURCE_NOT_FOUND));
@@ -364,7 +364,7 @@ class ProviderRequestQuoteIT {
 
     mockMvc
         .perform(
-            MockMvcRequestBuilders.get("/internal/v1/provider-requests/" + id)
+            MockMvcRequestBuilders.post("/internal/v1/provider-requests/" + id)
                 .header(InternalCallerAuth.HEADER, quotationKey()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("FAILED"))

@@ -93,13 +93,14 @@ paths:
         '503':
           $ref: '#/components/responses/UpstreamUnavailable'
   /internal/v1/provider-requests/{providerRequestId}:
-    get:
+    post:
       tags: [provider-requests]
-      operationId: getProviderRequest
-      summary: Current canonical state and result of a provider request
+      operationId: pollProviderRequest
+      summary: Poll / reconcile a provider request (advances canonical state)
       description: |
-        The Hub reads the adapter job (`GET /v1/quotes/{jobId}` or `/v1/proposals/{jobId}`) and maps
-        it to canonical form. A request owned by a different caller context is `404` (absent, not 403).
+        POST because the Hub may persist a terminal or failed state while mapping the adapter job
+        (`GET /v1/quotes/{jobId}` or `/v1/proposals/{jobId}`) — not a safe/idempotent GET.
+        A request owned by a different caller context is `404` (absent, not 403).
       parameters:
         - name: providerRequestId
           in: path
@@ -109,7 +110,7 @@ paths:
         - $ref: '#/components/parameters/CorrelationId'
       responses:
         '200':
-          description: Current state
+          description: Current state after reconcile
           content:
             application/json:
               schema:

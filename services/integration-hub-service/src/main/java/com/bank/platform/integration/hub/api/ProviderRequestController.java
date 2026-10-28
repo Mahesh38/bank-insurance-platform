@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -113,16 +112,14 @@ public class ProviderRequestController {
   }
 
   /**
-   * Poll advances {@code IN_PROGRESS} / {@code SUBMISSION_UNCERTAIN} per Hub LLD §4.2. Callers are
-   * internal services authenticated with {@code X-Internal-Service-Key} (not browser cookie
-   * sessions), so CSRF protections that apply to cookie clients (VR-019) do not apply here.
+   * Poll / reconcile — advances {@code IN_PROGRESS} / {@code SUBMISSION_UNCERTAIN} (Hub LLD §4.2).
+   * POST (not GET) because the handler persists canonical state; avoids CSRF-unprotected mutation
+   * on a safe method (CodeQL {@code java/spring-csrf-unprotected-request-type}).
    */
-  // lgtm[java/spring-csrf-unprotected-request-type]
-  // codeql[java/spring-csrf-unprotected-request-type]
-  @GetMapping("/{providerRequestId}")
-  public ResponseEntity<Map<String, Object>> get(
+  @PostMapping("/{providerRequestId}")
+  public ResponseEntity<Map<String, Object>> poll(
       HttpServletRequest httpRequest, @PathVariable String providerRequestId) {
-    String caller = actors.requireCaller(httpRequest, "getProviderRequest");
+    String caller = actors.requireCaller(httpRequest, "pollProviderRequest");
     ProviderRequestStatusView status = getRequests.get(providerRequestId, caller);
     Map<String, Object> body = new LinkedHashMap<>();
     body.put("providerRequestId", status.providerRequestId());

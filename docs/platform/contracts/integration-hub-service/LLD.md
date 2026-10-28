@@ -30,7 +30,7 @@ a change to Quotation, Proposal or Policy (`S07-VT-08`).
 | Method | Path | Operations | Style |
 |---|---|---|---|
 | `POST` | `/internal/v1/provider-requests` | `QUOTE`, `PROPOSAL_SUBMIT` | Async: `202` then poll; **no retry on submit** |
-| `GET` | `/internal/v1/provider-requests/{providerRequestId}` | — | Poll; maps adapter job → canonical state |
+| `POST` | `/internal/v1/provider-requests/{providerRequestId}` | — | Poll / reconcile; maps adapter job → canonical state (may persist) |
 | `POST` | `/internal/v1/provider-queries` | `APPLICATION_STATUS`, `ELIGIBILITY_CRITERIA_GET`, `ELIGIBILITY_CRITERIA_SUBMIT`, `PROPOSAL_FORM_SCHEMA`, `MASTER_LOOKUP`, `PRODUCT_CONTENT`, `ULIP_FUNDS_LIST`, `ULIP_FUND_PERFORMANCE` | Sync |
 
 Not a Hub operation in R0: **payment link** (D8 — premium collection is AU Bank PG via
@@ -115,11 +115,14 @@ DIRECT_INS07`, published as a new version. Rules:
    **Adapter timeout / connection reset after send** → row `SUBMISSION_UNCERTAIN` → `202
    {state: SUBMISSION_UNCERTAIN}`. The caller polls; the Hub never resends (§8).
 
-### 4.2 Poll (`GET /provider-requests/{id}`)
+### 4.2 Poll (`POST /provider-requests/{id}`)
+
+Poll is **POST** (not GET) because the Hub may persist terminal / failed state while reconciling —
+a state-changing handler must not use a CSRF-unprotected safe method.
 
 1. Load the row; `callerRef.context` must match the calling service identity, else `404`.
 2. `IN_PROGRESS`: `GET` the adapter job (`/v1/quotes/{jobId}` or `/v1/proposals/{jobId}`), map
-   status (table below) and result; persist terminal state on the row. Reads may retry once.
+   status (table below) and result; persist terminal state on the row. Adapter reads may retry once.
 3. `SUBMISSION_UNCERTAIN`: look the job up by idempotency key at the adapter (needs adapter
    `GET /v1/jobs?idempotencyKey=` — open item O-2); found → adopt `jobId`, continue as step 2; not
    found after the reconciliation window (configured, seed 10 min) → `FAILED` with `UPSTREAM_TIMEOUT`
@@ -169,7 +172,7 @@ sequenceDiagram
         H-->>Q: 202 {providerRequestId, IN_PROGRESS, ONE_SB}
     end
     loop S-11 backoff 1 s × 2 → 30 s, 20 attempts (caller budget)
-        Q->>H: GET /provider-requests/{id}
+        Q->>H: POST /provider-requests/{id}
         H->>A: GET /v1/quotes/{jobId} (2 s, 1 retry)
         A-->>H: PARTIAL + offers
         H-->>Q: PARTIALLY_COMPLETED {offers, partialErrors}

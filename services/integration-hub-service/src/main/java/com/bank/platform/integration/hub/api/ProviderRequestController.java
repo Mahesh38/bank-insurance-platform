@@ -10,9 +10,13 @@ import com.bank.platform.integration.hub.application.SubmitQuoteService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,18 +40,21 @@ public class ProviderRequestController {
   private final ActorGuard actors;
   private final ServiceErrors errors;
   private final ObjectMapper objectMapper;
+  private final Validator validator;
 
   public ProviderRequestController(
       SubmitQuoteService submitQuotes,
       GetProviderRequestService getRequests,
       ActorGuard actors,
       ServiceErrors errors,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      Validator validator) {
     this.submitQuotes = Objects.requireNonNull(submitQuotes);
     this.getRequests = Objects.requireNonNull(getRequests);
     this.actors = Objects.requireNonNull(actors);
     this.errors = Objects.requireNonNull(errors);
     this.objectMapper = Objects.requireNonNull(objectMapper);
+    this.validator = Objects.requireNonNull(validator);
   }
 
   @PostMapping
@@ -85,6 +92,19 @@ public class ProviderRequestController {
           .build();
     }
     QuoteRequestHttp request = objectMapper.convertValue(rawBody, QuoteRequestHttp.class);
+    Set<ConstraintViolation<QuoteRequestHttp>> violations = validator.validate(request);
+    if (!violations.isEmpty()) {
+      String detail =
+          violations.stream()
+              .map(v -> v.getPropertyPath() + " " + v.getMessage())
+              .collect(Collectors.joining("; "));
+      throw errors
+          .error(ErrorCodes.VALIDATION_ERROR)
+          .component("ProviderRequestController")
+          .operation("submitProviderRequest")
+          .reason(detail)
+          .build();
+    }
     ProviderRequestAccepted accepted =
         submitQuotes.submit(
             ProviderRequestHttpModels.toCommand(

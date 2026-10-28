@@ -4,8 +4,8 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * Durable (port-backed) provider request row. State transitions follow Hub LLD §4. In-memory store
- * is interim until Aurora {@code hub.provider_request} (HUB-1 / FUNC-032).
+ * Durable provider request row ({@code hub.provider_request}). Offer payloads are not persisted
+ * (LLD §10) — poll reloads them from the adapter via {@code adapterJobId}.
  */
 public final class ProviderRequest {
 
@@ -21,6 +21,7 @@ public final class ProviderRequest {
   private final String provider;
   private final String routingVersion;
   private final Instant createdAt;
+  private Instant updatedAt;
   private CanonicalState state;
   private String adapterJobId;
   private QuoteResult result;
@@ -51,27 +52,77 @@ public final class ProviderRequest {
     this.provider = Objects.requireNonNull(provider);
     this.routingVersion = Objects.requireNonNull(routingVersion);
     this.createdAt = Objects.requireNonNull(createdAt);
+    this.updatedAt = createdAt;
     this.state = CanonicalState.DISPATCHING;
   }
 
-  public void markInProgress(String jobId) {
+  public static ProviderRequest rehydrate(
+      String providerRequestId,
+      String idempotencyKey,
+      String requestHash,
+      String operation,
+      String lob,
+      String productClass,
+      String mode,
+      CallerRef callerRef,
+      String journeyId,
+      String provider,
+      String routingVersion,
+      Instant createdAt,
+      Instant updatedAt,
+      CanonicalState state,
+      String adapterJobId,
+      Failure failure) {
+    ProviderRequest row =
+        new ProviderRequest(
+            providerRequestId,
+            idempotencyKey,
+            requestHash,
+            operation,
+            lob,
+            productClass,
+            mode,
+            callerRef,
+            journeyId,
+            provider,
+            routingVersion,
+            createdAt);
+    row.updatedAt = Objects.requireNonNull(updatedAt);
+    row.state = Objects.requireNonNull(state);
+    row.adapterJobId = adapterJobId;
+    row.failure = failure;
+    return row;
+  }
+
+  public void markInProgress(String jobId, Instant at) {
     this.adapterJobId = Objects.requireNonNull(jobId);
     this.state = CanonicalState.IN_PROGRESS;
+    this.updatedAt = at;
+    this.failure = null;
   }
 
-  public void markSubmissionUncertain() {
+  public void markSubmissionUncertain(Instant at) {
     this.state = CanonicalState.SUBMISSION_UNCERTAIN;
+    this.updatedAt = at;
   }
 
-  public void markFailed(Failure failure) {
+  public void markFailed(Failure failure, Instant at) {
     this.failure = Objects.requireNonNull(failure);
     this.state = CanonicalState.FAILED;
+    this.updatedAt = at;
+    this.result = null;
   }
 
-  public void applyAdapterJob(CanonicalState terminal, QuoteResult result, Failure failure) {
+  public void applyAdapterJob(
+      CanonicalState terminal, QuoteResult result, Failure failure, Instant at) {
     this.state = Objects.requireNonNull(terminal);
     this.result = result;
     this.failure = failure;
+    this.updatedAt = at;
+  }
+
+  public void attachResult(QuoteResult result) {
+    this.result = result;
   }
 
   public String providerRequestId() {
@@ -120,6 +171,10 @@ public final class ProviderRequest {
 
   public Instant createdAt() {
     return createdAt;
+  }
+
+  public Instant updatedAt() {
+    return updatedAt;
   }
 
   public CanonicalState state() {

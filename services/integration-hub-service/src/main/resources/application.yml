@@ -7,6 +7,14 @@ spring:
   threads:
     virtual:
       enabled: true
+  datasource:
+    url: ${HUB_DB_URL:jdbc:h2:mem:hub;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1}
+    driver-class-name: ${HUB_DB_DRIVER:org.h2.Driver}
+    username: ${HUB_DB_USER:sa}
+    password: ${HUB_DB_PASSWORD:}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 management:
   endpoints:
@@ -28,7 +36,6 @@ bank:
     layer: L5
     boundary: INTERNAL
 
-# Outbound to 1sb-integration-service (must match onesb.internal-auth.callers.integration-hub-service)
 hub:
   onesb:
     base-url: ${ONESB_INTEGRATION_BASE_URL:http://localhost:8080}
@@ -36,6 +43,13 @@ hub:
     connect-timeout-ms: 2000
     submit-read-timeout-ms: 25000
     poll-read-timeout-ms: 2000
+  breaker:
+    enabled: true
+    failure-threshold: 3
+    open-wait-ms: 30000
+    half-open-success-threshold: 1
+  reconciliation:
+    uncertain-window: PT10M
 
 integrationhub:
   internal-auth:

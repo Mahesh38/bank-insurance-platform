@@ -116,6 +116,7 @@ final class QuoteCanonicalMapper {
     List<CanonicalOffer> offers = new ArrayList<>();
     List<QuoteResult.PartialError> errors = new ArrayList<>();
     for (AdapterOffer offer : job.offers() == null ? List.<AdapterOffer>of() : job.offers()) {
+      // LLD §5.5 — errorSummary rows are partialErrors only, never offers.
       if (offer.errorSummary() != null && !offer.errorSummary().isBlank()) {
         errors.add(
             new QuoteResult.PartialError(
@@ -123,6 +124,7 @@ final class QuoteCanonicalMapper {
                 offer.productCode(),
                 "UPSTREAM_BUSINESS_ERROR",
                 offer.errorSummary()));
+        continue;
       }
       if (offer.offerId() == null || offer.offerId().isBlank()) {
         continue;
@@ -142,8 +144,8 @@ final class QuoteCanonicalMapper {
               offer.premiumPayingTerm(),
               offer.funds()));
     }
-    if (!partial) {
-      errors = List.of();
+    if (!partial && errors.isEmpty()) {
+      return new QuoteResult(offers, List.of());
     }
     return new QuoteResult(offers, errors);
   }

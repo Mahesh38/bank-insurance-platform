@@ -113,6 +113,7 @@ public final class ProviderRequestHttpModels {
             request.callerRef().context(), request.callerRef().aggregateId()),
         request.journeyId(),
         request.mode(),
+        request.insurerCodes() == null ? List.of() : List.copyOf(request.insurerCodes()),
         request.body().category(),
         request.body().requestedCover(),
         request.body().premiumAmount(),

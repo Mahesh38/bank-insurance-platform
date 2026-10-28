@@ -7,12 +7,16 @@ import com.bank.platform.integration.hub.domain.CanonicalOffer;
 import com.bank.platform.integration.hub.domain.OnesbQuotePort;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.math.BigDecimal;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.http.HttpTimeoutException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
@@ -26,13 +30,18 @@ import org.springframework.web.client.RestClientResponseException;
 @Component
 public class HttpOnesbQuoteAdapter implements OnesbQuotePort {
 
-  private final RestClient client;
+  private final RestClient submitClient;
+  private final RestClient pollClient;
   private final OnesbClientProperties properties;
   private final ServiceErrors errors;
 
   public HttpOnesbQuoteAdapter(
-      RestClient onesbRestClient, OnesbClientProperties properties, ServiceErrors errors) {
-    this.client = Objects.requireNonNull(onesbRestClient);
+      @Qualifier("onesbSubmitRestClient") RestClient submitClient,
+      @Qualifier("onesbPollRestClient") RestClient pollClient,
+      OnesbClientProperties properties,
+      ServiceErrors errors) {
+    this.submitClient = Objects.requireNonNull(submitClient);
+    this.pollClient = Objects.requireNonNull(pollClient);
     this.properties = Objects.requireNonNull(properties);
     this.errors = Objects.requireNonNull(errors);
   }
@@ -42,7 +51,7 @@ public class HttpOnesbQuoteAdapter implements OnesbQuotePort {
     Map<String, Object> body = toBody(submit);
     try {
       JsonNode response =
-          client
+          submitClient
               .post()
               .uri("/v1/quotes")
               .contentType(MediaType.APPLICATION_JSON)
@@ -63,7 +72,7 @@ public class HttpOnesbQuoteAdapter implements OnesbQuotePort {
       }
       return new SubmitOutcome.Accepted(response.path("jobId").asText());
     } catch (ResourceAccessException ex) {
-      if (isTimeout(ex)) {
+      if (isUncertainTransport(ex)) {
         return new SubmitOutcome.Uncertain();
       }
       throw errors
@@ -80,13 +89,10 @@ public class HttpOnesbQuoteAdapter implements OnesbQuotePort {
   @Override
   public AdapterQuoteJob getQuoteJob(String jobId) {
     try {
-      JsonNode response =
-          client
-              .get()
-              .uri("/v1/quotes/{jobId}", jobId)
-              .header(InternalCallerAuth.HEADER, properties.internalServiceKey())
-              .retrieve()
-              .body(JsonNode.class);
+      JsonNode response = pollOnce(jobId);
+      if (response == null) {
+        response = pollOnce(jobId);
+      }
       if (response == null) {
         throw errors
             .error(ErrorCodes.UPSTREAM_BAD_RESPONSE)
@@ -97,15 +103,28 @@ public class HttpOnesbQuoteAdapter implements OnesbQuotePort {
       }
       return fromJobNode(response);
     } catch (ResourceAccessException ex) {
-      throw errors
-          .error(ErrorCodes.UPSTREAM_UNAVAILABLE)
-          .component("HttpOnesbQuoteAdapter")
-          .operation("getQuoteJob")
-          .reason("adapter poll transport failure")
-          .build();
+      try {
+        return fromJobNode(pollOnce(jobId));
+      } catch (RuntimeException retryEx) {
+        throw errors
+            .error(ErrorCodes.UPSTREAM_UNAVAILABLE)
+            .component("HttpOnesbQuoteAdapter")
+            .operation("getQuoteJob")
+            .reason("adapter poll transport failure")
+            .build();
+      }
     } catch (RestClientResponseException ex) {
       throw translate(ex, "getQuoteJob");
     }
+  }
+
+  private JsonNode pollOnce(String jobId) {
+    return pollClient
+        .get()
+        .uri("/v1/quotes/{jobId}", jobId)
+        .header(InternalCallerAuth.HEADER, properties.internalServiceKey())
+        .retrieve()
+        .body(JsonNode.class);
   }
 
   private static Map<String, Object> toBody(AdapterQuoteSubmit submit) {
@@ -238,13 +257,22 @@ public class HttpOnesbQuoteAdapter implements OnesbQuotePort {
     return value.asInt();
   }
 
-  private static boolean isTimeout(ResourceAccessException ex) {
+  /** LLD §4.1 step 8 — timeout or connection reset after send → SUBMISSION_UNCERTAIN. */
+  private static boolean isUncertainTransport(ResourceAccessException ex) {
     for (Throwable t = ex; t != null; t = t.getCause()) {
-      if (t instanceof SocketTimeoutException) {
+      // JDK HttpClient uses HttpTimeoutException; classic sockets use SocketTimeoutException.
+      if (t instanceof SocketTimeoutException || t instanceof HttpTimeoutException) {
         return true;
       }
+      if (t instanceof SocketException) {
+        String message = t.getMessage() == null ? "" : t.getMessage().toLowerCase(Locale.ROOT);
+        if (message.contains("reset") || message.contains("broken pipe")) {
+          return true;
+        }
+      }
     }
-    return false;
+    String top = ex.getMessage() == null ? "" : ex.getMessage().toLowerCase(Locale.ROOT);
+    return top.contains("timed out") || top.contains("timeout") || top.contains("connection reset");
   }
 
   private RuntimeException translate(RestClientResponseException ex, String operation) {

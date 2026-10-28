@@ -16,6 +16,7 @@ public record SubmitQuoteCommand(
     CallerRefView callerRef,
     String journeyId,
     String mode,
+    List<String> insurerCodes,
     String category,
     BigDecimal requestedCover,
     BigDecimal premiumAmount,

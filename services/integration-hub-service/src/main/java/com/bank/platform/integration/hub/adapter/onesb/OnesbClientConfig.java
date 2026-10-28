@@ -13,14 +13,23 @@ import org.springframework.web.client.RestClient;
 public class OnesbClientConfig {
 
   @Bean
-  RestClient onesbRestClient(RestClient.Builder builder, OnesbClientProperties properties) {
+  RestClient onesbSubmitRestClient(OnesbClientProperties properties) {
+    return timedClient(properties, properties.submitReadTimeoutMs());
+  }
+
+  @Bean
+  RestClient onesbPollRestClient(OnesbClientProperties properties) {
+    return timedClient(properties, properties.pollReadTimeoutMs());
+  }
+
+  private static RestClient timedClient(OnesbClientProperties properties, int readTimeoutMs) {
     HttpClient httpClient =
         HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofMillis(properties.connectTimeoutMs()))
             .build();
     JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
-    factory.setReadTimeout(Duration.ofMillis(properties.submitReadTimeoutMs()));
-    return builder.baseUrl(properties.baseUrl()).requestFactory(factory).build();
+    factory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
+    return RestClient.builder().baseUrl(properties.baseUrl()).requestFactory(factory).build();
   }
 }

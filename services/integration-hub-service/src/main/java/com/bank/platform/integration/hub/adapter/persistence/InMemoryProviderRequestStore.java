@@ -4,13 +4,12 @@ import com.bank.platform.integration.hub.domain.ProviderRequest;
 import com.bank.platform.integration.hub.domain.ProviderRequestStore;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.stereotype.Component;
 
 /**
- * Interim store for FUNC-032 until Aurora {@code hub.provider_request} (HUB-1) is migrated. Not
- * multi-replica safe — replace before horizontal scale.
+ * In-memory store for unit tests that construct the store directly. Spring context uses {@link
+ * JdbcProviderRequestStore} (no {@code @Component} here — avoids a second {@link
+ * ProviderRequestStore} bean).
  */
-@Component
 public class InMemoryProviderRequestStore implements ProviderRequestStore {
 
   private final ConcurrentHashMap<String, ProviderRequest> byId = new ConcurrentHashMap<>();

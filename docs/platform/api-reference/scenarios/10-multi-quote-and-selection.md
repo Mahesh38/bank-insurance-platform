@@ -60,7 +60,7 @@ sequenceDiagram
     loop app polls
         App->>BFF: GET /api/v1/journeys/{jid}/quotes/{quoteId}
         BFF->>QS: GET /internal/v1/quotes/{quoteId}
-        QS->>HUB: GET /internal/v1/provider-requests/{id}
+        QS->>HUB: POST /internal/v1/provider-requests/{id}
         HUB->>A: GET /v1/quotes/{jobId}
         A->>P: GET job + offers
         A-->>HUB: {status, offers}

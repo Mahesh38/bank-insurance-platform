@@ -60,7 +60,7 @@ QUO-3), `AuditRecorded`. Consumed: `PaymentReconciled` (materialise), `PaymentDe
 |---|---|---|
 | suitability `getUsableEvaluation` (S-08) | 500 ms, no retry, fail closed | Stub per [suitability openapi](../suitability-service/openapi.yaml): `200`, `403 SUITABILITY_REQUIRED` with each `refusalReason`, timeout |
 | consent `checkConsents` (`BEFORE_MULTI_QUOTE`) | 500 ms, no retry | satisfied / missing purposes / `503` |
-| integration-hub `submitProviderRequest`, `getProviderRequest` (S-09/S-11) | 3 s / 30 s, **no retry** on submit; poll 1 s → 30 s cap | `202`, `SUBMISSION_UNCERTAIN`, `COMPLETED`, `PARTIALLY_COMPLETED`, `FAILED`, `TIMED_OUT` |
+| integration-hub `submitProviderRequest`, `pollProviderRequest` (S-09/S-11) | 3 s / 30 s, **no retry** on submit; poll 1 s → 30 s cap | `202`, `SUBMISSION_UNCERTAIN`, `COMPLETED`, `PARTIALLY_COMPLETED`, `FAILED`, `TIMED_OUT` |
 | suitability `lockEvaluation`, lead BI-generated | — | Stub; lead BI endpoint not contracted (QUO-4) |
 | payment `listPayments` (repair sweep) | — | Stub per [payment openapi](../payment-service/openapi.yaml) |
 | DynamoDB | — | Existing local store / in-memory adapter |

@@ -1,5 +1,7 @@
 # Login BRD v3.1 — API flows
 
+**Team knowledge base** (API contracts, per-service validation, use cases, sequences, database): [AUTHENTICATION-KNOWLEDGE-BASE.md](../../platform/authentication-authorization/AUTHENTICATION-KNOWLEDGE-BASE.md). This file is the short flow companion.
+
 **Work item:** `SUG-20261023-e2e` · **Behaviour:** [Login BRD v3.1](../../au-bank-insurance-platform/requirements/brd-detailed/Login_Module_BRD_Detailed_CONTEXT.md)
 **Code:** `LoginJourneyController`, `LoginJourneyService`, `PlatformLoginService`
 **Status:** describes the journey on this branch. Not a Security sign-off. NIP-APP is not in this repository.

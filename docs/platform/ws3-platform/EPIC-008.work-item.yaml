@@ -8,7 +8,7 @@ workstream: WS-3
 origin: ["SUG-20261028-qst"]
 owner: "Amit — Technical Head (R3); lane ws3-quote-stitch"
 risk_tier: T3
-state: READY
+state: IN-FLIGHT
 priority_now: P2
 priority_at_target: P1
 target_stage: "S08/S09 Foundation Recovery (R0 quote path)"
@@ -43,7 +43,7 @@ not_included:
 stories:
   - id: FUNC-032
     title: "integration-hub quote submit/poll forwards to 1sb-integration"
-    state: READY
+    state: IN-FLIGHT
     priority_now: P2
     priority_at_target: P1
   - id: FUNC-033

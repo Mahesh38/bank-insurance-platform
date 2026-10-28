@@ -28,12 +28,29 @@ bank:
     layer: L5
     boundary: INTERNAL
 
+# Outbound to 1sb-integration-service (must match onesb.internal-auth.callers.integration-hub-service)
+hub:
+  onesb:
+    base-url: ${ONESB_INTEGRATION_BASE_URL:http://localhost:8080}
+    internal-service-key: ${ONESB_HUB_INTERNAL_KEY:local-onesb-hub-internal-key}
+    connect-timeout-ms: 2000
+    submit-read-timeout-ms: 25000
+    poll-read-timeout-ms: 2000
+
 integrationhub:
   internal-auth:
     callers:
+      quotation-service: ${INTEGRATIONHUB_QUOTATION_INTERNAL_KEY:local-integrationhub-quotation-internal-key}
+      proposal-service: ${INTEGRATIONHUB_PROPOSAL_INTERNAL_KEY:local-integrationhub-proposal-internal-key}
       workforce-access-bff: ${INTEGRATIONHUB_BFF_INTERNAL_KEY:local-integrationhub-bff-internal-key}
     actor-callers:
+      - quotation-service
+      - proposal-service
       - workforce-access-bff
     privileges:
+      quotation-service:
+        - "*"
+      proposal-service:
+        - "*"
       workforce-access-bff:
         - "*"

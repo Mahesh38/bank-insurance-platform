@@ -212,7 +212,8 @@ services:
     layer: L5
     datastore: DynamoDB (routing config only)
     persistence: stateless
-    status: skeleton
+    status: partial
+    note: "FUNC-032 QUOTE submit/poll → 1sb-integration (EPIC-008); Aurora hub.provider_request still HUB-1"
 
   - context_id: "16"
     name: Audit & Compliance

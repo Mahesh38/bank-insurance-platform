@@ -1,6 +1,6 @@
 # Integration Hub Service
 
-**Status:** SKELETON — scaffold only; no business logic yet.
+**Status:** PARTIAL — FUNC-032 QUOTE submit/poll to `1sb-integration-service` (EPIC-008). Proposal and sync queries still planned.
 
 | Field | Value |
 |---|---|
@@ -9,37 +9,40 @@
 | GitLab group (proposed) | `ws3-integration` |
 | HTTP port (local) | 8100 |
 | Error contract `service-id` | `integration-hub` |
-| Target datastore | DynamoDB (routing config only) |
+| Target datastore | Aurora `hub.provider_request` (HUB-1); interim in-memory store for FUNC-032 |
 
 ## Purpose
 
-Placeholder module for the **Integration Hub** bounded context from the target microservices
-architecture ([`02-target-microservices-architecture.md`](../../docs/platform/architecture-review/02-target-microservices-architecture.md)).
-Created ahead of the GitHub → GitLab migration so repository groups, CI policies and team
-ownership can be assigned per service.
+Provider-neutral door from Quotation / Proposal / Policy to insurance adapters (`IF-1`). Callers never
+talk to `1sb-integration-service` directly. Contract:
+[`docs/platform/contracts/integration-hub-service/`](../../docs/platform/contracts/integration-hub-service/).
+
+## Built now (FUNC-032)
+
+| Method | Path | Behaviour |
+|---|---|---|
+| `POST` | `/internal/v1/provider-requests` | `operation=QUOTE` only — route LIFE+TERM\|SAVINGS\|ULIP → ONE_SB, reject attribution, map canonical→adapter, submit once |
+| `GET` | `/internal/v1/provider-requests/{id}` | Poll adapter job; map COMPLETED / PARTIAL / FAILED / TIMEOUT |
 
 ## Package layout
 
 ```text
-com.bank.com/bank/platform/integration/hub
-├── api/           HTTP controllers (bank-canonical API)
-├── application/   use cases / orchestration
-├── domain/        aggregates, ports, invariants
-└── config/        Spring wiring
+com.bank.platform.integration.hub
+├── api/                 ProviderRequestController
+├── application/         SubmitQuoteService, GetProviderRequestService
+├── domain/              ports, routing seed, attribution guard
+├── adapter/onesb/       RestClient to 1sb-integration /v1/quotes
+├── adapter/persistence/ InMemoryProviderRequestStore (HUB-1 replaces)
+└── config/
 ```
 
 ## Run locally
 
 ```bash
-./gradlew :services:integration-hub-service:test
-./gradlew :services:integration-hub-service:bootRun
-curl -s http://localhost:8100/actuator/health
+./gradlew :services:integration-hub-service:test jacocoTestCoverageVerification
+./gradlew :services:integration-hub-service:bootRun --args='--spring.profiles.active=local'
 ```
 
-## Scaffold from template
-
-```bash
-python3 scripts/scaffold/create-microservice.py --module integration-hub-service
-```
-
-See [`MICROSERVICE-SCAFFOLD-TEMPLATE.md`](../../docs/platform/engineering/MICROSERVICE-SCAFFOLD-TEMPLATE.md).
+Inbound key (quotation): `INTEGRATIONHUB_QUOTATION_INTERNAL_KEY` (default
+`local-integrationhub-quotation-internal-key`). Outbound to 1SB must match
+`ONESB_HUB_INTERNAL_KEY`.

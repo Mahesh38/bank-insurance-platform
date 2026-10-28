@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 880
-total_bytes: 23621894
+total_bytes: 23622613
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -6157,7 +6157,7 @@ documents:
     persona: architecture
     title: "openapi"
     answers: "YAML record; first key `openapi`"
-    bytes: 27358
+    bytes: 27419
   - path: docs/platform/contracts/journey-orchestration-service/BUILD-BRIEF.md
     bucket: platform
     authority: approved-spec
@@ -6349,7 +6349,7 @@ documents:
     persona: architecture
     title: "openapi"
     answers: "YAML record; first key `openapi`"
-    bytes: 24795
+    bytes: 25240
   - path: docs/platform/contracts/reporting-mis-service/BUILD-BRIEF.md
     bucket: platform
     authority: approved-spec
@@ -7013,7 +7013,7 @@ documents:
     persona: architecture
     title: "EPIC 008.work item"
     answers: "schema: work-item"
-    bytes: 4705
+    bytes: 4918
   - path: docs/platform/ws3-platform/FUNC-029.work-item.yaml
     bucket: platform
     authority: approved-spec

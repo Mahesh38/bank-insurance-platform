@@ -99,4 +99,41 @@ class LifeQuotePayloadFactoryTest {
     assertThat(payload.typeOfQuote()).isEqualTo("Multi-Quote");
     assertThat(payload.product().insuranceAndProducts()).isNull();
   }
+
+  @Test
+  void build_multiSavings_appliesPreferenceTermsWithoutInsurerPin() {
+    SecretProvider secrets = mock(SecretProvider.class);
+    when(secrets.getDistributorId()).thenReturn("BCIBL");
+    CreateQuoteCommand command =
+        new CreateQuoteCommand(
+            Lob.SAVING,
+            "MULTI",
+            "PREMIUM",
+            null,
+            new BigDecimal("50000"),
+            List.of(
+                new CreateQuoteCommand.MemberDetail(
+                    "LIFE_ASSURED", 1, "1990-01-15", "M", false, null, "400001")),
+            java.util.Map.of(
+                "premiumFrequency", "HALF_YEARLY",
+                "policyTerm", 15,
+                "premiumPayingTerm", 10),
+            new CreateQuoteCommand.DistributionContext(null, "109337", "B2B"),
+            "j-1",
+            null,
+            "idem",
+            "actor");
+
+    LifeQuoteRequest payload =
+        LifeQuotePayloadFactory.build(
+            command,
+            secrets,
+            LifeQuoteRequest.Product.saving("LifeSave", List.of("nonParticipating")));
+
+    assertThat(payload.typeOfQuote()).isEqualTo("Multi-Quote");
+    assertThat(payload.product().insuranceAndProducts()).isNull();
+    assertThat(payload.product().policyTerm()).isEqualTo(15);
+    assertThat(payload.product().premiumPaymentTerm()).isEqualTo(10);
+    assertThat(payload.product().premiumPaymentFrequency()).isEqualTo("HY");
+  }
 }

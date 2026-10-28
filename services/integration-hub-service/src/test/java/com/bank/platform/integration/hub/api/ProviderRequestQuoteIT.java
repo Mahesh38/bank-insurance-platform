@@ -56,7 +56,10 @@ class ProviderRequestQuoteIT {
   static void hubProps(DynamicPropertyRegistry registry) {
     registry.add("hub.onesb.base-url", () -> "http://localhost:" + ONESB.port());
     registry.add("hub.onesb.internal-service-key", () -> "local-onesb-hub-internal-key");
-    registry.add("hub.onesb.submit-read-timeout-ms", () -> "400");
+    // CI runners under parallel Gradle load often exceed 400ms on the cold first
+    // RestClient→WireMock call; keep headroom for happy-path ITs while AT-HUB-05
+    // still uses fixedDelay > this value to force SUBMISSION_UNCERTAIN.
+    registry.add("hub.onesb.submit-read-timeout-ms", () -> "2000");
     registry.add("hub.onesb.poll-read-timeout-ms", () -> "2000");
     registry.add("hub.breaker.enabled", () -> "true");
     registry.add("hub.breaker.failure-threshold", () -> "1");
@@ -282,7 +285,7 @@ class ProviderRequestQuoteIT {
         WireMock.post(urlEqualTo("/v1/quotes"))
             .willReturn(
                 aResponse()
-                    .withFixedDelay(800)
+                    .withFixedDelay(3_500)
                     .withStatus(202)
                     .withHeader("Content-Type", "application/json")
                     .withBody("{\"jobId\":\"late\",\"status\":\"PENDING\"}")));
@@ -345,7 +348,7 @@ class ProviderRequestQuoteIT {
         WireMock.post(urlEqualTo("/v1/quotes"))
             .willReturn(
                 aResponse()
-                    .withFixedDelay(800)
+                    .withFixedDelay(3_500)
                     .withStatus(202)
                     .withHeader("Content-Type", "application/json")
                     .withBody("{\"jobId\":\"late2\",\"status\":\"PENDING\"}")));

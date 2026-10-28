@@ -44,12 +44,16 @@ dependencies {
     runtimeOnly("com.h2database:h2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.wiremock:wiremock-standalone:3.9.1")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
     // Outbox payloads are validated against docs/platform/contracts/events/schemas.
     testImplementation("com.networknt:json-schema-validator:1.5.6")
     testImplementation("com.amazonaws:DynamoDBLocal:$dynamoDbLocalVersion")
     sqlite4javaNative("com.almworks.sqlite4java:libsqlite4java-linux-amd64:$sqlite4javaVersion@so")
     sqlite4javaNative("com.almworks.sqlite4java:libsqlite4java-osx:$sqlite4javaVersion@dylib")
+
+    // Trivy HIGH: snappy-java (transitive) — pin patched (CVE-2026-108106 / CVE-2026-93451).
+    implementation("org.xerial.snappy:snappy-java:1.1.10.9")
 }
 
 val sqlite4javaDir = layout.buildDirectory.dir("sqlite4java")

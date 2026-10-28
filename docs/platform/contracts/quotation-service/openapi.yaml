@@ -25,7 +25,7 @@ paths:
     post:
       tags: [quotes]
       operationId: createQuote
-      x-implementation-status: PLANNED
+      x-implementation-status: BUILT
       summary: Create a quote (gate C1 + consent checkpoint BEFORE_MULTI_QUOTE), dispatch to the Hub.
       description: |
         1. Gate C1: suitability outcome for `productClass` must be in `SUITABILITY.GATE.allowedOutcomes`
@@ -84,7 +84,7 @@ paths:
     get:
       tags: [quotes]
       operationId: getQuote
-      x-implementation-status: PLANNED
+      x-implementation-status: BUILT
       summary: Quote status and offers (read-path switch — Aurora record if materialised, else DynamoDB).
       description: |
         Side-effect free except lazy expiry: a non-held quote in `QUOTED`, `PARTIALLY_QUOTED` or
@@ -389,14 +389,20 @@ components:
           type: array
           minItems: 1
           items: { $ref: '#/components/schemas/Member' }
+        premiumAmount:
+          allOf: [{ $ref: '#/components/schemas/Money' }]
+          description: Required when category is PREMIUM (Savings / LifeSave).
         preferences:
           type: object
           additionalProperties: false
           properties:
             premiumFrequency: { type: string, enum: [YEARLY, HALF_YEARLY, QUARTERLY, MONTHLY, SINGLE] }
+            policyTerm: { type: integer, minimum: 1, description: Policy term (PT). }
+            premiumPayingTerm: { type: integer, minimum: 1, description: Premium paying term (PPT). }
       description: |
         No `consentId` (resolved by the consent checkpoint) and no `distributorId` / agent fields
-        (`422 ATTRIBUTION_NOT_CALLER_SUPPLIED`, C3).
+        (`422 ATTRIBUTION_NOT_CALLER_SUPPLIED`, C3). Bank SSOT preference names: premiumFrequency,
+        policyTerm, premiumPayingTerm (I3 / FUNC-035).
     QuoteAccepted:
       type: object
       required: [quoteId, state]

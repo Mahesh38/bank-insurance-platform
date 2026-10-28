@@ -142,6 +142,8 @@ public class JobController {
     entity.setErrorSummary(request.errorSummary());
     entity.setRawOfferBlobId(request.rawOfferBlobId());
     entity.setFundsJson(request.fundsJson());
+    entity.setCoverTerm(request.coverTerm());
+    entity.setPremiumPayingTerm(request.premiumPayingTerm());
     entity.setCreatedAt(now);
 
     IntegrationJobOfferEntity saved = offerRepository.save(entity);
@@ -220,7 +222,9 @@ public class JobController {
         e.getErrorSummary(),
         e.getRawOfferBlobId(),
         e.getCreatedAt(),
-        e.getFundsJson());
+        e.getFundsJson(),
+        e.getCoverTerm(),
+        e.getPremiumPayingTerm());
   }
 
   static PollAttemptResponse toPollAttemptResponse(JobPollAttemptEntity e) {

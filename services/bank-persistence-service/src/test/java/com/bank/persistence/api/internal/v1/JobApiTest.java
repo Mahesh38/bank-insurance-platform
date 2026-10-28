@@ -202,7 +202,9 @@ class JobApiTest {
                                   "premiumFrequency": "YEARLY",
                                   "sumAssured": 500000,
                                   "outOfBound": false,
-                                  "offerStatus": "AVAILABLE"
+                                  "offerStatus": "AVAILABLE",
+                                  "coverTerm": 20,
+                                  "premiumPayingTerm": 15
                                 }
                                 """
                         .formatted(offerId)))
@@ -214,6 +216,8 @@ class JobApiTest {
         .andExpect(jsonPath("$.premiumAmount", is(1250.50)))
         .andExpect(jsonPath("$.offerStatus", is("AVAILABLE")))
         .andExpect(jsonPath("$.outOfBound", is(false)))
+        .andExpect(jsonPath("$.coverTerm", is(20)))
+        .andExpect(jsonPath("$.premiumPayingTerm", is(15)))
         .andExpect(jsonPath("$.createdAt", notNullValue()));
 
     mockMvc
@@ -221,7 +225,9 @@ class JobApiTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()", is(1)))
         .andExpect(jsonPath("$[0].offerId", is(offerId)))
-        .andExpect(jsonPath("$[0].insurerCode", is("INS-A")));
+        .andExpect(jsonPath("$[0].insurerCode", is("INS-A")))
+        .andExpect(jsonPath("$[0].coverTerm", is(20)))
+        .andExpect(jsonPath("$[0].premiumPayingTerm", is(15)));
   }
 
   @Test

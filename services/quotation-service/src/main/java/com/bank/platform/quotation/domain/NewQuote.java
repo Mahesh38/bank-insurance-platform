@@ -16,9 +16,17 @@ public record NewQuote(
     String category,
     BigDecimal requestedCover,
     List<QuoteMember> members,
-    String configVersionRef) {
+    String configVersionRef,
+    BigDecimal premiumAmount,
+    Preferences preferences) {
 
   public NewQuote {
     members = members == null ? List.of() : List.copyOf(members);
   }
+
+  /**
+   * Bank SSOT preference names (I3 / FUNC-035): premiumFrequency, policyTerm, premiumPayingTerm.
+   */
+  public record Preferences(
+      String premiumFrequency, Integer policyTerm, Integer premiumPayingTerm) {}
 }

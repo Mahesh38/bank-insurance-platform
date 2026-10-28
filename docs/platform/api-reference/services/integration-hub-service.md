@@ -119,9 +119,10 @@ operation; **reject** any `distributorId`, `agentId`, `spLicenceId`, `distributi
 > the Hub ever needs its own correlation store, that is a new schema and an ADR — not a silent
 > Dynamo table (store-ownership §2.3).
 
-### 3.2 `GET /internal/v1/provider-requests/{providerRequestId}`
+### 3.2 `POST /internal/v1/provider-requests/{providerRequestId}`
 
-The Hub polls (or proxies a poll to) the adapter and maps results to canonical form:
+Poll / reconcile (POST because the Hub may persist terminal state). The Hub polls the adapter and
+maps results to canonical form:
 
 | Adapter job status | Canonical state | Notes |
 |---|---|---|

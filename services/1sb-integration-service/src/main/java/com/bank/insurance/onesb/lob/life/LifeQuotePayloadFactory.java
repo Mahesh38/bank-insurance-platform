@@ -54,7 +54,7 @@ public final class LifeQuotePayloadFactory {
             resolveChannelType(command),
             "Online"),
         new LifeQuoteRequest.PersonalInformation(List.copyOf(individuals)),
-        applyPin(product, command.selection()));
+        applyTerms(product, command.selection(), command.preferences()));
   }
 
   public static String resolveTypeOfQuote(String mode) {
@@ -72,28 +72,95 @@ public final class LifeQuotePayloadFactory {
     return TYPE_SINGLE.equals(resolveTypeOfQuote(mode));
   }
 
-  private static LifeQuoteRequest.Product applyPin(
-      LifeQuoteRequest.Product product, CreateQuoteCommand.ProductSelection selection) {
-    if (selection == null || !StringUtils.hasText(selection.insurerCode())) {
+  /**
+   * SINGLE pin uses {@code selection.*}. MULTI Savings may carry PT/PPT/frequency in preferences
+   * (bank SSOT {@code premiumFrequency}, {@code policyTerm}, {@code premiumPayingTerm}) without an
+   * insurer pin — apply those onto {@code product.*} so LifeSave gets them (I4).
+   */
+  private static LifeQuoteRequest.Product applyTerms(
+      LifeQuoteRequest.Product product,
+      CreateQuoteCommand.ProductSelection selection,
+      java.util.Map<String, Object> preferences) {
+    if (selection != null && StringUtils.hasText(selection.insurerCode())) {
+      List<String> codes =
+          selection.productCodes() == null
+              ? List.of()
+              : selection.productCodes().stream().filter(StringUtils::hasText).toList();
+      List<LifeQuoteRequest.InsuranceAndProduct> pin =
+          List.of(new LifeQuoteRequest.InsuranceAndProduct(selection.insurerCode().trim(), codes));
+      return product.withPin(
+          pin,
+          option(selection.planOption()),
+          option(selection.coverOption()),
+          option(selection.deathBenefitOption()),
+          selection.policyTerm() != null
+              ? selection.policyTerm()
+              : intPref(preferences, "policyTerm"),
+          selection.premiumPaymentTerm() != null
+              ? selection.premiumPaymentTerm()
+              : intPref(preferences, "premiumPayingTerm", "premiumPaymentTerm"),
+          frequencyWire(
+              selection.premiumFrequency() != null
+                  ? selection.premiumFrequency()
+                  : stringPref(preferences, "premiumFrequency", "paymentFrequency")),
+          blankToNull(selection.premiumPaymentOption()));
+    }
+    Integer policyTerm = intPref(preferences, "policyTerm");
+    Integer ppt = intPref(preferences, "premiumPayingTerm", "premiumPaymentTerm");
+    String frequency = stringPref(preferences, "premiumFrequency", "paymentFrequency");
+    if (policyTerm == null && ppt == null && !StringUtils.hasText(frequency)) {
       return product;
     }
-    List<String> codes =
-        selection.productCodes() == null
-            ? List.of()
-            : selection.productCodes().stream().filter(StringUtils::hasText).toList();
-    List<LifeQuoteRequest.InsuranceAndProduct> pin =
-        List.of(new LifeQuoteRequest.InsuranceAndProduct(selection.insurerCode().trim(), codes));
     return product.withPin(
-        pin,
-        option(selection.planOption()),
-        option(selection.coverOption()),
-        option(selection.deathBenefitOption()),
-        selection.policyTerm(),
-        selection.premiumPaymentTerm(),
-        com.bank.insurance.onesb.application.validation.LifeContractCatalog.frequencyWire(
-                selection.premiumFrequency())
-            .orElse(blankToNull(selection.premiumFrequency())),
-        blankToNull(selection.premiumPaymentOption()));
+        product.insuranceAndProducts(),
+        product.planOption(),
+        product.coverOption(),
+        product.deathBenefitOption(),
+        policyTerm,
+        ppt,
+        frequencyWire(frequency),
+        product.premiumPaymentOption());
+  }
+
+  private static String frequencyWire(String raw) {
+    if (!StringUtils.hasText(raw)) {
+      return null;
+    }
+    return com.bank.insurance.onesb.application.validation.LifeContractCatalog.frequencyWire(raw)
+        .orElse(blankToNull(raw));
+  }
+
+  private static Integer intPref(java.util.Map<String, Object> preferences, String... keys) {
+    if (preferences == null || preferences.isEmpty()) {
+      return null;
+    }
+    for (String key : keys) {
+      Object raw = preferences.get(key);
+      if (raw instanceof Number number) {
+        return number.intValue();
+      }
+      if (raw instanceof String text && StringUtils.hasText(text)) {
+        try {
+          return Integer.valueOf(text.trim());
+        } catch (NumberFormatException ignored) {
+          // try next key
+        }
+      }
+    }
+    return null;
+  }
+
+  private static String stringPref(java.util.Map<String, Object> preferences, String... keys) {
+    if (preferences == null || preferences.isEmpty()) {
+      return null;
+    }
+    for (String key : keys) {
+      Object raw = preferences.get(key);
+      if (raw instanceof String text && StringUtils.hasText(text)) {
+        return text.trim();
+      }
+    }
+    return null;
   }
 
   private static LifeQuoteRequest.OptionRef option(String value) {

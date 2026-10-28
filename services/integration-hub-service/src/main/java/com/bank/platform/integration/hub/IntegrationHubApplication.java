@@ -7,10 +7,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 /**
- * Skeleton entry point for bounded context #14 — Integration Hub.
- *
- * <p>Business logic is intentionally absent. This module exists so engineers, CI and GitLab group
- * policies can align to the target microservices topology before feature work begins.
+ * Bounded context #14 — Integration Hub. FUNC-032 delivers QUOTE submit/poll to {@code
+ * 1sb-integration-service}; proposal/query operations follow.
  */
 @SpringBootApplication
 @EnableConfigurationProperties(InternalAuthProperties.class)

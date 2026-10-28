@@ -22,7 +22,10 @@ public class InternalKeyMockMvcCustomizer implements MockMvcBuilderCustomizer {
 
   @Override
   public void customize(ConfigurableMockMvcBuilder<?> builder) {
-    String key = properties.callers().get("workforce-access-bff");
+    String key =
+        properties
+            .callers()
+            .getOrDefault("quotation-service", properties.callers().get("workforce-access-bff"));
     builder.defaultRequest(MockMvcRequestBuilders.get("/").header(InternalCallerAuth.HEADER, key));
   }
 }

@@ -101,7 +101,9 @@ public class HttpJobStoreAdapter implements JobStorePort {
                     offer.offerStatus(),
                     offer.errorSummary(),
                     null,
-                    writeFundsJson(offer.funds())))
+                    writeFundsJson(offer.funds()),
+                    offer.coverTerm(),
+                    offer.premiumPayingTerm()))
             .retrieve()
             .toBodilessEntity();
       }
@@ -203,6 +205,8 @@ public class HttpJobStoreAdapter implements JobStorePort {
                         Boolean.TRUE.equals(o.outOfBound()),
                         o.offerStatus(),
                         o.errorSummary(),
+                        o.coverTerm(),
+                        o.premiumPayingTerm(),
                         parseFundsJson(o.fundsJson())))
             .toList();
     return new QuoteJob(

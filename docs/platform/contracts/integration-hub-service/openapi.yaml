@@ -64,7 +64,7 @@ paths:
                     members:
                       - { role: LIFE_ASSURED, sequence: 1, dob: '1990-04-12', gender: MALE,
                           tobacco: false, annualIncome: 1500000, pincode: '400001' }
-                    preferences: { paymentFrequency: YEARLY }
+                    preferences: { premiumFrequency: YEARLY }
       responses:
         '202':
           description: Accepted (or replay of the original acceptance)
@@ -93,13 +93,14 @@ paths:
         '503':
           $ref: '#/components/responses/UpstreamUnavailable'
   /internal/v1/provider-requests/{providerRequestId}:
-    get:
+    post:
       tags: [provider-requests]
-      operationId: getProviderRequest
-      summary: Current canonical state and result of a provider request
+      operationId: pollProviderRequest
+      summary: Poll / reconcile a provider request (advances canonical state)
       description: |
-        The Hub reads the adapter job (`GET /v1/quotes/{jobId}` or `/v1/proposals/{jobId}`) and maps
-        it to canonical form. A request owned by a different caller context is `404` (absent, not 403).
+        POST because the Hub may persist a terminal or failed state while mapping the adapter job
+        (`GET /v1/quotes/{jobId}` or `/v1/proposals/{jobId}`) — not a safe/idempotent GET.
+        A request owned by a different caller context is `404` (absent, not 403).
       parameters:
         - name: providerRequestId
           in: path
@@ -109,7 +110,7 @@ paths:
         - $ref: '#/components/parameters/CorrelationId'
       responses:
         '200':
-          description: Current state
+          description: Current state after reconcile
           content:
             application/json:
               schema:
@@ -301,8 +302,9 @@ components:
           type: object
           additionalProperties: false
           properties:
-            paymentFrequency: { type: string, enum: [YEARLY, HALF_YEARLY, QUARTERLY, MONTHLY, SINGLE] }
+            premiumFrequency: { type: string, enum: [YEARLY, HALF_YEARLY, QUARTERLY, MONTHLY, SINGLE] }
             policyTerm: { type: integer, minimum: 1 }
+            premiumPayingTerm: { type: integer, minimum: 1 }
     Member:
       type: object
       required: [role, sequence, dob, gender]

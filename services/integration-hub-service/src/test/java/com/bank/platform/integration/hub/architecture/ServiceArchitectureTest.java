@@ -1,5 +1,6 @@
 package com.bank.platform.integration.hub.architecture;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bank.common.architecture.HexagonalArchitecture;
@@ -34,5 +35,15 @@ class ServiceArchitectureTest {
   @Test
   void sharedHexagonalBaselineHolds() {
     HexagonalArchitecture.checkBaseline(importedClasses);
+  }
+
+  @Test
+  void neverDependsOnOnesbAdapterPackages_AT_HUB_12() {
+    noClasses()
+        .should()
+        .dependOnClassesThat()
+        .resideInAnyPackage("com.bank.insurance.onesb..")
+        .because("INV-ACL-01 — provider vocabulary stays behind the 1SB adapter HTTP boundary")
+        .check(importedClasses);
   }
 }

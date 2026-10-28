@@ -355,6 +355,17 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
         && (insurer == null || productCode == null || (premium == null && sumAssured == null))) {
       return null;
     }
+    Integer coverTerm =
+        firstInt(node, parent, "coverTerm", "policyTerm", "cover_term", "policy_term");
+    Integer premiumPayingTerm =
+        firstInt(
+            node,
+            parent,
+            "premiumPayingTerm",
+            "premiumPaymentTerm",
+            "ppt",
+            "premium_paying_term",
+            "premium_payment_term");
     return new QuoteOffer(
         offerId,
         insurer,
@@ -367,6 +378,8 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
         oob,
         offerStatus,
         errorSummary,
+        coverTerm,
+        premiumPayingTerm,
         extractFunds(node, parent));
   }
 
@@ -469,6 +482,34 @@ public class OneSbQuoteAdapter implements OneSbQuotePort {
       return value;
     }
     return decimal(parent, fields);
+  }
+
+  private static Integer firstInt(JsonNode node, JsonNode parent, String... fields) {
+    Integer value = intValue(node, fields);
+    if (value != null) {
+      return value;
+    }
+    return intValue(parent, fields);
+  }
+
+  private static Integer intValue(JsonNode node, String... fields) {
+    if (node == null || node.isMissingNode() || node.isNull()) {
+      return null;
+    }
+    for (String field : fields) {
+      JsonNode v = node.path(field);
+      if (v.isNumber()) {
+        return v.asInt();
+      }
+      if (v.isTextual()) {
+        try {
+          return Integer.valueOf(v.asText().trim());
+        } catch (NumberFormatException ignored) {
+          // try next alias
+        }
+      }
+    }
+    return null;
   }
 
   private static String text(JsonNode node, String... fields) {

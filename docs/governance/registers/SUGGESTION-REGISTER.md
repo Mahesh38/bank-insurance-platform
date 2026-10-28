@@ -252,47 +252,146 @@ priority:
   at_target: P1
 
 recommendation:
-  preferred: REMOVE_AND_STANDARDISE
-  summary: >
-    Do not merge the two ceremonies into one overloaded POST. Retire the IAM-001
-    immediate-session BANK_AD /login for the NIP login screen. Keep Login BRD
-    v3.1 as the only password login for BANK_RM and INSURANCE_RM. Keep CSRF.
-    Give partner OIDC its own named paths so it is not confused with password login.
+  preferred: SMOOTH_MERGE_BRD_ONLY
+  authority_class: A3_JOINT_REVIEW
+  joint_with: ["Deepali — AuthN ceremony / trust boundary", "Rajal — Login BRD v3.1 behaviour SSOT"]
+  architecture_severity: A1
+  security_severity_while_dual: S1
+  persona: "Mahesh — Principal Insurance Platform Architect (card + ID plane doctrine §15)"
+
+  terminology_lock: >
+    Login BRD v3.1 defines exactly two NIP login-screen user types. The UI switch
+    label "Insurance Partner" means Insurance RM / FLS (corporate email + platform
+    password). It is NOT the Keycloak OIDC Insurance Partner Representative (UC-02 /
+    identity plane Partner). FLS and Insurance RM share userType INSURANCE_RM.
+    Bank RM uses Employee ID + AD network password. Both BRD types already require
+    Captcha and login OTP (COMMON-02, COMMON-10, COMMON-11; BANK-LOGIN-*; IRM-LOGIN-*).
+
+  problem: >
+    Two public password-login ceremonies exist on workforce-access-bff. IAM-001
+    POST /auth/login (BANK_AD) mints a session without Captcha/OTP. Login BRD v3.1
+    POST /auth/sign-in requires Captcha then OTP before a session. Developers and
+    clients can pick the weaker path. Owner requires one BRD-standard approach.
+
+  preferred_design:
+    name: "One BRD login pipeline; dual URL alias then cut; no MFA bypass"
+    why_simplest: >
+      Reuse LoginJourneyService (already implements Captcha, password routing,
+      OTP, unlock, forgot). Do not invent a third ceremony. Do not overload one
+      POST with both IAM-001 immediate-session and BRD challenge semantics.
+    public_contract: |
+      GET  /api/v1/auth/csrf
+      POST /api/v1/auth/captcha
+      POST /api/v1/auth/login          ← single credential entry (BRD body)
+      POST /api/v1/auth/otp/verify     ← only place a WORKFORCE_SESSION is minted for this journey
+      POST /api/v1/auth/otp/resend
+      POST /api/v1/auth/unlock
+      POST /api/v1/auth/forgot-password
+      POST /api/v1/auth/password
+      POST /api/v1/auth/password-expired/send-otp
+      GET  /api/v1/auth/session
+      POST /api/v1/auth/logout
+    request_shape_on_login: >
+      { clientType, userType: BANK_RM|INSURANCE_RM, loginId, password, captchaId, captchaValue }
+      No identitySource. No employeeId field name — loginId covers both.
+    session_rule: >
+      No WORKFORCE_SESSION cookie or sessionHandle until otp/verify succeeds with
+      purpose LOGIN and outcome AUTHENTICATED. Unlock / forgot / expiry OTP never log in.
+    password_backends_unchanged: >
+      BANK_RM → adapter ad-verify (platform never stores AD password).
+      INSURANCE_RM → identity-authorization verify-platform-password.
+      Same after merge; only the entry path and MFA gate change.
+    csrf: >
+      Unchanged: CookieCsrfTokenRepository WORKFORCE-XSRF + X-XSRF-TOKEN on every
+      mutating /auth/** call (already required for /sign-in).
+
+  smooth_merge_steps:
+    - step: 1
+      title: "Point both URLs at the BRD journey (compat, same PR)"
+      detail: >
+        LoginJourneyController maps POST /login AND POST /sign-in to the same
+        signIn(SignInCommand). AuthenticationController no longer handles password
+        login. Old BANK_AD / PARTNER JSON on /login returns 422/410 Problem Details
+        with code SCHEMA_INVALID or GONE and a detail that names the BRD fields —
+        never silently creates a session.
+    - step: 2
+      title: "Delete IAM-001 authenticateBank from the public login path"
+      detail: >
+        Remove LoginService.authenticateBank from any /auth/login call chain.
+        Keep createSessionAfterLoginOtp (or equivalent) as the only session mint
+        used by the journey. BankLoginIT that assert immediate session move to
+        captcha → login → otp/verify.
+    - step: 3
+      title: "Cut the alias"
+      detail: >
+        After tests and OpenAPI use /login only, remove /sign-in mapping (or leave
+        410 for one release). One verb in the contract.
+    - step: 4
+      title: "Docs and contract"
+      detail: >
+        OpenAPI, LLD, LOGIN-BRD-V31-API-FLOWS, UC-01, scenario 01, auth SSOT §5.1,
+        BFF README, Postman: one pipeline. Mark IAM-001 immediate-session retired.
+    - step: 5
+      title: "Keycloak IPR (UC-02) — out of the NIP login form"
+      detail: >
+        Relocate OIDC begin to POST /api/v1/auth/partner/authorization so it cannot
+        be confused with BRD /login. Do NOT put Captcha+OTP on the OIDC redirect
+        unless Product explicitly extends Login BRD to IPR. Owner phrase
+        "insurer partner" in this ask maps to the BRD toggle (Insurance RM/FLS),
+        already covered by Captcha+OTP. Forcing Captcha+OTP onto Keycloak IPR is a
+        separate Product+Security decision (identity plane Partner, ID-12).
+
+  security_non_negotiables:
+    - "Captcha consumed once before password check counts (COMMON-02)"
+    - "Login OTP mandatory after valid password; session only after OTP (COMMON-10/11)"
+    - "Failed Captcha / unknown login id / first-time / lock do not increment password failures"
+    - "Password and OTP never logged; toString redaction stays"
+    - "Token-hiding: no OAuth tokens to NIP-APP"
+    - "AD password never persisted; AD-verify only for BANK_RM"
+    - "Rate limit on /api/v1/auth/** remains"
+    - "prod/uat refuse fixed WORKFORCE_LOGIN_OTP_CODE"
+    - "No second problem body; ServiceErrors / ErrorCodes only"
+
   options_considered:
     - id: A
-      name: "Remove IAM-001 bank /login; keep BRD paths (/captcha, /sign-in, /otp/*)"
+      name: "Keep /sign-in name; only delete IAM-001 /login"
       verdict: ACCEPTABLE
-      note: "Least rename churn; developers learn one journey under /sign-in."
+      note: "Works, but developers still say login while the path says sign-in."
     - id: B
-      name: "Preferred — BRD ceremony under /login; delete /sign-in; partner OIDC relocated"
+      name: "BRD ceremony under /login; alias /sign-in then delete; OIDC relocated"
       verdict: RECOMMENDED
-      detail: >
-        Move LoginJourney sign-in behaviour onto POST /api/v1/auth/login with the
-        v3.1 request shape (userType, loginId, password, captcha*). Delete the
-        IAM-001 BANK_AD immediate-session body and delete POST /auth/sign-in (or
-        keep a short-lived 410 Problem Details pointer). CSRF unchanged
-        (GET /auth/csrf + X-XSRF-TOKEN). Session only after POST /auth/otp/verify.
-        Relocate PARTNER OIDC begin to POST /api/v1/auth/partner/authorization
-        (callback / native-session / session / logout stay). Update OpenAPI, LLD,
-        UC-01, scenario 01, auth SSOT §5.1, Postman, tests.
+      note: "Smooth merge steps above. One verb, one MFA gate, no bypass."
     - id: C
-      name: "Soft-merge — same handler, dual path names forever"
+      name: "One handler forever exposing both /login and /sign-in"
       verdict: REJECT
-      note: "Keeps developer confusion; fails the owner's constraint."
-  security_note: >
-    Leaving POST /auth/login (BANK_AD) mint a WORKFORCE_SESSION without captcha
-    and OTP is a BRD control bypass (Deepali severity S1 while both exist).
-    Partner OIDC must not be forced through captcha+OTP; it is a different actor
-    and ceremony (UC-02), not Login BRD Bank/Insurance RM.
+      note: "Owner forbade dual APIs."
+    - id: D
+      name: "Force Keycloak IPR through the same Captcha+password+OTP form"
+      verdict: NOT_NOW
+      note: >
+        Collapses Partner identity plane into Insurance RM credentials without a
+        BRD change. Revisit only if Rajal extends Login BRD to IPR and Deepali
+        accepts retiring OIDC for that actor.
+
+  rejected_merge_anti_patterns:
+    - "Accept old BANK_AD body and mint session then 'also' send OTP — MFA bypass window"
+    - "Captcha optional when identitySource=BANK_AD"
+    - "Return OAuth tokens to close the dual-path gap"
+    - "Validate AD password inside the BFF"
+
   out_of_scope:
-    - "External Captcha image vendor / SMS-email OTP gateway (still SUG-20261008-otp parked remainder)"
-    - "mPIN; Bank RM platform password reset"
-    - "Giving OAuth tokens to Flutter (already REJECTED SUG-20261024-oat)"
+    - "External Captcha image vendor / SMS-email OTP gateway (SUG-20261008-otp parked remainder)"
+    - "mPIN; Bank RM network password reset"
+    - "Giving OAuth tokens to Flutter (REJECTED SUG-20261024-oat)"
+    - "Merging Keycloak IPR into BRD password form without Product change"
 
 outcome:
   registered_in: "registers/SUGGESTION-REGISTER.md"
   status: ESCALATED
-  next: "Owner confirms option B (or A) with go ahead / I approve — then ADMIT-BYPASS or ADMIT and implement"
+  next: >
+    Owner confirms go ahead on preferred SMOOTH_MERGE_BRD_ONLY (option B). Then
+    implement steps 1–4 on workforce-access-bff + contract docs; Deepali reviews
+    AuthN ceremony as A3_JOINT_REVIEW evidence (not a simulated T4 signature).
 ```
 
 ### SUG-20261027-brd · Suitability BRD current design

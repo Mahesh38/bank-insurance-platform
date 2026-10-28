@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261028-akb | 2026-10-28 | human:repository-owner | Confluence knowledge base for workforce authentication: login, internal hops, per-service validation, captcha, password reset, API contracts, use-case and sequence diagrams, database design | SF1 | SC0 | MUST | DOC | P2 / P2 | ADMITTED | [knowledge base](../../platform/authentication-authorization/AUTHENTICATION-KNOWLEDGE-BASE.md) · [detail](#sug-20261028-akb--workforce-authentication-knowledge-base) |
 | SUG-20261028-qst | 2026-10-28 | human:repository-owner | Stitch quotation + journey-orchestration + integration-hub + 1sb-integration for bank-side LifeSave / Savings quote APIs after lead + suitability (premium, PT, PPT) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [EPIC-008](../../platform/ws3-platform/EPIC-008.work-item.yaml) · [detail](#sug-20261028-qst--lifesave-savings-quote-stitch) |
 | SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
 | SUG-20261027-iah | 2026-10-27 | human:repository-owner | Zero-tolerance fix of Board 4 AuthN/AuthZ findings: inbound service identity on unprotected APIs, least-privilege keys, PDP/actor binding, redirect allowlist, actuator/CSRF/rate-limit hardening | SF0 | SC0 | MUST | SEC | P1 / P1 | ADMITTED | [detail](#sug-20261027-iah--zero-tolerance-authnauthz-hardening) |
@@ -172,6 +173,163 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261028-akb · Workforce authentication knowledge base
+
+```yaml
+# schema: triage-record
+id: SUG-20261028-akb
+raised_at: "2026-10-28"
+raised_by: "human:repository-owner"
+source: "Repository owner — Confluence knowledge base for the authentication service"
+input: >
+  create indepth knowlesge base to share on the confluence with team for
+  authentication service, how login works, which API needs to call, how api
+  internally call which service, what validation happens on each service, how
+  user is authenticated, how password is reset, how captch is generated and
+  validated. i want e2e detailed flow documentations, api contract,
+  validations, use case digram, sequence diagram, db design.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261028-akb
+
+stage_fit:
+  code: SF1
+  rationale: "The v3.1 journey is already implemented. This page documents that journey for the team. It does not add a provider, a login path, or a schema change."
+  target_stage: null
+  unpark_trigger: null
+
+scope:
+  code: SC0
+  business_scope: "Workforce login, captcha, OTP, unlock, and Insurance RM password reset"
+  serves: ["DOC-005", "SUG-20261023-e2e", "SUG-20261023-l31"]
+  failure_without_it: "The flow file has sequences but not the request contracts or the login columns, so a Confluence page would be assembled by hand and drift."
+  minimal: true
+  authority: "LoginJourneyController, PlatformLoginService, V6__platform_login_account.sql, Login_Module_BRD_Detailed_CONTEXT.md"
+
+necessity:
+  now: MUST
+  future_necessity: MUST
+  target_stage: "WS-2 Phase 1"
+  binds_when: "The team shares one authentication page on Confluence"
+  failure_without_it: "Callers keep treating UC-01 or the short flow file as the contract."
+  evidence_tier: E2
+  confidence: C4
+  evidence:
+    - "LoginJourneyController, LoginJourneyService, PlatformLoginService, PasswordPolicy, BankAdVerifyAdapter"
+    - "V1 and V6 identity-authorization migrations"
+    - "LOGIN-BRD-V31-API-FLOWS.md already admitted under SUG-20261023-e2e and does not carry request schemas or the column dictionary"
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+
+action: ADMIT
+action_rationale: >
+  On-stage documentation. The owner asked for the page in this turn.
+  FreshnessCheck exit 1: state_as_of is 28 days old and 04-STAGE_GATES.md is
+  past its refresh limit. Disclosed. No T4 Security signature is claimed.
+  The security-review capsule does not answer a documentation request; the
+  context index is not changed in this record.
+
+classification:
+  type: DOC
+  also: []
+  breakdown: STORY
+  risk_tier: T2
+  destination: "docs/platform/authentication-authorization/AUTHENTICATION-KNOWLEDGE-BASE.md"
+  security_impact: none
+  compliance_impact: none
+  operational_impact: none
+
+priority:
+  now: P2
+  at_target: P2
+  factors: { N: 2, S: 2, B: 1, R: 1, D: 1, E: 1 }
+  score: 12
+  matrix_default: P2
+  consistency: OK
+  overrides_applied: []
+  caps_applied: []
+  rationale: "Readers otherwise follow IAM-001. The page does not change runtime behaviour. G1–G10 do not fire."
+
+dependencies:
+  edges:
+    - type: DECISION
+      target: SUG-20261023-e2e
+      relation: related_to
+      state: DONE
+    - type: DECISION
+      target: SUG-20261023-l31
+      relation: related_to
+      state: DONE
+  state: READY
+  enablement_count: 0
+  earliest_start: "2026-10-28"
+  cycles: none
+
+plan: >
+  PLAN short form T2. Objective: one Confluence-ready page states the app APIs,
+  the internal hops, validation on the BFF, identity-authorization, and the
+  AD-verify adapter, captcha generation and check, password reset, use-case and
+  sequence diagrams, and the business_user login columns.
+  files: AUTHENTICATION-KNOWLEDGE-BASE.md, a pointer in the auth SSOT §5, a
+  pointer in LOGIN-BRD-V31-API-FLOWS.md, this register row, regenerated DOC-MAP.
+  tests: none — documentation does not change behaviour. rollback: revert.
+  out_of_scope: OpenAPI publication, SMS or image captcha, audit events,
+  changing POST /auth/login, mPIN, Bank RM password reset, context-index capsules.
+
+reviews:
+  - board: TECHNICAL
+    reviewer_type: AGENT
+    self_review: true
+    decision: APPROVED
+    evidence:
+      - "Request fields match LoginJourneyController records"
+      - "Internal paths match IdentityAuthorizationClient and IdentityProviderClient"
+      - "Password order matches PasswordPolicy.check"
+      - "Columns match V6__platform_login_account.sql"
+  - board: PRODUCT
+    reviewer_type: AGENT
+    self_review: true
+    decision: APPROVED
+    evidence:
+      - "User types, sentences, and the absence of Bank RM reset match LoginMessages and the BRD journey already described in LOGIN-BRD-V31-API-FLOWS.md"
+  - board: QA
+    reviewer_type: AGENT
+    self_review: true
+    decision: APPROVED
+    evidence:
+      - "Page states HTTP 200 journey messages versus HTTP 400 VALIDATION_ERROR"
+      - "Page states what is not implemented: image captcha, SMS OTP, audit write, second-pod challenge store"
+      - "No runtime test added; existing LoginJourneyIT and PlatformLoginServiceTest remain the behaviour evidence"
+
+breakdown:
+  children: []
+  completion_definition: "One knowledge-base page a teammate can paste into Confluence, covering app APIs, internal calls, validation per service, captcha, authentication, password reset, use-case and sequence diagrams, and the login columns."
+  not_included:
+    - "Publishing the schemas into workforce-access-bff OpenAPI"
+    - "An external captcha image or OTP delivery provider"
+    - "A T4 Security signature"
+    - "Editing current_phase or stage_status"
+    - "A context-index capsule change"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261028-akb
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+
+resumed: "SUG-20261028-akb is the work of this turn. No T4 signature is claimed."
+```
 
 ### SUG-20261027-brd · Suitability BRD current design
 

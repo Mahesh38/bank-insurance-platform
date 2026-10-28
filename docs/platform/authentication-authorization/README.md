@@ -119,9 +119,11 @@ Keycloak is a separately deployed product, not one of the three custom Spring se
 
 ## 5. Authentication flows
 
+**Login BRD v3.1** (Bank RM and Insurance RM captcha, OTP, unlock, forgot password, expiry, and the Insurance RM platform password) is the team knowledge base: [AUTHENTICATION-KNOWLEDGE-BASE.md](./AUTHENTICATION-KNOWLEDGE-BASE.md). The external image captcha and the SMS/email OTP gateway remain parked (`SUG-20261008-otp`). Sections 5.1 and 5.2 below are the older IAM-001 and partner OIDC ceremonies. `POST /api/v1/auth/login` still exists and does not run captcha or OTP.
+
 ### 5.1 Bank employee
 
-`IAM-001` (2026-10-08). Owner selected option B for `BANK_AD`: NIP-APP collects Employee ID + password and the BFF forwards them to the adapter. Captcha / OTP / lock remain parked (`SUG-20261008-otp`).
+`IAM-001` (2026-10-08). Owner selected option B for `BANK_AD`: NIP-APP collects Employee ID + password and the BFF forwards them to the adapter. The v3.1 captcha, OTP, and lock journey is a separate API set; see the knowledge base. The external image captcha and SMS gateway remain parked (`SUG-20261008-otp`).
 
 1. Flutter calls `POST /api/v1/auth/login` with `identitySource=BANK_AD`, Employee ID and password. No OAuth token is returned.
 2. The BFF does **not** validate the password itself and does **not** persist it. It calls `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify` with `X-Internal-Service-Key` (shared service identity; network location is not trust). The adapter refuses `/internal/v1/**` without that key (`401 UNAUTHORIZED`). Production has no default secret.

@@ -43,6 +43,8 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261029-pkg | 2026-10-29 | human:repository-owner | Fine-grain every Java package and redesign classes across services and libraries for SOLID and patterns | SF4 | SC1 | REJECT | REFACTOR | — / — | REJECTED | [CODING-STANDARD.md §5](../CODING-STANDARD.md#5-package-layout-and-file-grouping) · [detail](#sug-20261029-pkg--no-finer-java-packages) · related [cds](#sug-20261026-cds--platform-java-coding-standard) |
+| SUG-20261029-jpa | 2026-10-29 | agent:architecture-review | Move identity-authorization JPA types from `persistence` into `adapter.persistence` and stop application services depending on entities | SF3 | SC1 | NOT-NOW | REFACTOR | P4 / P3 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261029-jpa--identity-authorization-jpa-outside-adapter) |
 | SUG-20261028-1lg | 2026-10-28 | human:repository-owner | One Login BRD v3.1 surface: Captcha+OTP for Bank RM and Insurance RM/FLS; smooth-merge `/login`←journey, retire IAM-001 session bypass; Keycloak IPR stays separate | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261028-1lg--one-login-brd-surface) · implemented on PR #165; Deepali A3 outstanding |
 | SUG-20261028-qst | 2026-10-28 | human:repository-owner | Stitch quotation + journey-orchestration + integration-hub + 1sb-integration for bank-side LifeSave / Savings quote APIs after lead + suitability (premium, PT, PPT) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [EPIC-008](../../platform/ws3-platform/EPIC-008.work-item.yaml) · [detail](#sug-20261028-qst--lifesave-savings-quote-stitch) |
 | SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
@@ -274,6 +276,139 @@ rule: no cookie or `sessionHandle` until login OTP succeeds. Out of scope: exter
 image vendor / SMS-email OTP gateway (`SUG-20261008-otp` remainder); mPIN; Bank RM network
 password reset; OAuth tokens to Flutter; merging Keycloak IPR into the BRD password form
 without Product change.
+
+### SUG-20261029-pkg · No finer Java packages
+
+```yaml
+# schema: triage-record
+id: SUG-20261029-pkg
+raised_at: "2026-10-29"
+raised_by: "human:repository-owner"
+source: "Repository owner asked for a complete package, SOLID, and design-pattern review, and to restructure, rename, and redesign wherever required"
+input: >
+  Do you feel the overall all the files and folders created are well aligned
+  with the Java best practices? Do we need to do more categorization, more
+  grouping, more fine grain package structuring for our Java classes, also
+  the code which is created, which is in all the Java classes, in all the
+  repos in services and libraries? Are those well aligned with the SOLID
+  design principles? Are we using appropriate design patterns where required?
+  I want you to do the detailed complete analysis on this, and make sure we
+  have a complete overview as soon as possible. And if the restructuring is
+  required, please restructure it. Rename it. Redesign it. Wherever possible.
+context:
+  workstream: WS-1
+  current_phase: "Phase 4 — Hardening & consumer enablement"
+  canonical_stage: "L7 — Hardening"
+  current_objective: "P4-UAT-SIGNOFF"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261027-iah
+stage_fit:
+  code: SF4
+  rationale: >
+    CODING-STANDARD.md section 5 rule 8 and section 9 already forbid a package
+    per pattern name and a class added to satisfy a principle. WS-1 is L7
+    (prove it, do not extend it). WS-3 S08 rejects later-stage structure.
+    SUG-20261026-cds and SUG-20261026-ur9 already refactored the tree to this
+    standard and closed. A second estate-wide re-package is the wrong kind of
+    change.
+scope:
+  code: SC1
+  business_scope: "Java layout of services and libs"
+  serves:
+    - "SUG-20261026-cds"
+  failure_without_it: "None. The binding layout is already the five layers in CODING-STANDARD.md section 5."
+  minimal: true
+  authority: "docs/governance/CODING-STANDARD.md sections 5, 6, 8, and 9"
+necessity:
+  now: REJECT
+  evidence_tier: E2
+  evidence:
+    - "844 main Java files and 318 tests under services/ and libs/. Domain packages import neither Spring, JPA, Jackson, nor Servlet."
+    - "Every service has ServiceArchitectureTest on HexagonalArchitecture (EPIC-007). Forbidden *Impl, DTO, Utils, Helper, Manager, and Base/Abstract type names are absent."
+    - "Eight services are eight-file scaffolds. Splitting them would add packages for features that do not exist."
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: false
+action: REJECT
+action_rationale: >
+  The tree matches the binding layout. More categorization would violate the
+  standard that was adopted three days ago. Board 1 checks A8 and A9 fail a
+  redesign at L7 and S08. FreshnessCheck exited 2 on 2026-10-29 (review_due
+  2026-10-28), so new work cannot be admitted. The owner asked to restructure
+  only if required. It is not required. The one real layer hole is parked as
+  SUG-20261029-jpa. This is an AI Board 1 draft, severity A3 for cosmetic
+  residuals, not a human T4 Architecture signature.
+reopen_if: >
+  A second service copies a ten-line type for the third time, or a flow gains
+  a third business condition that section 8.2 says must become a rule list.
+  Reopen only that type or that flow. Do not reopen an estate-wide re-package.
+```
+
+### SUG-20261029-jpa · Identity-authorization JPA outside adapter
+
+```yaml
+# schema: triage-record
+id: SUG-20261029-jpa
+raised_at: "2026-10-29"
+raised_by: "agent:architecture-review"
+source: "Package review of services/identity-authorization-service while answering SUG-20261029-pkg"
+input: >
+  Application services in identity-authorization import JPA types from
+  com.bank.identity.authz.persistence. That package is not adapter.persistence,
+  so HexagonalArchitecture.applicationDoesNotDependOnAdapters does not see it.
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: SUG-20261027-iah
+stage_fit:
+  code: SF3
+  rationale: >
+    The dependency rule in CODING-STANDARD.md section 6 is already binding.
+    Fixing it edits the login PDP while SUG-20261027-iah is the admitted P1
+    on that code, and FreshnessCheck is halt-class. It is not a current gate
+    criterion.
+  target_stage: "WS-2 Phase 1, after the governance sync"
+  unpark_trigger: "java scripts/governance/FreshnessCheck.java exits 0, and SUG-20261027-iah is CLOSED-DELIVERED or explicitly paused"
+scope:
+  code: SC1
+  serves:
+    - "IAM-P1"
+  failure_without_it: "Application services keep a direct dependency on BusinessUserEntity. ArchUnit stays green because the package is not named adapter."
+  minimal: true
+necessity:
+  now: NOT-NOW
+  future_necessity: SHOULD
+  target_stage: "WS-2 Phase 1, after the governance sync"
+  binds_when: "The next change that touches identity-authorization persistence, once freshness is clear and the AuthN/AuthZ lane is free"
+  evidence_tier: E2
+  evidence:
+    - "AuthorizationDecisionService, IdentityProfileService, IdentityResolutionService, PlatformLoginService, PartnerUserAdministrationService, ProvisioningOutboxProcessor, and DevLoginAccountSeed import com.bank.identity.authz.persistence."
+    - "HexagonalArchitecture only forbids ..application.. depending on ..adapter.."
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: true
+action: PARK
+action_rationale: >
+  Real layer hole, wrong moment. Do not introduce a pass-through service
+  interface. Move the three JPA types under adapter.persistence and put a
+  repository port in domain, which section 6 already requires for load and
+  save. Leave bank-persistence controllers as they are: ServiceArchitectureTest
+  records that waiver until an application layer exists, and a one-implementation
+  pass-through would violate section 8.3.
+```
 
 ### SUG-20261027-brd · Suitability BRD current design
 

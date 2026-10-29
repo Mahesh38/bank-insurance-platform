@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261029-iu2 | 2026-10-29 | human:repository-owner | Two login populations only. Bank employee (any designation) verifies at bank AD. Insurance RM, FLS, Insurance Partner and Partner representative are one insurance user and authenticate at Keycloak. | SF3 | SC0 | NOT-NOW | ARCH | P4 / P2 | PARKED | [PARKED-BACKLOG](./PARKED-BACKLOG.md) · [detail](#sug-20261029-iu2--two-login-populations) |
 | SUG-20261028-1lg | 2026-10-28 | human:repository-owner | One Login BRD v3.1 surface: Captcha+OTP for Bank RM and Insurance RM/FLS; smooth-merge `/login`←journey, retire IAM-001 session bypass; Keycloak IPR stays separate | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261028-1lg--one-login-brd-surface) · implemented on PR #165; Deepali A3 outstanding |
 | SUG-20261028-qst | 2026-10-28 | human:repository-owner | Stitch quotation + journey-orchestration + integration-hub + 1sb-integration for bank-side LifeSave / Savings quote APIs after lead + suitability (premium, PT, PPT) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [EPIC-008](../../platform/ws3-platform/EPIC-008.work-item.yaml) · [detail](#sug-20261028-qst--lifesave-savings-quote-stitch) |
 | SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
@@ -173,6 +174,92 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261029-iu2 · Two login populations
+
+```yaml
+# schema: triage-record
+id: SUG-20261029-iu2
+raised_at: "2026-10-29"
+raised_by: "human:repository-owner"
+source: "Owner correction while reviewing the authentication sequence: insurance labels are one user, and only bank employees use AD"
+input: >
+  Insurance RM and Partner representative and FLS and Insurance Partner user
+  all means the same thing they are not different. We have only 2 type of user:
+  bank employee (Bank RM and or any bank employee with any designation) and
+  Insurance users (Insurance RM and Partner representative and FLS and Insurance
+  Partner user). Bank employee will route to AD and all the others will route
+  to Keycloak.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-09-30"
+  state_provisional: false
+  active_work_item: "Authentication sequence explanation"
+
+stage_fit:
+  code: SF3
+  rationale: >
+    Login BRD v3.1 and SUG-20261028-1lg already define the two screen labels.
+    Insurance RM, FLS and the Insurance Partner label are one platform-password
+    login. Partner representative Keycloak OIDC is a separate ceremony. Moving
+    every insurance user onto Keycloak replaces that accepted ceremony and
+    needs an ADR. FreshnessCheck is halt, so the change cannot be admitted.
+  target_stage: "WS-2 login ceremony, after an ADR supersedes the SUG-20261028-1lg design lock"
+  unpark_trigger: "FreshnessCheck is not halt, and the repository owner explicitly directs that the insurance-user login moves from the platform-password form to Keycloak while the app still receives only the BFF session."
+
+scope:
+  code: SC0
+  business_scope: "in scope — workforce authentication of bank employees and insurance users"
+  serves: []
+  failure_without_it: "Readers keep treating FLS, Insurance RM, Insurance Partner and Partner representative as separate login actors."
+  minimal: true
+  authority: "Login BRD v3.1 §5 · authentication-authorization README §5 · SUG-20261028-1lg design lock"
+
+necessity:
+  now: NOT-NOW
+  future_necessity: SHOULD
+  target_stage: "WS-2 login ceremony, after an ADR supersedes the SUG-20261028-1lg design lock"
+  binds_when: "The owner directs the insurance-user ceremony to change"
+  evidence_tier: E1
+  evidence:
+    - "Owner statement 2026-10-29: two populations; bank to AD; insurance labels are one user and go to Keycloak"
+    - "SUG-20261023-dev: FLS is the Insurance RM login"
+    - "SUG-20261028-1lg design lock: Insurance Partner label is platform password; Keycloak IPR stays on POST /auth/partner/authorization"
+  confidence: C5
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X9_problem_observed: true
+
+action: PARK
+action_rationale: >
+  The label collapse for FLS, Insurance RM and the Insurance Partner screen
+  label is already the v3.1 login. Routing that same user through Keycloak,
+  and retiring the separate partner ceremony, conflicts with the design lock
+  on SUG-20261028-1lg and with Login BRD v3.1 §5. SUG-20261024-kck is related
+  and stays parked: that item sent both populations through Keycloak, while
+  this one keeps bank employees on AD directly. FreshnessCheck on 2026-10-29
+  is halt (review_due 2026-10-28). No code change in the turn the correction
+  was raised. No T4 signature is claimed.
+conflicts:
+  - "SUG-20261028-1lg design lock — Keycloak IPR stays off the BRD password form"
+  - "Login BRD v3.1 §5 — Insurance RM uses a platform password, not Keycloak"
+  - "SUG-20261024-kck — related parked item; bank and insurance both entered through Keycloak"
+duplicate_of: null
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: SUG-20261029-iu2
+  status: PARKED
+
+resumed: "Authentication explanation. Two populations in language. Runtime routing unchanged."
+```
 
 ### SUG-20261028-1lg · One Login BRD surface
 

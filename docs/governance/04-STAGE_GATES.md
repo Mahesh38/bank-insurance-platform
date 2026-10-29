@@ -106,17 +106,24 @@ edit `current_phase`.
 | 4.4 | Compliance review of audit schema + log samples | Signed review note in `service-ssot/` | ❌ Open |
 | 4.5 | Runbook: secrets rotation, IP whitelist, 1SB 401/5xx incident | Runbook document | ❌ Open |
 | 4.6 | Performance smoke: p95 quote under nominal concurrency | Measurement report + threshold | ⛔ Blocked — E2E harness dependency (`DEP-003`) |
-| 4.7 | Coverage gates green; QA-001 closed or explicitly waived with expiry | JaCoCo report + TECH-DEBT entry | 🟡 Partial — libs at 80/70; service on interim floor |
+| 4.7 | Coverage gates green; QA-001 closed or explicitly waived with expiry | JaCoCo report + TECH-DEBT entry | ✅ MET — QA-001 Closed 2026-09-13 (Phase-1 90/70; scaffold floor ratified). Package floors remain QA-014, expiry 2026-10-31, and do not reopen 4.7. |
 
 > **Criterion 4.7 was added by change request, not by drift.** It is absent from
 > `ACTION-PLAN.md` Phase 4 (4.1–4.6) and was originally introduced while authoring this
 > framework — the exact scope creep
 > [14-CHANGE_CONTROL.md §1](./14-CHANGE_CONTROL.md#1-what-needs-a-change-request) forbids. It was
 > demoted to PROPOSED, raised as **[CR-001](./registers/DECISION-REGISTER.md#3-change-requests)**,
-> and **approved on 2026-08-10**. Consequence: Phase 4 cannot pass while the service coverage
-> floor is still "interim" — QA-001 must close or carry a dated waiver.
+> and **approved on 2026-08-10**. QA declared 4.7 MET on 2026-09-13. `04` still said Partial
+> until the 2026-10-29 R12 sweep copied that recorded state here. Phase 4 stays `BLOCKED` on
+> 4.1, 4.3 and 4.6. QA-014 (package floors, expiry 2026-10-31) does not reopen 4.7.
 
-**Approvers:** Architect · PO · QA Lead · Compliance (4.4) · Ops (4.5)
+**Approvers:** Architect · PO · QA Lead · Compliance (4.4) · Shivanshi / SRE (4.5)
+
+> **GATE-S08 is not tabulated in this file.** Its ten criteria, all MET, and the gate state
+> `CANDIDATE` live in [`state/CURRENT-STATE.yaml`](./state/CURRENT-STATE.yaml) and
+> [`state/GATE-EVIDENCE.yaml`](./state/GATE-EVIDENCE.yaml). Writing that table is
+> Architecture-owned. The 2026-10-29 R12 sweep did not invent the criteria. Architect + PO
+> human PASS is still required before `current_phase` / `stage_status` can move.
 
 **Parked items released on PASS:** every entry in
 [registers/PARKED-BACKLOG.md](./registers/PARKED-BACKLOG.md) with

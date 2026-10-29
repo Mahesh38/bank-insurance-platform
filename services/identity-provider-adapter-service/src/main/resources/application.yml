@@ -49,6 +49,13 @@ identity:
       # E8: connect 2 s / read 3 s, overridable per environment.
       connect-timeout: ${KEYCLOAK_CONNECT_TIMEOUT:1s}
       read-timeout: ${KEYCLOAK_READ_TIMEOUT:3s}
+  keycloak-password:
+    mode: ${KEYCLOAK_PASSWORD_MODE:stub}
+    stub:
+      users:
+        - username: fls.rm@example.test
+          password: "Horse#99"
+          active: true
 
 management:
   endpoints:

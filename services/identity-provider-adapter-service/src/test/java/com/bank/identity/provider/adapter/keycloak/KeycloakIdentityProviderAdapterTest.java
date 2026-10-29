@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withCreatedEntity;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -254,6 +255,46 @@ class KeycloakIdentityProviderAdapterTest {
               assertThat(response.getCode()).isEqualTo(ErrorCodes.AUTHENTICATION_FAILED);
               assertThat(response.getStatus()).isEqualTo(401);
             });
+  }
+
+  @Test
+  void passwordGrantRevokesTheRefreshTokenAndDoesNotReturnIt() {
+    TestClient test = testClient();
+    test.server()
+        .expect(requestTo(PROPERTIES.tokenUri()))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(
+            withSuccess(
+                """
+                {"access_token":"access-1","refresh_token":"refresh-1","expires_in":300}
+                """,
+                MediaType.APPLICATION_JSON));
+    test.server()
+        .expect(requestTo(PROPERTIES.revokeUri()))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withNoContent());
+
+    var check = test.adapter().verifyPassword("fls.rm@example.test", "Horse#99");
+
+    assertThat(check.authenticated()).isTrue();
+    assertThat(check.accountActive()).isTrue();
+    test.server().verify();
+  }
+
+  @Test
+  void disabledKeycloakAccountDoesNotCountAsAWrongPassword() {
+    TestClient test = testClient();
+    test.server()
+        .expect(requestTo(PROPERTIES.tokenUri()))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(
+            withBadRequest()
+                .body("{\"error\":\"invalid_grant\",\"error_description\":\"Account disabled\"}"));
+
+    var check = test.adapter().verifyPassword("fls.rm@example.test", "Horse#99");
+
+    assertThat(check.authenticated()).isFalse();
+    assertThat(check.accountActive()).isFalse();
   }
 
   private static void expectTokens(MockRestServiceServer server) {

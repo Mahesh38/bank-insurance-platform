@@ -179,6 +179,15 @@ public class IdentityAuthorizationController {
     return platformLogin.recordBankPasswordResult(request.businessUserId(), request.accepted());
   }
 
+  @PostMapping("/login/insurance-password-result")
+  public PasswordOutcome insurancePasswordResult(
+      HttpServletRequest http, @Valid @RequestBody BankPasswordResultRequest request) {
+    privileges.require(
+        http, InternalCallerAuth.PRIVILEGE_LOGIN_ORCHESTRATE, "insurancePasswordResult");
+    return platformLogin.recordInsurancePasswordResult(
+        request.businessUserId(), request.accepted());
+  }
+
   @PostMapping("/login/verify-platform-password")
   public PasswordOutcome verifyPlatformPassword(
       HttpServletRequest http, @Valid @RequestBody PlatformPasswordRequest request) {

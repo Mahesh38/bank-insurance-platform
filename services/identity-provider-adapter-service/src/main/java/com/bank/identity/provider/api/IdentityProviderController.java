@@ -1,6 +1,7 @@
 package com.bank.identity.provider.api;
 
 import com.bank.identity.provider.domain.IdentityProviderPort;
+import com.bank.identity.provider.domain.InsuranceCredentialVerifier;
 import com.bank.identity.provider.domain.WorkforceCredentialVerifier;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -24,11 +25,15 @@ public class IdentityProviderController {
 
   private final IdentityProviderPort provider;
   private final WorkforceCredentialVerifier adVerify;
+  private final InsuranceCredentialVerifier insurancePasswords;
 
   public IdentityProviderController(
-      IdentityProviderPort provider, WorkforceCredentialVerifier adVerify) {
+      IdentityProviderPort provider,
+      WorkforceCredentialVerifier adVerify,
+      InsuranceCredentialVerifier insurancePasswords) {
     this.provider = provider;
     this.adVerify = adVerify;
+    this.insurancePasswords = insurancePasswords;
   }
 
   @PostMapping("/auth/authorization-uri")
@@ -57,6 +62,22 @@ public class IdentityProviderController {
         result.employeeId(),
         result.username(),
         result.email());
+  }
+
+  @PostMapping("/auth/keycloak-password")
+  public KeycloakPasswordResponse verifyKeycloakPassword(
+      @Valid @RequestBody KeycloakPasswordRequest request) {
+    var result =
+        insurancePasswords.verify(
+            new InsuranceCredentialVerifier.Command(request.username(), request.password()));
+    return new KeycloakPasswordResponse(result.authenticated(), result.accountActive());
+  }
+
+  @PostMapping("/auth/keycloak-password/reset")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void replaceKeycloakPassword(@Valid @RequestBody KeycloakPasswordRequest request) {
+    insurancePasswords.replacePassword(
+        new InsuranceCredentialVerifier.ReplaceCommand(request.username(), request.password()));
   }
 
   @PostMapping("/auth/token-exchange")
@@ -150,6 +171,17 @@ public class IdentityProviderController {
   public record ProvisionedIdentityResponse(String providerSubjectId) {}
 
   public record IdentityStatusRequest(@NotNull Boolean enabled) {}
+
+  public record KeycloakPasswordRequest(@NotBlank String username, @NotBlank String password) {
+    @Override
+    public String toString() {
+      return "KeycloakPasswordRequest[username-present="
+          + (username != null && !username.isBlank())
+          + "]";
+    }
+  }
+
+  public record KeycloakPasswordResponse(boolean authenticated, boolean accountActive) {}
 
   public record AdVerifyRequest(@NotBlank String employeeId, @NotBlank String password) {
     @Override

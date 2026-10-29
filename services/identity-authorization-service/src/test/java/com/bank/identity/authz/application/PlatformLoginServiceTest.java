@@ -47,6 +47,25 @@ class PlatformLoginServiceTest {
   }
 
   @Test
+  void keycloakRejectionLocksAnInsuranceUserWithoutReadingTheLocalHash() {
+    BusinessUserEntity partner = users.save(insurance("kc@aubank.in"));
+    assertThat(login.setPassword(partner.getId(), "Horse#99", "Horse#99", "FIRST_TIME").result())
+        .isEqualTo("SET");
+    assertThat(login.recordInsurancePasswordResult(partner.getId(), true).accepted()).isTrue();
+    assertThat(login.recordInsurancePasswordResult(partner.getId(), false).account().route())
+        .isEqualTo("PASSWORD_REJECTED");
+    assertThat(
+            login
+                .recordInsurancePasswordResult(partner.getId(), false)
+                .account()
+                .attemptsRemaining())
+        .isEqualTo(1);
+    assertThat(login.recordInsurancePasswordResult(partner.getId(), false).account().route())
+        .isEqualTo("LOCKED_PASSWORD");
+    assertThat(login.recordInsurancePasswordResult(partner.getId(), true).accepted()).isFalse();
+  }
+
+  @Test
   void firstTimeBankActivatesWithoutAPasswordChangeAndInsuranceMustSetOne() {
     BusinessUserEntity bank =
         users.save(

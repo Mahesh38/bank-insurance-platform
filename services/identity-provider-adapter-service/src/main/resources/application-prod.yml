@@ -1,5 +1,7 @@
 identity:
   ad-verify:
     mode: http
+  keycloak-password:
+    mode: http
   internal-auth:
     shared-secret: ${IDENTITY_ADAPTER_INTERNAL_SHARED_SECRET}

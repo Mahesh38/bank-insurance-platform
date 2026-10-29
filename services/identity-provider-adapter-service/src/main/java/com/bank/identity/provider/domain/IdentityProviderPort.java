@@ -19,6 +19,12 @@ public interface IdentityProviderPort {
 
   void setEnabled(String providerSubjectId, boolean enabled);
 
+  PasswordCheck verifyPassword(String username, String password);
+
+  void replacePassword(String username, String password);
+
+  record PasswordCheck(boolean authenticated, boolean accountActive) {}
+
   record AuthorizationCommand(
       String state, String nonce, String codeChallenge, String loginHint, String identitySource) {}
 

@@ -126,23 +126,32 @@ Keycloak is a separately deployed product, not one of the three custom Spring se
 1. Flutter obtains CSRF, then `POST /api/v1/auth/captcha`, then `POST /api/v1/auth/login` with
    `userType` (`BANK_RM` or `INSURANCE_RM`), Login ID, password and captcha. No OAuth token and no
    session are returned from `/login`.
-2. Bank RM: the BFF does **not** validate the AD password itself and does **not** persist it. It
+2. Bank RM: the BFF does not validate the AD password itself and does not persist it. It
    calls `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify` with
-   `X-Internal-Service-Key`. Insurance RM: platform password verify on
-   `identity-authorization-service`.
+   `X-Internal-Service-Key`. Insurance RM, FLS, Insurance Partner and Partner representative are
+   one insurance user. The BFF calls `POST /internal/v1/auth/keycloak-password`. The adapter
+   checks the password with a Keycloak password grant, revokes that grant's refresh token, and
+   returns only `authenticated` and `accountActive`. The workforce app never receives a Keycloak
+   token. Authorization records the result for lockout (`POST /internal/v1/login/insurance-password-result`).
 3. On success the BFF issues a login OTP challenge (`OTP_SENT`). The opaque platform session is
    created only by `POST /api/v1/auth/otp/verify` after a correct OTP.
-4. Partner Keycloak OIDC is §5.2 via `POST /api/v1/auth/partner/authorization` — not this form.
+4. `POST /api/v1/auth/partner/authorization` remains the authorization-code start for the same
+   insurance user when a client begins OIDC. It is not a second population.
 
 NIP-APP / Fireframe remains the UI chrome. Direct credential forwarding to AD from EKS is still forbidden. External Captcha/SMS-email OTP gateway remains parked (`SUG-20261008-otp` remainder).
 
-### 5.2 Insurer partner representative (Keycloak OIDC)
+### 5.2 Insurance user authorization code (Keycloak OIDC)
+
+The same insurance user can also start at `POST /api/v1/auth/partner/authorization`. That ceremony
+is authorization code and PKCE. The password form in §5.1 is the Login BRD screen; its credential
+check is still Keycloak. Tokens stay in the BFF vault on the callback. The app receives the
+session cookie or the opaque handle.
 
 1. A bank admin creates the partner business identity in `identity-authorization-service` (E5).
 2. An outbox command provisions the provider identity through `identity-provider-adapter-service`.
 3. Keycloak sends or requires a credential setup action. No initial password is stored in platform data.
-4. The representative starts OIDC at `POST /api/v1/auth/partner/authorization` (authorization-code,
-   PKCE, token-hiding BFF callback). This is not the Login BRD Captcha+OTP password form.
+4. The same insurance user may start OIDC at `POST /api/v1/auth/partner/authorization`
+   (authorization-code, PKCE, token-hiding BFF callback) instead of the password form.
 
 ### 5.3 Logout, disablement, and revocation
 

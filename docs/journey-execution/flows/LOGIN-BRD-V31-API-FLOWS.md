@@ -93,7 +93,7 @@ flowchart TD
   route{Account route}
   kind{User type}
   ad[AD-verify network password]
-  hash[Compare platform password]
+  kc[Keycloak password grant]
   otp[Issue login OTP]
   stop[MESSAGE and no session]
 
@@ -108,13 +108,13 @@ flowchart TD
   route -->|LOCKED_INACTIVITY| v011[VAL-011]
   route -->|READY| kind
   kind -->|BANK_RM| ad
-  kind -->|INSURANCE_RM| hash
+  kind -->|INSURANCE_RM| kc
   ad -->|directory inactive| v007
   ad -->|wrong password| attempts[VAL-008 VAL-009 or VAL-010]
   ad -->|correct| otp
-  hash -->|wrong password| attempts
-  hash -->|expired| expired[PASSWORD_EXPIRED ticket]
-  hash -->|correct| otp
+  kc -->|account disabled| v007
+  kc -->|wrong password| attempts
+  kc -->|correct| otp
   unk --> stop
   v004 --> stop
   v007 --> stop
@@ -174,10 +174,15 @@ sequenceDiagram
   participant App
   participant BFF as workforce-access-bff
   participant Authz as identity-authorization
+  participant Adp as identity-provider-adapter
+  participant KC as Keycloak
   App->>BFF: POST /api/v1/auth/login INSURANCE_RM email password captcha
   BFF->>Authz: POST /internal/v1/login/preview INSURER_REPRESENTATIVE
   Authz-->>BFF: READY
-  BFF->>Authz: POST /internal/v1/login/verify-platform-password
+  BFF->>Adp: POST /internal/v1/auth/keycloak-password
+  Adp->>KC: password grant, then revoke the refresh token
+  Adp-->>BFF: authenticated true, accountActive true
+  BFF->>Authz: POST /internal/v1/login/insurance-password-result
   Authz-->>BFF: accepted true
   BFF-->>App: OTP_SENT
   App->>BFF: POST /api/v1/auth/otp/verify
@@ -185,7 +190,7 @@ sequenceDiagram
   BFF-->>App: AUTHENTICATED session cookie or sessionHandle
 ```
 
-Unknown email is `VAL-006` and stops before the hash compare. Expiry is checked only after the hash matches, and it does not increment the failure counter. See section 9.
+Unknown email is `VAL-006` and stops before Keycloak. A disabled Keycloak account is `VAL-007` and does not increment the failure counter. The local platform-password hash is not the login check. `SUG-20261029-iu2`.
 
 ---
 
@@ -284,6 +289,7 @@ sequenceDiagram
   participant App
   participant BFF as workforce-access-bff
   participant Authz as identity-authorization
+  participant Adp as identity-provider-adapter
   App->>BFF: POST /api/v1/auth/forgot-password email captcha
   BFF->>Authz: POST /internal/v1/login/forgot/assess
   alt unknown email
@@ -303,6 +309,8 @@ sequenceDiagram
     App->>BFF: POST /api/v1/auth/password
     BFF->>Authz: POST /internal/v1/login/password purpose FORGOT
     Authz-->>BFF: SET
+    BFF->>Adp: POST /internal/v1/auth/keycloak-password/reset
+    Adp-->>BFF: 204
     BFF-->>App: PASSWORD_SET Password changed redirect 3s
   end
 ```
@@ -315,28 +323,7 @@ Success does not create a session. The user signs in with the new password and a
 
 ## 10. Insurance RM password expiry
 
-Checked only after a correct platform password, and only when `password_changed_at` plus 60 days is not after now. A null `password_changed_at` is not treated as expired. The failure counter does not move.
-
-```mermaid
-sequenceDiagram
-  participant App
-  participant BFF as workforce-access-bff
-  participant Authz as identity-authorization
-  App->>BFF: POST /api/v1/auth/login INSURANCE_RM
-  BFF->>Authz: verify-platform-password
-  Authz-->>BFF: route PASSWORD_EXPIRED accepted false
-  BFF-->>App: PASSWORD_EXPIRED expiry ticket
-  App->>BFF: POST /api/v1/auth/password-expired/send-otp
-  BFF-->>App: OTP_SENT purpose EXPIRY
-  App->>BFF: POST /api/v1/auth/otp/verify
-  BFF-->>App: CONTINUATION purpose EXPIRY reset token
-  App->>BFF: POST /api/v1/auth/password
-  BFF->>Authz: POST /internal/v1/login/password purpose EXPIRY
-  Authz-->>BFF: SET password_changed_at now
-  BFF-->>App: PASSWORD_SET Password updated redirect 3s
-```
-
-OTP is not sent until the user calls send-otp. No session until a later normal login.
+Sign-in does not consult the local 60-day clock. `POST /internal/v1/login/insurance-password-result` accepts a Keycloak success without reading `password_changed_at` or the local hash. `POST /internal/v1/login/verify-platform-password` still compares that hash, including the 60-day rule, but the login journey does not call it and does not issue a `PASSWORD_EXPIRED` ticket. `POST /api/v1/auth/password-expired/send-otp` remains for a ticket that sign-in no longer mints. A password change still updates the local hash for the previous-password rule, then the BFF writes the same value to Keycloak.
 
 ---
 
@@ -386,7 +373,7 @@ Storage is `pbkdf2$iterations$salt$hash` (PBKDF2-HMAC-SHA256, 120000 iterations)
 | `VAL-004` | Captcha missing, expired, already used, or wrong |
 | `VAL-005` | Bank employee ID is not a `business_user` |
 | `VAL-006` | Insurance email is not a `business_user` on sign-in or unlock |
-| `VAL-007` | Not active, or Bank AD says the directory account is inactive |
+| `VAL-007` | Not active, Bank AD says the directory account is inactive, or Keycloak says the insurance account is disabled |
 | `VAL-008` / `VAL-009` | Wrong password, 2 or 1 attempts left |
 | `VAL-010` | Third wrong password, or a password attempt while password-locked |
 | `VAL-011` | Inactivity lock |
@@ -400,8 +387,8 @@ Storage is `pbkdf2$iterations$salt$hash` (PBKDF2-HMAC-SHA256, 120000 iterations)
 | `NOT_REQUIRED` | Unlock when the account is already active, not first-time, and not locked |
 | `AUTHENTICATED` | Login OTP succeeded. Session created. |
 | `COMPLETED` | Unlock finished. No session. |
-| `PASSWORD_SET` | Platform password saved. No session. |
-| `PASSWORD_EXPIRED` | Correct Insurance password is past 60 days. |
+| `PASSWORD_SET` | Password saved. Insurance value is also written to Keycloak. No session. |
+| `PASSWORD_EXPIRED` | Not issued by sign-in. The send-otp route remains only if a ticket is already held. |
 | `OTP_SENT` / `WAIT` / `CONTINUATION` / `CAPTCHA` | Challenge plumbing |
 
 Blank-field sentences from older copy are not returned. A missing JSON field fails Jakarta validation before the journey runs.

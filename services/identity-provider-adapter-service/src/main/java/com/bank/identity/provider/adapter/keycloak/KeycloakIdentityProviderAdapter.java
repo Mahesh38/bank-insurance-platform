@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
@@ -83,6 +84,53 @@ public class KeycloakIdentityProviderAdapter implements IdentityProviderPort {
     form.add("grant_type", "refresh_token");
     form.add("refresh_token", refreshToken);
     return sessionFromTokens(requestTokens(form), null);
+  }
+
+  /**
+   * Password grant for an insurance user. Tokens are revoked before the method returns so this
+   * check does not leave a Keycloak session and nothing is returned to the workforce app.
+   */
+  @Override
+  public IdentityProviderPort.PasswordCheck verifyPassword(String username, String password) {
+    MultiValueMap<String, String> form = clientForm();
+    form.add("grant_type", "password");
+    form.add("username", username);
+    form.add("password", password);
+    form.add("scope", "openid");
+    try {
+      Map<String, Object> tokens = requestTokens(form);
+      String refresh = optionalString(tokens, "refresh_token");
+      if (refresh != null) {
+        revoke(refresh);
+      }
+      return new IdentityProviderPort.PasswordCheck(true, true);
+    } catch (RestClientResponseException exception) {
+      int status = exception.getStatusCode().value();
+      if (status == 400 || status == 401) {
+        String description = exception.getResponseBodyAsString().toLowerCase();
+        boolean disabled = description.contains("disabled");
+        return new IdentityProviderPort.PasswordCheck(false, !disabled);
+      }
+      throw providerUnavailable("verifyPassword", exception);
+    }
+  }
+
+  /** Replaces the Keycloak password for an insurance user. The value is not logged. */
+  @Override
+  public void replacePassword(String username, String password) {
+    String adminToken = adminAccessToken();
+    String userId = findUserId(username, adminToken);
+    restClient
+        .put()
+        .uri(
+            properties
+                .adminUsersUri()
+                .resolve(properties.adminUsersUri().getPath() + "/" + userId + "/reset-password"))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Map.of("type", "password", "value", password, "temporary", false))
+        .retrieve()
+        .toBodilessEntity();
   }
 
   @Override
@@ -169,6 +217,42 @@ public class KeycloakIdentityProviderAdapter implements IdentityProviderPort {
         .body(Map.of("enabled", enabled))
         .retrieve()
         .toBodilessEntity();
+  }
+
+  private String findUserId(String username, String adminToken) {
+    List<Map<String, Object>> existing =
+        restClient
+            .get()
+            .uri(
+                UriComponentsBuilder.fromUri(properties.adminUsersUri())
+                    .queryParam("username", username)
+                    .queryParam("exact", true)
+                    .build()
+                    .encode()
+                    .toUri())
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+            .retrieve()
+            .body(new ParameterizedTypeReference<>() {});
+    if (existing == null || existing.isEmpty()) {
+      throw errors
+          .error(ErrorCodes.RESOURCE_NOT_FOUND)
+          .component("KeycloakIdentityProviderAdapter")
+          .operation("replacePassword")
+          .reason("Keycloak has no user for this insurance username")
+          .build();
+    }
+    return string(existing.getFirst(), "id");
+  }
+
+  private ServiceException providerUnavailable(
+      String operation, RestClientResponseException cause) {
+    return errors
+        .error(ErrorCodes.IDENTITY_PROVIDER_UNAVAILABLE)
+        .component("KeycloakIdentityProviderAdapter")
+        .operation(operation)
+        .reason("Keycloak password grant failed")
+        .cause(cause)
+        .build();
   }
 
   private MultiValueMap<String, String> clientForm() {

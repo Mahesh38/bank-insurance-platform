@@ -34,6 +34,24 @@ class AdVerifyControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @Test
+  void stubKeycloakPasswordAcceptsTheInsuranceUserAndHidesThePassword() throws Exception {
+    mockMvc
+        .perform(
+            post("/internal/v1/auth/keycloak-password")
+                .header(InternalAuthProperties.HEADER, INTERNAL_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"username":"fls.rm@example.test","password":"Horse#99"}
+                    """))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.authenticated").value(true))
+        .andExpect(jsonPath("$.accountActive").value(true))
+        .andExpect(jsonPath("$.password").doesNotExist())
+        .andExpect(content().string(not(containsString("Horse#99"))));
+  }
+
+  @Test
   void stubVerifyReturnsTrueForActiveBankEmployee() throws Exception {
     mockMvc
         .perform(adVerify(ACTIVE_BODY))

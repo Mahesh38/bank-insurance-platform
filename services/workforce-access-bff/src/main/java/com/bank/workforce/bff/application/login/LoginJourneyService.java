@@ -210,7 +210,12 @@ public class LoginJourneyService {
             return unavailable();
           }
           return switch (result.result()) {
-            case "SET" -> JourneyResult.body(passwordSet(ticket.purpose()));
+            case "SET" -> {
+              if ("INSURER_REPRESENTATIVE".equals(ticket.account().userType())) {
+                provider.replaceKeycloakPassword(ticket.account().username(), newPassword);
+              }
+              yield JourneyResult.body(passwordSet(ticket.purpose()));
+            }
             case "LOCKED_UNCHANGED" -> message(LoginMessages.forgotLocked());
             case "MISMATCH" -> message(LoginMessages.passwordMismatch());
             case "PREVIOUS" -> message(LoginMessages.previousPassword());
@@ -234,14 +239,16 @@ public class LoginJourneyService {
   }
 
   private JourneyResult insurancePassword(SignInCommand command, AccountView account) {
-    PasswordOutcome outcome =
-        authorization.verifyPlatformPassword(account.businessUserId(), command.password());
-    if (outcome != null
-        && outcome.account() != null
-        && "PASSWORD_EXPIRED".equals(outcome.account().route())) {
-      log.info("Platform password is expired; attempts were not counted");
-      return expiryTicket(command.clientType(), outcome.account());
+    var keycloak = provider.verifyKeycloak(command.loginId().trim(), command.password());
+    if (keycloak == null) {
+      return unavailable();
     }
+    if (!keycloak.accountActive()) {
+      log.info("Keycloak account is inactive; password attempts were not counted");
+      return message(LoginMessages.inactiveLogin());
+    }
+    PasswordOutcome outcome =
+        authorization.recordInsurancePassword(account.businessUserId(), keycloak.authenticated());
     return afterPassword(command.clientType(), outcome);
   }
 

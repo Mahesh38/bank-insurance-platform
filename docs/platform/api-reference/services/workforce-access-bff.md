@@ -25,11 +25,12 @@
 | Method | Path | Status | Purpose | Detail |
 |---|---|---|---|---|
 | `GET` | `/api/v1/auth/csrf` | IMPLEMENTED | Get the CSRF token (web) | [§2.1](#21-get-apiv1authcsrf) |
-| `POST` | `/api/v1/auth/login` | IMPLEMENTED | Bank RM credential login (AD-verify) **or** start partner OIDC login | [§2.2](#22-post-apiv1authlogin) |
-| `GET` | `/api/v1/auth/callback` | IMPLEMENTED | OIDC redirect target after Keycloak login | [§2.3](#23-get-apiv1authcallback) |
-| `POST` | `/api/v1/auth/native-session` | IMPLEMENTED | Native app swaps one-time completion code for a session handle | [§2.4](#24-post-apiv1authnative-session) |
-| `GET` | `/api/v1/auth/session` | IMPLEMENTED | Who am I (from the vault) | [§2.5](#25-get-apiv1authsession) |
-| `POST` | `/api/v1/auth/logout` | IMPLEMENTED | Delete session; revoke provider refresh token | [§2.6](#26-post-apiv1authlogout) |
+| `POST` | `/api/v1/auth/login` | IMPLEMENTED | Login BRD v3.1 password step (Captcha → OTP; Bank RM / Insurance RM) | [§2.2](#22-post-apiv1authlogin-login-brd-v31) |
+| `POST` | `/api/v1/auth/partner/authorization` | IMPLEMENTED | Start partner Keycloak OIDC (UC-02) | [§2.3](#23-post-apiv1authpartnerauthorization) |
+| `GET` | `/api/v1/auth/callback` | IMPLEMENTED | OIDC redirect target after Keycloak login | [§2.4](#24-get-apiv1authcallback) |
+| `POST` | `/api/v1/auth/native-session` | IMPLEMENTED | Native app swaps one-time completion code for a session handle | [§2.5](#25-post-apiv1authnative-session) |
+| `GET` | `/api/v1/auth/session` | IMPLEMENTED | Who am I (from the vault) | [§2.6](#26-get-apiv1authsession) |
+| `POST` | `/api/v1/auth/logout` | IMPLEMENTED | Delete session; revoke provider refresh token | [§2.7](#27-post-apiv1authlogout) |
 
 ### 1.2 Workspace, customer and lead (`/api/v1/**`, session required)
 
@@ -104,93 +105,44 @@ Response `200`:
 Behind the scenes: Spring Security's `CookieCsrfTokenRepository` mints the token and sets cookie
 `WORKFORCE-XSRF`. No downstream call, no store write.
 
-### 2.2 `POST /api/v1/auth/login`
+### 2.2 `POST /api/v1/auth/login` (Login BRD v3.1)
 
-**Status:** IMPLEMENTED · **Caller:** NIP-APP login screen. Two behaviours selected by
-`identitySource`.
+**Status:** IMPLEMENTED · **Caller:** NIP-APP login screen · **Work item:** `SUG-20261028-1lg`
 
-#### Request
+Single password-login entry for `BANK_RM` and `INSURANCE_RM`. Requires a prior
+`POST /auth/captcha`. Does **not** mint a session — that happens only on
+`POST /auth/otp/verify` after login OTP. IAM-001 immediate-session bodies
+(`identitySource` / `employeeId` without BRD fields) return `422 VALIDATION_ERROR`.
+`/auth/sign-in` is removed. Partner OIDC begins at
+[`POST /auth/partner/authorization`](#23-post-apiv1authpartnerauthorization).
 
-| Field | Type | Required | Validation |
-|---|---|---|---|
-| `clientType` | `WEB` \| `NATIVE` | yes | `@NotNull`; enum |
-| `identitySource` | `BANK_AD` \| `PARTNER` | yes | `@NotNull`; enum |
-| `employeeId` | string | `BANK_AD` only | Non-blank after trim, else `400 SCHEMA_INVALID` ("Employee ID is required") |
-| `password` | string | `BANK_AD` only | Non-blank, else `400 SCHEMA_INVALID`. **Never logged, never stored** (`toString` redacts) |
-| `returnUri` | string | `PARTNER` only | Must exactly equal an entry in `workforce.session.allowed-return-uris`, else `400 SCHEMA_INVALID` |
-| `loginHint` | string | no | Passed to Keycloak |
+Canonical field catalogue, outcomes and sequences:
+[LOGIN-BRD-V31-API-FLOWS.md](../../../journey-execution/flows/LOGIN-BRD-V31-API-FLOWS.md).
+Contract: [openapi.yaml](../../contracts/workforce-access-bff/openapi.yaml).
 
-Bank RM:
-
-```json
-{ "clientType": "WEB", "identitySource": "BANK_AD", "employeeId": "EMP001", "password": "••••••" }
-```
-
-#### Response — `BANK_AD`, `200 OK`
-
-```json
-{
-  "authenticated": true,
-  "businessUserId": "7f0c2a6e-2d0b-4b8e-9a7d-3c1f5e2b9a10",
-  "userType": "BANK_EMPLOYEE",
-  "status": "ACTIVE",
-  "policyVersion": 1,
-  "sessionHandle": null,
-  "expiresInSeconds": 28800
-}
-```
-
-- `WEB`: `Set-Cookie: WORKFORCE_SESSION=<handle>; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800`, `sessionHandle` is `null`.
-- `NATIVE`: no cookie; `sessionHandle` carries the handle. The app keeps it in secure storage and sends it as `X-Session-Handle`.
-
-#### Response — `PARTNER`, `200 OK`
-
-```json
-{ "authorizationUri": "https://<keycloak>/realms/bank-insurance/protocol/openid-connect/auth?…", "expiresInSeconds": 300 }
-```
-
-The app navigates the browser / system web view to `authorizationUri`.
-
-#### Behind the scenes (BANK_AD)
-
-1. Bean validation on `clientType`, `identitySource`.
-2. `LoginService.authenticateBank`: require `employeeId`, `password`.
-3. `POST {idp-adapter}/internal/v1/auth/ad-verify` with `X-Internal-Service-Key` →
-   adapter → bank AD-verify API (via Apigee private in UAT/prod; stub locally). See
-   [BFF to IdP adapter](../interactions/bff-to-identity-provider-adapter.md).
-4. Accepted only if `authenticated && accountActive`; otherwise `401 AUTHENTICATION_FAILED`.
-5. `POST {authz}/internal/v1/identities/resolve` with provider `BANK_AD`, user type
-   `BANK_EMPLOYEE`, `employeeId` → returns (and on first login **creates**) the business user in
-   Aurora `identity.business_user`. See [BFF to PDP](../interactions/bff-to-identity-authorization.md).
-6. Requires `status = ACTIVE` and `userType = BANK_EMPLOYEE`, else `401 AUTHENTICATION_FAILED`.
-7. Mints a 32-byte random session id; writes the encrypted `WorkforceSession` to the vault with
-   TTL 8 h (no provider tokens for AD login). See [BFF session vault](../interactions/bff-session-vault.md).
-8. Returns the body above; sets the cookie for `WEB`.
-
-Full walk-through with sequence diagram: [Scenario 01](../scenarios/01-bank-rm-login.md).
-
-#### Behind the scenes (PARTNER)
-
-1. Validate `returnUri` against the allow-list.
-2. Mint `state`, `nonce`, PKCE `code_verifier` (32 random bytes each) and
-   `code_challenge = base64url(SHA-256(verifier))`.
-3. Store encrypted `PendingLogin` at `workforce:pending:{state}`, TTL 5 min.
-4. `POST {idp-adapter}/internal/v1/auth/authorization-uri` → Keycloak authorize URL
-   (`scope=openid profile email`, PKCE S256).
-5. Return it. Full walk-through: [Scenario 02](../scenarios/02-partner-login-keycloak.md).
-
-#### Errors
+#### Errors (login step)
 
 | HTTP | Code | When |
 |---|---|---|
-| 422 | `VALIDATION_ERROR` | `clientType` / `identitySource` missing |
-| 400 | `INVALID_REQUEST` / `SCHEMA_INVALID` | Unparseable body; missing employee id / password; return URI not allowed |
-| 401 | `AUTHENTICATION_FAILED` | AD rejected; account inactive; business identity not active bank employee |
+| 422 | `VALIDATION_ERROR` | Missing BRD fields or unknown `userType` / `clientType` |
 | 403 | `CSRF_REJECTED` | Web call without `X-XSRF-TOKEN` |
 | 503 | `IDENTITY_PROVIDER_UNAVAILABLE` | IdP adapter, AD-verify or PDP unreachable / unparseable |
 | (propagated) | e.g. `UNAUTHORIZED` → surfaced per category | Adapter rejected the BFF's internal key (misconfiguration) |
 
-### 2.3 `GET /api/v1/auth/callback`
+### 2.3 `POST /api/v1/auth/partner/authorization`
+
+**Status:** IMPLEMENTED · **Caller:** NIP-APP partner login · **UC-02**
+
+Starts Keycloak OIDC + PKCE. Not the Login BRD password form.
+
+```json
+{ "clientType": "WEB", "returnUri": "http://localhost:3000/auth/complete", "loginHint": "rep@insurer.example" }
+```
+
+Response `{ "authorizationUri": "https://…", "expiresInSeconds": 300 }`. Full walk-through:
+[Scenario 02](../scenarios/02-partner-login-keycloak.md).
+
+### 2.4 `GET /api/v1/auth/callback`
 
 **Status:** IMPLEMENTED · **Caller:** Keycloak redirect (browser), never the app directly.
 
@@ -213,14 +165,14 @@ session **including encrypted provider tokens** → `WEB`: `302` to `returnUri` 
 | 403 | `FORBIDDEN` (propagated from authz) | Partner has no provisioned business user yet — not created by a bank admin, or provisioning still pending ("Partner identity must be created and provisioned before first login"). Was an unmapped 500 until `SUG-20261021-gap` |
 | 503 | `IDENTITY_PROVIDER_UNAVAILABLE` | Adapter or PDP down |
 
-### 2.4 `POST /api/v1/auth/native-session`
+### 2.5 `POST /api/v1/auth/native-session`
 
 **Status:** IMPLEMENTED. Request `{ "completionCode": "…" }` (`@NotBlank`). The code is taken from
 `workforce:completion:{code}` with `GETDEL` (single use, 1 min). Response
 `{ "sessionHandle": "…", "expiresInSeconds": 28800 }`. Unknown/expired/reused →
 `400 SCHEMA_INVALID`.
 
-### 2.5 `GET /api/v1/auth/session`
+### 2.6 `GET /api/v1/auth/session`
 
 **Status:** IMPLEMENTED. Session from `X-Session-Handle`, else cookie. Response:
 
@@ -239,7 +191,7 @@ No downstream call: one Valkey `GET` + AES-GCM decrypt. Missing handle → `400 
 unknown/expired → `400 SCHEMA_INVALID` ("Session is invalid or expired"). This endpoint sits under
 `/auth/**`, so it uses the auth-path mapping, not `401 SESSION_EXPIRED`.
 
-### 2.6 `POST /api/v1/auth/logout`
+### 2.7 `POST /api/v1/auth/logout`
 
 **Status:** IMPLEMENTED. Reads the session, **deletes it from the vault first**, then (partner only)
 calls `POST /internal/v1/auth/revoke` with the refresh token. A revoke failure is logged with the

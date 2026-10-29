@@ -6,7 +6,6 @@ import com.bank.common.error.PlatformLayer;
 import com.bank.common.error.ProblemJsonReader;
 import com.bank.common.error.ServiceErrors;
 import com.bank.workforce.bff.config.DownstreamProperties;
-import com.bank.workforce.bff.session.SessionModels.IdentitySource;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,15 +40,14 @@ public class IdentityAuthorizationClient {
     this.serviceErrors = serviceErrors;
   }
 
-  public ResolvedIdentity resolve(
-      IdentitySource source, IdentityProviderClient.ProviderSession providerSession) {
+  /** Resolves a Keycloak partner subject to a platform business user. */
+  public ResolvedIdentity resolvePartner(IdentityProviderClient.ProviderSession providerSession) {
     String employeeId = claim(providerSession.claims(), "employee_id", "emp_id");
-    String provider = source == IdentitySource.BANK_AD ? "BANK_AD" : "KEYCLOAK";
     var request =
         new ResolveIdentityRequest(
-            provider,
+            "KEYCLOAK",
             providerSession.providerSubjectId(),
-            source == IdentitySource.BANK_AD ? "BANK_EMPLOYEE" : "INSURER_REPRESENTATIVE",
+            "INSURER_REPRESENTATIVE",
             providerSession.username(),
             providerSession.email(),
             employeeId);

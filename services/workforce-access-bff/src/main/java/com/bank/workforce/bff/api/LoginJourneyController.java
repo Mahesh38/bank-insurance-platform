@@ -19,8 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Login BRD v3.1. {@code POST /login} (IAM-001) is unchanged. Design sentences come back on {@code
- * outcome=MESSAGE}. A session cookie is set only after a successful login OTP.
+ * Login BRD v3.1 — the only NIP password-login surface ({@code SUG-20261028-1lg}). Design sentences
+ * come back on {@code outcome=MESSAGE}. A session cookie is set only after a successful login OTP.
+ * IAM-001 immediate-session login and {@code /sign-in} are retired.
  */
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -40,8 +41,8 @@ public class LoginJourneyController {
     return journey.issueCaptcha().body();
   }
 
-  @PostMapping("/sign-in")
-  public ResponseEntity<JourneyBody> signIn(@Valid @RequestBody SignInRequest request) {
+  @PostMapping("/login")
+  public ResponseEntity<JourneyBody> login(@Valid @RequestBody SignInRequest request) {
     return respond(
         journey.signIn(
             new SignInCommand(

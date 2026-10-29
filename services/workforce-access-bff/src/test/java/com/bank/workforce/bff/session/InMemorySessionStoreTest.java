@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.ClientType;
-import com.bank.workforce.bff.session.SessionModels.IdentitySource;
 import com.bank.workforce.bff.session.SessionModels.NativeCompletion;
 import com.bank.workforce.bff.session.SessionModels.PendingLogin;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
@@ -45,7 +44,6 @@ class InMemorySessionStoreTest {
             "nonce",
             "verifier",
             ClientType.WEB,
-            IdentitySource.BANK_AD,
             "https://example.test/complete",
             Instant.now());
     store.putPending(pending, Duration.ofMinutes(1));

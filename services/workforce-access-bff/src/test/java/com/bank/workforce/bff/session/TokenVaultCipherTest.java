@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.ClientType;
-import com.bank.workforce.bff.session.SessionModels.IdentitySource;
 import com.bank.workforce.bff.session.SessionModels.PendingLogin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -34,7 +33,6 @@ class TokenVaultCipherTest {
             "nonce",
             "verifier",
             ClientType.WEB,
-            IdentitySource.BANK_AD,
             "https://example.test/complete",
             Instant.parse("2026-08-06T10:00:00Z"));
 

@@ -103,7 +103,9 @@ How should NIP-APP collect Employee ID / Corporate Email + password + Captcha **
 
 **Decision 2026-10-08 (`IAM-001`):** **B for Bank RM** on `POST /auth/login`. Partner OIDC remains A.
 
-**Decision 2026-10-23 (owner, `SUG-20261008-otp`):** the v3.1 journey is **B** as well, on `/auth/sign-in` and the recovery endpoints. `POST /auth/login` is unchanged. External Captcha and OTP delivery are still unnamed.
+**Decision 2026-10-23 (owner, `SUG-20261008-otp`):** the v3.1 journey is **B** as well on the recovery endpoints. External Captcha and OTP delivery are still unnamed.
+
+**Decision 2026-10-28 (owner, `SUG-20261028-1lg`):** one surface — Login BRD owns `POST /auth/login` (Captcha + OTP). IAM-001 immediate-session `/login` and `/auth/sign-in` are retired. Partner OIDC begins at `POST /auth/partner/authorization`.
 
 ---
 

@@ -84,25 +84,16 @@ paths:
     post:
       tags: [Auth]
       operationId: login
-      summary: Bank RM credential login (AD-verify) or start partner OIDC login.
+      summary: Login BRD v3.1 credential step (Captcha already obtained).
       description: |
-        Behaviour is selected by `identitySource`:
-        - `BANK_AD` → `LoginService.authenticateBank`: AD-verify via identity-provider-adapter,
-          resolve the business identity (created on first login), require `ACTIVE` +
-          `BANK_EMPLOYEE`, mint a session (TTL `workforce.session.session-ttl`, default 8 h).
-          `WEB` gets the cookie, `NATIVE` gets `sessionHandle` in the body.
-        - `PARTNER` → `LoginService.begin`: validate `returnUri` against the allow-list, mint
-          `state`/`nonce`/PKCE verifier, store the pending login (TTL 5 min), return the Keycloak
-          authorization URI.
+        Single NIP password-login entry (`SUG-20261028-1lg`). Requires a prior
+        `POST /auth/captcha`. Validates Captcha, then Bank RM AD-verify or Insurance RM
+        platform password. Never mints a session. Success is `OTP_SENT` (or a design-text
+        `MESSAGE`). Session is created only by `POST /auth/otp/verify` after login OTP.
 
-        Login BRD v3.1 is not this operation. The journey is `POST /auth/captcha`, `/auth/sign-in`,
-        `/auth/otp/verify`, `/auth/otp/resend`, `/auth/unlock`, `/auth/forgot-password`,
-        `/auth/password` and `/auth/password-expired/send-otp` (LLD §2). A session cookie is set
-        only after a successful login OTP. Design sentences are `outcome: MESSAGE`.
-
-        `employeeId`, `password` (BANK_AD) and `returnUri` (PARTNER) are optional in the schema
-        and enforced in the service; a violation is `400 SCHEMA_INVALID`, not `422`.
-        The password is never logged and never stored (`toString` redacts).
+        IAM-001 bodies (`identitySource` / `employeeId` without `userType` + captcha) are
+        rejected with `422 VALIDATION_ERROR`. Partner OIDC begins at
+        `POST /auth/partner/authorization`, not here. `/auth/sign-in` is removed.
       security: []
       parameters:
         - $ref: '#/components/parameters/XsrfTokenWhenCookie'
@@ -111,57 +102,108 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/LoginRequest' }
+            schema: { $ref: '#/components/schemas/SignInRequest' }
             examples:
               bankRm:
-                value: { clientType: WEB, identitySource: BANK_AD, employeeId: EMP001, password: '••••••' }
-              partner:
-                value: { clientType: NATIVE, identitySource: PARTNER, returnUri: 'bankinsurance://auth-complete', loginHint: rep@insurer.example }
+                value: { clientType: WEB, userType: BANK_RM, loginId: EMP001, password: '••••••', captchaId: '…', captchaValue: 'AB12CD' }
+              insuranceRm:
+                value: { clientType: WEB, userType: INSURANCE_RM, loginId: 'fls.rm@example.test', password: '••••••', captchaId: '…', captchaValue: 'AB12CD' }
       responses:
         '200':
-          description: |
-            `BANK_AD` → `BankLoginResponse`; `PARTNER` → `PartnerLoginResponse`.
-            For `BANK_AD` + `WEB`, `Set-Cookie: WORKFORCE_SESSION=<handle>; HttpOnly; Secure;
-            SameSite=Strict; Path=/; Max-Age=28800` and `sessionHandle` is `null`.
-          headers:
-            Set-Cookie:
-              description: Session cookie, BANK_AD + WEB only.
-              schema: { type: string }
+          description: Journey body — `OTP_SENT`, `MESSAGE`, or related outcomes. No session cookie.
           content:
             application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/BankLoginResponse'
-                  - $ref: '#/components/schemas/PartnerLoginResponse'
-        '400':
-          $ref: '#/components/responses/AuthSchemaInvalid'
-        '401':
-          description: AD rejected the credentials; account inactive; business identity not an active bank employee.
-          x-error-codes: [AUTHENTICATION_FAILED]
-          content:
-            application/problem+json:
-              schema: { $ref: '#/components/schemas/Problem' }
+              schema: { $ref: '#/components/schemas/JourneyBody' }
         '403':
           $ref: '#/components/responses/CsrfRejected'
         '422':
-          description: |
-            `clientType` / `identitySource` missing (`VALIDATION_ERROR`, field errors
-            `MISSING_REQUIRED_FIELD`) or body unparseable / enum value unknown (`INVALID_REQUEST`).
+          description: Bean validation failed (missing BRD fields or unknown enum).
           x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST]
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
         '503':
-          description: IdP adapter, bank AD-verify or the authorization service unreachable / unparseable.
+          description: IdP adapter or authorization service unavailable.
           x-error-codes: [IDENTITY_PROVIDER_UNAVAILABLE]
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
-        default:
-          description: |
-            A downstream refusal propagated with its own code and status (e.g. the adapter's
-            `401 UNAUTHORIZED` when the BFF's internal key is wrong — a misconfiguration).
-          x-error-codes: [UNAUTHORIZED, FORBIDDEN]
+
+  /auth/captcha:
+    post:
+      tags: [Auth]
+      operationId: issueCaptcha
+      summary: Issue a single-use text Captcha for the Login BRD journey.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XsrfTokenWhenCookie'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Captcha id and display text (hashed server-side; not logged).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JourneyBody' }
+
+  /auth/otp/verify:
+    post:
+      tags: [Auth]
+      operationId: verifyOtp
+      summary: Verify login / unlock / forgot / expiry OTP.
+      description: |
+        Session cookie or native `sessionHandle` is set only when `outcome` is `AUTHENTICATED`
+        (login OTP). Unlock, forgot and expiry never log the user in.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XsrfTokenWhenCookie'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OtpVerifyRequest' }
+      responses:
+        '200':
+          description: Journey body; may Set-Cookie WORKFORCE_SESSION when AUTHENTICATED.
+          headers:
+            Set-Cookie:
+              description: Session cookie when login OTP succeeds for WEB.
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/JourneyBody' }
+
+  /auth/partner/authorization:
+    post:
+      tags: [Auth]
+      operationId: partnerAuthorization
+      summary: Start Keycloak OIDC + PKCE for an insurer partner representative (UC-02).
+      description: |
+        Not the Login BRD password form. Validates `returnUri` against the allow-list, mints
+        state/nonce/PKCE, stores pending login (5 min), returns the authorize URI.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XsrfTokenWhenCookie'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PartnerAuthorizationRequest' }
+            example: { clientType: WEB, returnUri: 'http://localhost:3000/auth/complete', loginHint: rep@insurer.example }
+      responses:
+        '200':
+          description: Authorization URI for the browser / web view.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PartnerAuthorizationResponse' }
+        '400':
+          $ref: '#/components/responses/AuthSchemaInvalid'
+        '403':
+          $ref: '#/components/responses/CsrfRejected'
+        '422':
+          description: Bean validation failed.
+          x-error-codes: [VALIDATION_ERROR, INVALID_REQUEST]
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
@@ -836,9 +878,10 @@ components:
           schema: { $ref: '#/components/schemas/Problem' }
     AuthSchemaInvalid:
       description: |
-        Auth-path input refused (`IllegalArgumentException` → `SCHEMA_INVALID`): employee id or
-        password missing for `BANK_AD`; `returnUri` not exactly in
-        `workforce.session.allowed-return-uris` for `PARTNER`.
+        Auth-path input refused (`IllegalArgumentException` → `SCHEMA_INVALID`): for example
+        `returnUri` not exactly in `workforce.session.allowed-return-uris` on partner OIDC begin.
+        Legacy IAM-001 bodies on `/auth/login` (`identitySource` without BRD fields) are refused
+        as `422 VALIDATION_ERROR`, not this response.
       x-error-codes: [SCHEMA_INVALID]
       x-implementation-note: Target name `RETURN_LOCATION_NOT_ALLOWED` exists in ErrorCodes; the code raises SCHEMA_INVALID today.
       content:
@@ -909,28 +952,46 @@ components:
       properties:
         headerName: { type: string, const: X-XSRF-TOKEN }
         token: { type: string }
-    LoginRequest:
+    SignInRequest:
       type: object
-      required: [clientType, identitySource]
+      required: [clientType, userType, loginId, password, captchaId, captchaValue]
       properties:
         clientType: { type: string, enum: [WEB, NATIVE], description: '@NotNull' }
-        identitySource: { type: string, enum: [BANK_AD, PARTNER], description: '@NotNull' }
-        returnUri: { type: string, description: 'PARTNER only; must exactly equal an allow-listed URI.' }
-        loginHint: { type: string, description: 'PARTNER only; passed to Keycloak as `login_hint`.' }
-        employeeId: { type: string, description: 'BANK_AD only; non-blank after trim.' }
-        password: { type: string, format: password, writeOnly: true, description: 'BANK_AD only; never logged or stored.' }
-    BankLoginResponse:
+        userType: { type: string, enum: [BANK_RM, INSURANCE_RM], description: 'BRD toggle; FLS uses INSURANCE_RM.' }
+        loginId: { type: string, description: 'Employee ID (BANK_RM) or corporate email (INSURANCE_RM).' }
+        password: { type: string, format: password, writeOnly: true, description: 'Never logged or stored.' }
+        captchaId: { type: string }
+        captchaValue: { type: string }
+    OtpVerifyRequest:
       type: object
-      required: [authenticated, businessUserId, userType, status, policyVersion, expiresInSeconds]
+      required: [challengeId, otp]
       properties:
-        authenticated: { type: boolean, const: true }
-        businessUserId: { type: string, format: uuid }
-        userType: { type: string, enum: [BANK_EMPLOYEE] }
-        status: { type: string, enum: [ACTIVE] }
-        policyVersion: { type: integer, format: int64 }
-        sessionHandle: { type: [string, 'null'], description: 'NATIVE only; null for WEB (cookie set instead).' }
-        expiresInSeconds: { type: integer, format: int64, examples: [28800] }
-    PartnerLoginResponse:
+        challengeId: { type: string }
+        otp: { type: string, writeOnly: true }
+    JourneyBody:
+      type: object
+      description: Login BRD v3.1 journey response (outcome-driven).
+      properties:
+        outcome: { type: string, enum: [CAPTCHA, OTP_SENT, MESSAGE, AUTHENTICATED, NOT_REQUIRED, PASSWORD_SET, PASSWORD_EXPIRED] }
+        captchaId: { type: string }
+        captchaDisplay: { type: string }
+        challengeId: { type: string }
+        maskedMobile: { type: string }
+        maskedEmail: { type: string }
+        code: { type: string, description: 'Design-text code when outcome is MESSAGE.' }
+        message: { type: string }
+        title: { type: string }
+        field: { type: string }
+        sessionHandle: { type: string, description: 'NATIVE only after AUTHENTICATED.' }
+        expiresInSeconds: { type: integer }
+    PartnerAuthorizationRequest:
+      type: object
+      required: [clientType, returnUri]
+      properties:
+        clientType: { type: string, enum: [WEB, NATIVE] }
+        returnUri: { type: string, description: 'Must exactly equal an allow-listed URI.' }
+        loginHint: { type: string, description: 'Passed to Keycloak as login_hint.' }
+    PartnerAuthorizationResponse:
       type: object
       required: [authorizationUri, expiresInSeconds]
       properties:

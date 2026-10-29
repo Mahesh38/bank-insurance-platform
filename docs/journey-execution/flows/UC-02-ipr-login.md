@@ -8,7 +8,7 @@
 
 The **authentication ceremony is identical to [`UC-01`](./UC-01-rm-login.md)** — *"the
 representative authenticates using the same authorization-code, PKCE, and token-hiding BFF flow"*
-([auth SSOT §5.2.5](../../platform/authentication-authorization/README.md#52-insurer-representative)).
+([auth SSOT §5.2](../../platform/authentication-authorization/README.md#52-insurer-partner-representative-keycloak-oidc)).
 This file states only what differs: **how the identity came to exist**, and **what the resulting
 principal may do**.
 

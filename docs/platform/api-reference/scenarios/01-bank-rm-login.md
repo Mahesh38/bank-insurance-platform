@@ -2,13 +2,14 @@
 
 [← API reference home](../README.md) · Next: [02 Partner login](./02-partner-login-keycloak.md)
 
-**Status: IMPLEMENTED** end to end in code (`IAM-001`). Local runs use the AD-verify stub; UAT/prod
-call the bank's AD-verify API through Apigee.
+> **Superseded for NIP password login (`SUG-20261028-1lg`).** IAM-001 immediate-session
+> `POST /auth/login` is retired. Bank RM uses Login BRD v3.1:
+> captcha → `POST /auth/login` (`userType: BANK_RM`) → OTP verify → session.
+> Canonical sequence: [LOGIN-BRD-V31-API-FLOWS.md](../../../journey-execution/flows/LOGIN-BRD-V31-API-FLOWS.md).
+> This page is retained as historical IAM-001 evidence only.
 
-**In one sentence:** the app posts the RM's credentials to the BFF; the BFF validates them, asks the
-identity adapter to verify them with bank AD, asks the authorization service which platform user
-this is (creating them on first login), stores an encrypted session in Valkey, and returns an
-**opaque session handle** (cookie on web, header value on native) — never a token.
+**Status: SUPERSEDED** by Login BRD v3.1 (`SUG-20261028-1lg`). AD-verify still runs inside the BRD
+journey for `BANK_RM`; the session is minted only after OTP.
 
 ---
 
@@ -167,5 +168,5 @@ curl -s -b jar http://localhost:8084/api/v1/auth/session
 
 [Edge to BFF](../interactions/edge-to-bff.md) · [BFF to IdP adapter](../interactions/bff-to-identity-provider-adapter.md) ·
 [BFF to PDP](../interactions/bff-to-identity-authorization.md) · [Session vault](../interactions/bff-session-vault.md) ·
-[BFF service](../services/workforce-access-bff.md#22-post-apiv1authlogin) · [IdP adapter](../services/identity-provider-adapter-service.md) ·
+[BFF service](../services/workforce-access-bff.md#22-post-apiv1authlogin-login-brd-v31) · [IdP adapter](../services/identity-provider-adapter-service.md) ·
 [Authorization service](../services/identity-authorization-service.md)

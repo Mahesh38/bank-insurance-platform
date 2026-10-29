@@ -214,7 +214,7 @@ if (url.endsWith('/auth/captcha') && status === 200 && body) {
   pm.collectionVariables.set('captchaId', body.captchaId);
   pm.collectionVariables.set('captchaValue', body.display);
 }
-const STARTERS = ['/auth/sign-in', '/auth/unlock', '/auth/forgot-password', '/auth/password-expired/send-otp'];
+const STARTERS = ['/auth/login', '/auth/unlock', '/auth/forgot-password', '/auth/password-expired/send-otp'];
 if (STARTERS.some(function (p) { return url.endsWith(p); })) {
   // A captcha is single use; keep it so a reuse test can replay it.
   pm.collectionVariables.set('usedCaptchaId', pm.collectionVariables.get('captchaId') || '');
@@ -328,7 +328,7 @@ const ACCOUNTS = {
 
 // Common sub-flows
 const signInOtp = (n, a, { password = a.password, d = '' } = {}) =>
-  req(`${d}${n} ${a.label} — sign in (captcha auto-filled)`, 'POST', '/sign-in', {
+  req(`${d}${n} ${a.label} — sign in (captcha auto-filled)`, 'POST', '/login', {
     body: signInBody(a.userType, a.loginId, password),
     tests: [t.status(200), t.body(), t.otpSent('LOGIN'), t.noSession()],
   });
@@ -419,11 +419,11 @@ items.push(folder('01 Captcha', 'Captcha issue, refresh, CSRF enforcement, wrong
   pm.expect(b && b.code).to.eql('CSRF_REJECTED');
 });`],
   }),
-  req('01.4 Sign-in with wrong captcha → VAL-004', 'POST', '/sign-in', {
+  req('01.4 Sign-in with wrong captcha → VAL-004', 'POST', '/login', {
     body: signInBody('BANK_RM', '{{bankRmEmployeeId}}', '{{bankRmPassword}}', 'WRONG-{{$randomInt}}'),
     tests: [t.status(200), t.body(), t.code('VAL-004', 'captcha'), t.noSession()],
   }),
-  req('01.5 Sign-in reusing a consumed captcha → VAL-004', 'POST', '/sign-in', {
+  req('01.5 Sign-in reusing a consumed captcha → VAL-004', 'POST', '/login', {
     body: `{\n  "clientType": "{{clientType}}",\n  "userType": "BANK_RM",\n  "loginId": "{{bankRmEmployeeId}}",\n  "password": "{{bankRmPassword}}",\n  "captchaId": "{{usedCaptchaId}}",\n  "captchaValue": "{{usedCaptchaValue}}"\n}`,
     description: 'Replays the captcha 01.4 consumed (a captcha is single use even when the answer was wrong).',
     tests: [t.status(200), t.body(), t.code('VAL-004', 'captcha')],
@@ -453,15 +453,15 @@ items.push(folder('03 Insurance RM / FLS login', 'Corporate email + platform pas
 ]));
 
 items.push(folder('04 Sign-in validation', 'Negative checks that do not change any account.', [
-  req('04.1 Unknown Bank employee → VAL-005', 'POST', '/sign-in', {
+  req('04.1 Unknown Bank employee → VAL-005', 'POST', '/login', {
     body: signInBody('BANK_RM', 'NOSUCH{{$randomInt}}', 'Whatever#1'),
     tests: [t.status(200), t.body(), t.code('VAL-005', 'loginId'), t.noSession()],
   }),
-  req('04.2 Unknown FLS email → VAL-006', 'POST', '/sign-in', {
+  req('04.2 Unknown FLS email → VAL-006', 'POST', '/login', {
     body: signInBody('INSURANCE_RM', 'nobody.{{$randomInt}}@example.test', 'Whatever#1'),
     tests: [t.status(200), t.body(), t.code('VAL-006', 'loginId'), t.noSession()],
   }),
-  req('04.3 First-time FLS sign-in → VAL-012', 'POST', '/sign-in', {
+  req('04.3 First-time FLS sign-in → VAL-012', 'POST', '/login', {
     body: signInBody('INSURANCE_RM', '{{flsFirstTimeEmail}}', '{{flsFirstTimeNewPassword}}'),
     description: 'VAL-012 until folder 07 activates the account. After that the same request returns OTP_SENT (the password is the one 07 set, so no failure is counted).',
     tests: [t.status(200), t.body(), `pm.test('VAL-012 (first time) or OTP_SENT (already activated)', function () {
@@ -469,11 +469,11 @@ items.push(folder('04 Sign-in validation', 'Negative checks that do not change a
   else { pm.expect(b.outcome).to.eql('OTP_SENT'); console.info('first-time account already activated by an earlier run'); }
 });`],
   }),
-  req('04.4 Missing password → validation error', 'POST', '/sign-in', {
+  req('04.4 Missing password → validation error', 'POST', '/login', {
     body: `{\n  "clientType": "{{clientType}}",\n  "userType": "BANK_RM",\n  "loginId": "{{bankRmEmployeeId}}",\n  "captchaId": "{{captchaId}}",\n  "captchaValue": "{{captchaValue}}"\n}`,
     tests: [t.statusIn([400, 422])],
   }),
-  req('04.5 Unknown userType → validation error', 'POST', '/sign-in', {
+  req('04.5 Unknown userType → validation error', 'POST', '/login', {
     body: signInBody('PARTNER_ADMIN', '{{bankRmEmployeeId}}', '{{bankRmPassword}}'),
     tests: [t.statusIn([400, 422])],
   }),
@@ -530,19 +530,19 @@ if (b.code === 'VAL-014' && n < 5) {
 function lockoutFolder(num, a) {
   const n = (k) => `${num}.${k}`;
   return folder(`${num} [D] ${a.label} lockout and unlock`, `Three wrong passwords lock ${a.label}; unlock with OTP restores it. Requires allowDestructive=true.`, [
-    req(`[D] ${n(1)} Wrong password → VAL-008 (2 left)`, 'POST', '/sign-in', {
+    req(`[D] ${n(1)} Wrong password → VAL-008 (2 left)`, 'POST', '/login', {
       body: signInBody(a.userType, a.loginId, 'Wrong#{{$randomInt}}x'),
       tests: [t.status(200), t.body(), t.code('VAL-008', 'password')],
     }),
-    req(`[D] ${n(2)} Wrong password → VAL-009 (1 left)`, 'POST', '/sign-in', {
+    req(`[D] ${n(2)} Wrong password → VAL-009 (1 left)`, 'POST', '/login', {
       body: signInBody(a.userType, a.loginId, 'Wrong#{{$randomInt}}x'),
       tests: [t.status(200), t.body(), t.code('VAL-009', 'password')],
     }),
-    req(`[D] ${n(3)} Wrong password → VAL-010 locked`, 'POST', '/sign-in', {
+    req(`[D] ${n(3)} Wrong password → VAL-010 locked`, 'POST', '/login', {
       body: signInBody(a.userType, a.loginId, 'Wrong#{{$randomInt}}x'),
       tests: [t.status(200), t.body(), t.code('VAL-010')],
     }),
-    req(`[D] ${n(4)} Correct password while locked → VAL-010`, 'POST', '/sign-in', {
+    req(`[D] ${n(4)} Correct password while locked → VAL-010`, 'POST', '/login', {
       body: signInBody(a.userType, a.loginId, a.password),
       tests: [t.status(200), t.body(), t.code('VAL-010'), t.noSession()],
     }),
@@ -630,7 +630,7 @@ pm.collectionVariables.set('flsTempPassword', 'Rot#' + digits + 'xY');`],
     body: passwordBody('{{flsTempPassword}}', '{{flsTempPassword}}', '{{usedResetToken}}'),
     tests: [t.status(200), t.body(), t.code('VAL-024')],
   }),
-  req('[D] 09.3 Old password no longer works → VAL-008', 'POST', '/sign-in', {
+  req('[D] 09.3 Old password no longer works → VAL-008', 'POST', '/login', {
     body: signInBody('INSURANCE_RM', '{{flsEmail}}', '{{flsPassword}}'),
     tests: [t.status(200), t.body(), t.code('VAL-008', 'password')],
   }),
@@ -664,7 +664,7 @@ pm.test('password not changed: no PASSWORD_SET', function () { pm.expect(b.outco
 ]));
 
 items.push(folder('11 Insurance RM password expiry (conditional)', 'Runs only when the environment sets flsExpiredEmail / flsExpiredPassword to an account whose password is older than 60 days. Otherwise every request skips itself.', [
-  req('[D] 11.1 Sign in with an expired password → PASSWORD_EXPIRED', 'POST', '/sign-in', {
+  req('[D] 11.1 Sign in with an expired password → PASSWORD_EXPIRED', 'POST', '/login', {
     body: signInBody('INSURANCE_RM', '{{flsExpiredEmail}}', '{{flsExpiredPassword}}'),
     tests: [t.status(200), t.body(), t.outcome('PASSWORD_EXPIRED'), `pm.test('expiry ticket, purpose EXPIRY', function () {
   pm.expect(b.continuationToken).to.be.a('string').and.not.empty;
@@ -676,7 +676,7 @@ items.push(folder('11 Insurance RM password expiry (conditional)', 'Runs only wh
     description: 'The ticket from the expired screen is not a reset token; the OTP must be verified first. The ticket is consumed by this call, so 11.3 signs in again.',
     tests: [t.status(200), t.body(), t.code('VAL-024')],
   }),
-  req('[D] 11.3 Sign in again → PASSWORD_EXPIRED', 'POST', '/sign-in', {
+  req('[D] 11.3 Sign in again → PASSWORD_EXPIRED', 'POST', '/login', {
     body: signInBody('INSURANCE_RM', '{{flsExpiredEmail}}', '{{flsExpiredPassword}}'),
     tests: [t.status(200), t.body(), t.outcome('PASSWORD_EXPIRED')],
   }),
@@ -696,22 +696,18 @@ pm.environment.set('flsExpiredPassword', pm.variables.get('flsExpiredNewPassword
   }),
 ]));
 
-items.push(folder('12 Legacy Bank RM login (IAM-001)', 'POST /api/v1/auth/login — AD-verify, no captcha, no OTP. Still live; kept so a regression is visible.', [
-  req('12.1 Legacy login → session', 'POST', '/login', {
+items.push(folder('12 Retired IAM-001 shapes (SUG-20261028-1lg)', 'IAM-001 immediate-session /login is gone. Login BRD owns POST /login. Partner OIDC begins at POST /partner/authorization.', [
+  req('12.1 Legacy BANK_AD body on /login → 422 VALIDATION_ERROR', 'POST', '/login', {
     body: `{\n  "clientType": "{{clientType}}",\n  "identitySource": "BANK_AD",\n  "employeeId": "{{bankRmEmployeeId}}",\n  "password": "{{bankRmPassword}}"\n}`,
-    tests: [t.status(200), t.body(), `pm.test('authenticated BANK_EMPLOYEE, 8 h session', function () {
-  pm.expect(b.authenticated).to.eql(true);
-  pm.expect(b.userType).to.eql('BANK_EMPLOYEE');
-  pm.expect(b.status).to.eql('ACTIVE');
-  pm.expect(b.expiresInSeconds).to.eql(28800);
-  if (pm.variables.get('clientType') === 'NATIVE') pm.expect(b.sessionHandle).to.be.a('string').and.not.empty;
+    tests: [t.status(422), t.body(), `pm.test('VALIDATION_ERROR — BRD fields required', function () {
+  pm.expect(b.code).to.eql('VALIDATION_ERROR');
 });`],
   }),
-  logout('12.2'),
-  req('12.3 Legacy login wrong password → 401 AUTHENTICATION_FAILED', 'POST', '/login', {
-    body: `{\n  "clientType": "{{clientType}}",\n  "identitySource": "BANK_AD",\n  "employeeId": "{{bankRmEmployeeId}}",\n  "password": "Wrong#{{$randomInt}}"\n}`,
-    tests: [t.status(401), t.body(), `pm.test('AUTHENTICATION_FAILED, no detail on which field', function () {
-  pm.expect(b.code).to.eql('AUTHENTICATION_FAILED');
+  req('12.2 Partner begin on /partner/authorization → authorizationUri', 'POST', '/partner/authorization', {
+    body: `{\n  "clientType": "{{clientType}}",\n  "returnUri": "{{partnerReturnUri}}"\n}`,
+    tests: [t.status(200), t.body(), `pm.test('authorizationUri returned', function () {
+  pm.expect(b.authorizationUri).to.be.a('string').and.not.empty;
+  pm.expect(b.expiresInSeconds).to.be.a('number').and.above(0);
 });`],
   }),
 ]));
@@ -774,18 +770,22 @@ const expiry = { flsExpiredEmail: [''], flsExpiredPassword: ['', true], flsExpir
 const envs = {
   local: env('local', '7d0e5a10-0001-4a00-9000-000000000001', {
     envName: ['local'], baseUrl: ['http://localhost:8084'], clientType: ['NATIVE'],
+    partnerReturnUri: ['bankinsurance://auth-complete'],
     otpCode: ['482913'], allowDestructive: ['true'], maxResponseMs: ['5000'], ...devAccounts, ...expiry,
   }),
   dev: env('dev', '7d0e5a10-0002-4a00-9000-000000000002', {
     envName: ['dev'], baseUrl: ['https://REPLACE_ME-dev-bff-host'], clientType: ['NATIVE'],
+    partnerReturnUri: ['bankinsurance://auth-complete'],
     otpCode: ['482913'], allowDestructive: ['true'], maxResponseMs: ['5000'], ...devAccounts, ...expiry,
   }),
   uat: env('uat', '7d0e5a10-0003-4a00-9000-000000000003', {
     envName: ['uat'], baseUrl: ['https://uat-insurance.aubank.in'], clientType: ['NATIVE'],
+    partnerReturnUri: ['bankinsurance://auth-complete'],
     otpCode: ['', true], allowDestructive: ['false'], maxResponseMs: ['5000'], ...blankAccounts, ...expiry,
   }),
   prod: env('prod', '7d0e5a10-0004-4a00-9000-000000000004', {
     envName: ['prod'], baseUrl: ['https://REPLACE_ME-prod-host'], clientType: ['NATIVE'],
+    partnerReturnUri: ['bankinsurance://auth-complete'],
     otpCode: ['', true], allowDestructive: ['false'], maxResponseMs: ['5000'], ...blankAccounts, ...expiry,
   }),
 };

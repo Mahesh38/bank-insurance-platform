@@ -4,7 +4,6 @@ import com.bank.workforce.bff.client.IdentityAuthorizationClient;
 import com.bank.workforce.bff.client.IdentityProviderClient;
 import com.bank.workforce.bff.config.WorkforceSessionProperties;
 import com.bank.workforce.bff.session.SessionModels.ClientType;
-import com.bank.workforce.bff.session.SessionModels.IdentitySource;
 import com.bank.workforce.bff.session.SessionModels.NativeCompletion;
 import com.bank.workforce.bff.session.SessionModels.PendingLogin;
 import com.bank.workforce.bff.session.SessionModels.WorkforceSession;
@@ -51,88 +50,20 @@ public class LoginService {
     String challenge = sha256Url(verifier);
     sessions.putPending(
         new PendingLogin(
-            state,
-            nonce,
-            verifier,
-            command.clientType(),
-            command.identitySource(),
-            command.returnUri(),
-            Instant.now()),
+            state, nonce, verifier, command.clientType(), command.returnUri(), Instant.now()),
         properties.pendingLoginTtl());
     URI authorizationUri =
         provider.authorizationUri(
             new IdentityProviderClient.AuthorizationUriRequest(
-                state, nonce, challenge, command.loginHint(), command.identitySource().name()));
+                state, nonce, challenge, command.loginHint(), "PARTNER"));
     return new BeginLoginResult(authorizationUri, properties.pendingLoginTtl().toSeconds());
   }
 
   /**
-   * Bank RM credential login: adapter verifies the employee against AD (true/false for an active
-   * directory account). The BFF never validates the password itself and never stores it.
+   * Session after a successful Login BRD v3.1 login OTP. The password was already checked and is
+   * not presented again. Provider tokens are not stored.
    */
-  public BankLoginResult authenticateBank(BankLoginCommand command) {
-    if (command.employeeId() == null || command.employeeId().isBlank()) {
-      throw new IllegalArgumentException("Employee ID is required");
-    }
-    if (command.password() == null || command.password().isBlank()) {
-      throw new IllegalArgumentException("Password is required");
-    }
-    var adResult = provider.verifyAd(command.employeeId().trim(), command.password());
-    if (adResult == null || !adResult.accepted()) {
-      throw new IllegalStateException("Directory did not accept the credentials");
-    }
-    String username =
-        hasText(adResult.username()) ? adResult.username() : command.employeeId().trim();
-    var providerSession =
-        new IdentityProviderClient.ProviderSession(
-            command.employeeId().trim(),
-            username,
-            adResult.email(),
-            null,
-            null,
-            null,
-            Instant.now().plus(properties.sessionTtl()),
-            Map.of("employee_id", command.employeeId().trim(), "ad_verified", true));
-    var identity = authorization.resolve(IdentitySource.BANK_AD, providerSession);
-    if (!"ACTIVE".equals(identity.status()) || !"BANK_EMPLOYEE".equals(identity.userType())) {
-      throw new IllegalStateException("Business identity is not an active bank employee");
-    }
-    String sessionId = randomToken();
-    var session =
-        new WorkforceSession(
-            sessionId,
-            identity.businessUserId(),
-            identity.userType(),
-            identity.status(),
-            identity.policyVersion(),
-            identity.insurerCode(),
-            providerSession.providerSubjectId(),
-            providerSession.username(),
-            null,
-            null,
-            null,
-            providerSession.accessTokenExpiresAt(),
-            Instant.now(),
-            providerSession.claims());
-    sessions.putSession(session, properties.sessionTtl());
-    log.info("Bank AD login created a workforce session");
-    return new BankLoginResult(
-        command.clientType(),
-        true,
-        identity.businessUserId(),
-        identity.userType(),
-        identity.status(),
-        identity.policyVersion(),
-        command.clientType() == ClientType.WEB ? sessionId : null,
-        command.clientType() == ClientType.NATIVE ? sessionId : null,
-        properties.sessionTtl().toSeconds());
-  }
-
-  /**
-   * Session after a successful v3.1 login OTP. The password was already checked and is not
-   * presented again. Provider tokens are not stored.
-   */
-  public BankLoginResult establishSession(ClientType clientType, EstablishedIdentity identity) {
+  public EstablishedSession establishSession(ClientType clientType, EstablishedIdentity identity) {
     if (identity == null || !"ACTIVE".equals(identity.status())) {
       throw new IllegalStateException("Business identity is not active");
     }
@@ -158,7 +89,7 @@ public class LoginService {
             Map.of());
     sessions.putSession(session, properties.sessionTtl());
     log.info("Workforce session created after login OTP");
-    return new BankLoginResult(
+    return new EstablishedSession(
         clientType,
         true,
         identity.businessUserId(),
@@ -177,7 +108,7 @@ public class LoginService {
             .orElseThrow(
                 () -> new IllegalArgumentException("Login transaction is invalid or expired"));
     var providerSession = provider.exchange(code, pending.codeVerifier(), pending.nonce());
-    var identity = authorization.resolve(pending.identitySource(), providerSession);
+    var identity = authorization.resolvePartner(providerSession);
     if (!"ACTIVE".equals(identity.status())) {
       provider.revoke(providerSession.refreshToken());
       throw new IllegalStateException("Business identity is not active");
@@ -258,8 +189,7 @@ public class LoginService {
     }
   }
 
-  public record BeginLoginCommand(
-      ClientType clientType, IdentitySource identitySource, String returnUri, String loginHint) {}
+  public record BeginLoginCommand(ClientType clientType, String returnUri, String loginHint) {}
 
   public record BeginLoginResult(URI authorizationUri, long expiresInSeconds) {}
 
@@ -277,14 +207,7 @@ public class LoginService {
       String insurerCode,
       String username) {}
 
-  public record BankLoginCommand(ClientType clientType, String employeeId, String password) {
-    @Override
-    public String toString() {
-      return "BankLoginCommand[clientType=" + clientType + "]";
-    }
-  }
-
-  public record BankLoginResult(
+  public record EstablishedSession(
       ClientType clientType,
       boolean authenticated,
       UUID businessUserId,

@@ -58,7 +58,7 @@ sequenceDiagram
     participant KC as Keycloak
     participant AZ as identity-authorization
 
-    App->>BFF: POST /api/v1/auth/login {clientType, identitySource: PARTNER, returnUri, loginHint?}
+    App->>BFF: POST /api/v1/auth/partner/authorization {clientType, returnUri, loginHint?}
     BFF->>BFF: returnUri ∈ allowed-return-uris · mint state, nonce, PKCE verifier, challenge=S256(verifier)
     BFF->>KV: SET workforce:pending:{state} AES-GCM(PendingLogin) EX 300
     BFF->>IDPA: POST /internal/v1/auth/authorization-uri {state, nonce, codeChallenge, loginHint, identitySource}
@@ -112,4 +112,4 @@ sequenceDiagram
 
 ## 4. Pages for each hop
 
-[BFF §2.2–§2.4](../services/workforce-access-bff.md#22-post-apiv1authlogin) · [IdP adapter](../services/identity-provider-adapter-service.md) · [PDP](../services/identity-authorization-service.md) · [Session vault](../interactions/bff-session-vault.md)
+[BFF §2.3–§2.5](../services/workforce-access-bff.md#23-post-apiv1authpartnerauthorization) · [IdP adapter](../services/identity-provider-adapter-service.md) · [PDP](../services/identity-authorization-service.md) · [Session vault](../interactions/bff-session-vault.md)

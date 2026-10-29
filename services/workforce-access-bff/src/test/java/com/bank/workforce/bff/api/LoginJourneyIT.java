@@ -113,9 +113,11 @@ class LoginJourneyIT {
           .andExpect(jsonPath("$.message").value("Wrong captcha. Try again."))
           .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
       ADAPTER.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/auth/ad-verify")));
+      ADAPTER.verify(
+          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/auth/keycloak-password")));
       AUTHZ.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/preview")));
       AUTHZ.verify(
-          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/verify-platform-password")));
+          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/insurance-password-result")));
     }
 
     @Test
@@ -326,7 +328,7 @@ class LoginJourneyIT {
   class InsuranceRm {
 
     @Test
-    void happyPathUsesPlatformPasswordNotAdVerify() throws Exception {
+    void happyPathUsesKeycloakNotAdVerify() throws Exception {
       stubInsuranceReady(true);
       String[] captcha = captcha();
       MvcResult signIn =
@@ -338,8 +340,12 @@ class LoginJourneyIT {
               .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"))
               .andReturn();
       ADAPTER.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/auth/ad-verify")));
+      ADAPTER.verify(
+          exactly(1), postRequestedFor(urlEqualTo("/internal/v1/auth/keycloak-password")));
       AUTHZ.verify(
-          exactly(1), postRequestedFor(urlEqualTo("/internal/v1/login/verify-platform-password")));
+          exactly(1), postRequestedFor(urlEqualTo("/internal/v1/login/insurance-password-result")));
+      AUTHZ.verify(
+          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/verify-platform-password")));
 
       String challengeId =
           JsonPath.read(signIn.getResponse().getContentAsString(), "$.challengeId");
@@ -364,6 +370,29 @@ class LoginJourneyIT {
     }
 
     @Test
+    void disabledKeycloakAccountStopsBeforeTheLockCounter() throws Exception {
+      AUTHZ.stubFor(
+          WireMock.post(urlEqualTo("/internal/v1/login/preview"))
+              .willReturn(json(INSURANCE_ACCOUNT)));
+      ADAPTER.stubFor(
+          WireMock.post(urlEqualTo("/internal/v1/auth/keycloak-password"))
+              .willReturn(
+                  aResponse()
+                      .withHeader("Content-Type", "application/json")
+                      .withBody("{\"authenticated\":false,\"accountActive\":false}")));
+      String[] captcha = captcha();
+
+      mockMvc
+          .perform(loginJson("INSURANCE_RM", "fls.rm@example.test", "Horse#99", captcha))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.code").value("VAL-007"))
+          .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
+
+      AUTHZ.verify(
+          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/insurance-password-result")));
+    }
+
+    @Test
     void unknownPartnerEmailStopsWithoutPlatformPasswordCheck() throws Exception {
       AUTHZ.stubFor(
           WireMock.post(urlEqualTo("/internal/v1/login/preview"))
@@ -380,7 +409,9 @@ class LoginJourneyIT {
           .andExpect(jsonPath("$.code").value("VAL-006"))
           .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
       AUTHZ.verify(
-          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/verify-platform-password")));
+          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/insurance-password-result")));
+      ADAPTER.verify(
+          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/auth/keycloak-password")));
       ADAPTER.verify(exactly(0), postRequestedFor(urlEqualTo("/internal/v1/auth/ad-verify")));
     }
 
@@ -396,6 +427,9 @@ class LoginJourneyIT {
                   aResponse()
                       .withHeader("Content-Type", "application/json")
                       .withBody("{\"result\":\"SET\",\"violation\":null}")));
+      ADAPTER.stubFor(
+          WireMock.post(urlEqualTo("/internal/v1/auth/keycloak-password/reset"))
+              .willReturn(aResponse().withStatus(204)));
 
       String[] captcha = captcha();
       MvcResult forgot =
@@ -548,7 +582,7 @@ class LoginJourneyIT {
             .replace("\"route\":\"READY\"", "\"route\":\"PASSWORD_REJECTED\"")
             .replace("\"attemptsRemaining\":3", "\"attemptsRemaining\":2");
     AUTHZ.stubFor(
-        WireMock.post(urlEqualTo("/internal/v1/login/verify-platform-password"))
+        WireMock.post(urlEqualTo("/internal/v1/login/insurance-password-result"))
             .willReturn(
                 json(
                     """
@@ -556,6 +590,16 @@ class LoginJourneyIT {
                     """
                         .formatted(
                             passwordAccepted ? INSURANCE_ACCOUNT : rejected, passwordAccepted))));
+    ADAPTER.stubFor(
+        WireMock.post(urlEqualTo("/internal/v1/auth/keycloak-password"))
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                        {"authenticated":%s,"accountActive":true}
+                        """
+                            .formatted(passwordAccepted))));
     AUTHZ.stubFor(
         WireMock.post(urlEqualTo("/internal/v1/login/complete"))
             .willReturn(json(INSURANCE_ACCOUNT)));

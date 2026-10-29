@@ -65,6 +65,21 @@ public class PlatformLoginService {
   }
 
   @Transactional
+  public PasswordOutcome recordInsurancePasswordResult(UUID businessUserId, boolean accepted) {
+    BusinessUserEntity user = users.findById(businessUserId).orElseThrow();
+    if (user.getUserType() != UserType.INSURER_REPRESENTATIVE) {
+      throw new IllegalArgumentException("Insurance password result requires an insurance user");
+    }
+    if (!accepted) {
+      return rejected(user);
+    }
+    if (user.getLockedReason() != null || user.isFirstLogin()) {
+      return new PasswordOutcome(view(user), false);
+    }
+    return new PasswordOutcome(view(user, "READY"), true);
+  }
+
+  @Transactional
   public PasswordOutcome verifyPlatformPassword(UUID businessUserId, String password) {
     BusinessUserEntity user = users.findById(businessUserId).orElseThrow();
     if (user.getUserType() != UserType.INSURER_REPRESENTATIVE) {

@@ -39,7 +39,7 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "local-workforce-bff-secret",
       "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": false,
+      "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
       "publicClient": false,
       "redirectUris": ["http://localhost:8084/api/v1/auth/callback"],

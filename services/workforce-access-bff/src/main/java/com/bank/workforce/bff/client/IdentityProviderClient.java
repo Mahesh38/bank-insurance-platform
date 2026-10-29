@@ -55,6 +55,30 @@ public class IdentityProviderClient {
                 .authorizationUri());
   }
 
+  public AdVerifyResult verifyKeycloak(String username, String password) {
+    return propagating(
+        "keycloakPassword",
+        () ->
+            client
+                .post()
+                .uri("/internal/v1/auth/keycloak-password")
+                .body(new KeycloakPasswordRequest(username, password))
+                .retrieve()
+                .body(AdVerifyResult.class));
+  }
+
+  public void replaceKeycloakPassword(String username, String password) {
+    propagating(
+        "keycloakPasswordReset",
+        () ->
+            client
+                .post()
+                .uri("/internal/v1/auth/keycloak-password/reset")
+                .body(new KeycloakPasswordRequest(username, password))
+                .retrieve()
+                .toBodilessEntity());
+  }
+
   public AdVerifyResult verifyAd(String employeeId, String password) {
     return propagating(
         "adVerify",
@@ -126,6 +150,13 @@ public class IdentityProviderClient {
   private record TokenExchangeRequest(String code, String codeVerifier, String expectedNonce) {}
 
   private record RefreshRequest(String refreshToken) {}
+
+  private record KeycloakPasswordRequest(String username, String password) {
+    @Override
+    public String toString() {
+      return "KeycloakPasswordRequest[redacted]";
+    }
+  }
 
   private record AdVerifyRequest(String employeeId, String password) {
     @Override

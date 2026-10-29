@@ -95,6 +95,14 @@ public class IdentityAuthorizationClient {
         "recordBankPassword");
   }
 
+  public PasswordOutcome recordInsurancePassword(UUID businessUserId, boolean accepted) {
+    return post(
+        "/internal/v1/login/insurance-password-result",
+        new BankPasswordResultRequest(businessUserId, accepted),
+        PasswordOutcome.class,
+        "recordInsurancePassword");
+  }
+
   public PasswordOutcome verifyPlatformPassword(UUID businessUserId, String password) {
     return post(
         "/internal/v1/login/verify-platform-password",

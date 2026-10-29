@@ -252,19 +252,87 @@ class LoginJourneyServiceTest {
   }
 
   @Test
-  void expiredPasswordIssuesATicketAndDoesNotSendAnOtpUntilAsked() {
+  void keycloakAcceptsAnInsurancePasswordAndARejectionCountsTowardLockout() {
     when(authorization.preview("INSURER_REPRESENTATIVE", "rm@aubank.in"))
         .thenReturn(account("READY", 3));
-    when(authorization.verifyPlatformPassword(USER, "Horse#99"))
-        .thenReturn(new PasswordOutcome(account("PASSWORD_EXPIRED", 3), false));
-    JourneyBody expired = signAs(WorkforceLoginUser.INSURANCE_RM, "rm@aubank.in", "Horse#99");
-    assertThat(expired.outcome()).isEqualTo("PASSWORD_EXPIRED");
-    assertThat(expired.challengeId()).isNull();
-    verify(provider, never()).verifyAd(anyString(), anyString());
-
-    JourneyBody otp = journey.sendExpiredPasswordOtp(expired.continuationToken()).body();
+    when(provider.verifyKeycloak("rm@aubank.in", "Horse#99"))
+        .thenReturn(new IdentityProviderClient.AdVerifyResult(true, true, null, null, null));
+    when(authorization.recordInsurancePassword(USER, true))
+        .thenReturn(new PasswordOutcome(account("READY", 3), true));
+    JourneyBody otp = signAs(WorkforceLoginUser.INSURANCE_RM, "rm@aubank.in", "Horse#99");
     assertThat(otp.outcome()).isEqualTo("OTP_SENT");
-    assertThat(otp.purpose()).isEqualTo("EXPIRY");
+    verify(provider, never()).verifyAd(anyString(), anyString());
+    verify(authorization, never()).verifyPlatformPassword(any(), anyString());
+
+    when(provider.verifyKeycloak("rm@aubank.in", "Horse#99"))
+        .thenReturn(new IdentityProviderClient.AdVerifyResult(false, true, null, null, null));
+    when(authorization.recordInsurancePassword(USER, false))
+        .thenReturn(new PasswordOutcome(account("PASSWORD_REJECTED", 2), false));
+    JourneyBody rejected = signAs(WorkforceLoginUser.INSURANCE_RM, "rm@aubank.in", "Horse#99");
+    assertThat(rejected.code()).isEqualTo("VAL-008");
+  }
+
+  @Test
+  void setPasswordPushesTheNewValueToKeycloak() {
+    String token = continuationAfterForgotOtp();
+    when(authorization.setPassword(USER, "Zebra#99", "Zebra#99", "FORGOT"))
+        .thenReturn(new IdentityAuthorizationClient.PasswordSetResult("SET", "OK"));
+    JourneyBody body = journey.setPassword(token, "Zebra#99", "Zebra#99").body();
+    assertThat(body.outcome()).isEqualTo("PASSWORD_SET");
+    verify(provider).replaceKeycloakPassword("rm@aubank.in", "Zebra#99");
+  }
+
+  @Test
+  void bankPasswordChangeDoesNotWriteKeycloak() {
+    when(authorization.assessForgotPassword("rm@aubank.in")).thenReturn(account("OK", 3));
+    ShownCaptcha captcha = captcha();
+    JourneyBody otp =
+        journey
+            .forgotPassword(ClientType.WEB, "rm@aubank.in", captcha.id(), captcha.value())
+            .body();
+    String token =
+        journey.verifyOtp(otp.challengeId(), codes.lastIssued()).body().continuationToken();
+    when(authorization.setPassword(USER, "Zebra#99", "Zebra#99", "FORGOT"))
+        .thenReturn(new IdentityAuthorizationClient.PasswordSetResult("SET", "OK"));
+
+    JourneyBody body = journey.setPassword(token, "Zebra#99", "Zebra#99").body();
+
+    assertThat(body.outcome()).isEqualTo("PASSWORD_SET");
+    verify(provider, never()).replaceKeycloakPassword(anyString(), anyString());
+  }
+
+  @Test
+  void disabledKeycloakAccountDoesNotCountTowardLockout() {
+    when(authorization.preview("INSURER_REPRESENTATIVE", "rm@aubank.in"))
+        .thenReturn(account("READY", 3));
+    when(provider.verifyKeycloak("rm@aubank.in", "Horse#99"))
+        .thenReturn(new IdentityProviderClient.AdVerifyResult(false, false, null, null, null));
+
+    JourneyBody body = signAs(WorkforceLoginUser.INSURANCE_RM, "rm@aubank.in", "Horse#99");
+
+    assertThat(body.code()).isEqualTo("VAL-007");
+    verify(authorization, never()).recordInsurancePassword(any(), anyBoolean());
+  }
+
+  @Test
+  void missingKeycloakResultAndAMissingOutcomeStayUnavailable() {
+    when(authorization.preview("INSURER_REPRESENTATIVE", "rm@aubank.in"))
+        .thenReturn(account("READY", 3));
+    when(provider.verifyKeycloak("rm@aubank.in", "Horse#99")).thenReturn(null);
+
+    JourneyBody missing = signAs(WorkforceLoginUser.INSURANCE_RM, "rm@aubank.in", "Horse#99");
+    assertThat(missing.code()).isEqualTo("VAL-024");
+
+    when(provider.verifyKeycloak("rm@aubank.in", "Horse#99"))
+        .thenReturn(new IdentityProviderClient.AdVerifyResult(true, true, null, null, null));
+    when(authorization.recordInsurancePassword(USER, true)).thenReturn(null);
+    JourneyBody noOutcome = signAs(WorkforceLoginUser.INSURANCE_RM, "rm@aubank.in", "Horse#99");
+    assertThat(noOutcome.code()).isEqualTo("VAL-024");
+
+    when(authorization.recordInsurancePassword(USER, true))
+        .thenReturn(new PasswordOutcome(null, true));
+    JourneyBody noAccount = signAs(WorkforceLoginUser.INSURANCE_RM, "rm@aubank.in", "Horse#99");
+    assertThat(noAccount.code()).isEqualTo("VAL-024");
   }
 
   @Test
@@ -310,7 +378,8 @@ class LoginJourneyServiceTest {
   }
 
   private String continuationAfterForgotOtp() {
-    when(authorization.assessForgotPassword("rm@aubank.in")).thenReturn(account("OK", 3));
+    when(authorization.assessForgotPassword("rm@aubank.in"))
+        .thenReturn(account("OK", 3, "INSURER_REPRESENTATIVE", "rm@aubank.in"));
     ShownCaptcha captcha = captcha();
     JourneyBody otp =
         journey
@@ -331,16 +400,21 @@ class LoginJourneyServiceTest {
   }
 
   private static AccountView account(String route, int remaining) {
+    return account(route, remaining, "BANK_EMPLOYEE", "E100");
+  }
+
+  private static AccountView account(
+      String route, int remaining, String userType, String username) {
     return new AccountView(
         !"UNKNOWN".equals(route),
         route,
         "UNKNOWN".equals(route) ? null : USER,
         "ACTIVE",
         1,
-        "BANK_EMPLOYEE",
+        userType,
         null,
         "Ro",
-        "E100",
+        username,
         "xx1234",
         "ro••••@aubank.in",
         remaining,

@@ -31,7 +31,7 @@ All paths are under `/api/v1`. Full schemas, status and error codes: [openapi.ya
 |---|---|---|---|---|---|
 | GET | `/auth/csrf` | no | – | – | Sets `WORKFORCE-XSRF` |
 | POST | `/auth/captcha` | no | – | in-process | Single-use text captcha. The display is returned once |
-| POST | `/auth/login` | no | – | authz `login/preview` then AD-verify or `verify-platform-password` | Login BRD v3.1 only (`SUG-20261028-1lg`). No session. `OTP_SENT` or design-text `MESSAGE` |
+| POST | `/auth/login` | no | – | authz `login/preview` then AD-verify or `keycloak-password` | Login BRD v3.1 screen (`SUG-20261029-iu2`). Bank employee to AD. Insurance user to Keycloak. No session until OTP. |
 | POST | `/auth/otp/verify` | no | – | authz `login/complete` or `unlock/complete` | Session cookie / native handle only when `outcome` is `AUTHENTICATED` |
 | POST | `/auth/otp/resend` | no | – | in-process | New code invalidates the previous one. Attempts are not reset. Three resends |
 | POST | `/auth/unlock` | no | – | authz `login/unlock/assess` | `NOT_REQUIRED` has no message. Does not log the user in |
@@ -101,7 +101,8 @@ sequenceDiagram
     alt BANK_RM
       BFF->>IDP: POST /internal/v1/auth/ad-verify
     else INSURANCE_RM
-      BFF->>AZ: verify-platform-password
+      BFF->>IDP: POST /internal/v1/auth/keycloak-password
+      BFF->>AZ: insurance-password-result
     end
     BFF-->>App: OTP_SENT (no session)
     App->>BFF: POST /auth/otp/verify

@@ -239,7 +239,6 @@ necessity:
 
 action: ADMIT-BYPASS
 bypass_authorised_by: "Mahesh / repository_owner (explicit: dont park it, do it now)"
-normal_recommendation: PARK
 action_rationale: >
   Standing recommendation was PARK. The change reverses the SUG-20261028-1lg
   design lock and Login BRD v3.1 §5 platform-password check, and FreshnessCheck

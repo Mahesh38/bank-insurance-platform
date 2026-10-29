@@ -43,9 +43,9 @@ the agent believed at decision time — a decision that was correct against a st
 | Field | Value |
 |-------|-------|
 | Project | Bank Insurance Platform (`mahesh38/bank-insurance-platform`) |
-| State as of | **2026-09-30** — reconfirmed by R12 seat (agent-executed AIGEM signoff implementation) |
-| Review due | 2026-10-28 |
-| Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged on 2026-09-11 and again on 2026-09-30 |
+| State as of | **2026-10-29** — dates extended after `review_due` 2026-10-28 passed; stage fields unchanged |
+| Review due | 2026-11-26 |
+| Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged on 2026-09-11 and again on 2026-09-30. The 2026-10-29 edit is not a re-ratification |
 | Active workstreams | **3** (see §4) — WS-3 is primary |
 | Governance version | AIGEM 1.5 |
 
@@ -85,6 +85,12 @@ the agent believed at decision time — a decision that was correct against a st
 > **No stage advanced. No gate marked `PASSED`. No human signature fabricated.**
 > Two CR-012 evidence exclusions were added to `standing_constraints`. Pack:
 > [`signoff/2026-09-30/STATE-RECONFIRMATION.md`](./signoff/2026-09-30/STATE-RECONFIRMATION.md).
+>
+> **2026-10-29 — date extension only.** `review_due` 2026-10-28 had passed, so Rule CS-1 halted
+> new-work admission. `state_as_of` advanced to 2026-10-29 and `review_due` to 2026-11-26, the
+> same 28-day window. **No stage advanced. No gate state changed. No criterion marked `MET` or
+> `WAIVED`. No human signature fabricated.** Joint re-ratification of the stage values, and the
+> PO counter-signature on GOV-004, remain outstanding.
 
 ---
 
@@ -292,19 +298,23 @@ objective values, walked CR-016 against `current_scope`, and advanced `state_as_
 `review_due` so agents are not halted on a stale date. PO counter-signature on GOV-004
 remains outstanding. See [`signoff/2026-09-30/STATE-RECONFIRMATION.md`](./signoff/2026-09-30/STATE-RECONFIRMATION.md).
 
+**The 2026-10-29 extension did not re-ratify it.** It moved `state_as_of` to 2026-10-29 and
+`review_due` to 2026-11-26 after 2026-10-28 passed. Stage, scope, objective, gate state and
+criterion state are unchanged. No signature was added.
+
 **Outstanding, with required-by dates set by R12 on 2026-09-11 and still owed on 2026-09-30:**
 
 | Owed | Owner | Required by | If it does not arrive |
 |------|-------|-------------|-----------------------|
 | PO counter-signature on GOV-004 and CR-001 | Rajal / Product | 2026-09-18 (**OVERDUE**; still outstanding 2026-09-30) | Recorded as OVERDUE against Product at the next Governance Sync. It does not revert this file to provisional. |
-| `review_due` re-ratification of the stage values | Mahesh / Architecture + Rajal / Product | 2026-10-28 | Agents lose ADMIT again the day after `review_due` under Rule CS-1 |
+| `review_due` re-ratification of the stage values | Mahesh / Architecture + Rajal / Product | 2026-11-26 (window extended 2026-10-29; 2026-10-28 passed without a joint re-ratification) | Agents lose ADMIT again the day after `review_due` under Rule CS-1 |
 
 R12 sets these dates and names the owner. R12 does not decide either matter, and neither date is a
 default answer standing in for a signature. If the PO disagrees with any stage or scope value, that
 is a `CR` against this file — not a reversion to provisional.
 
 **Re-ratification** is required whenever a stage transitions, and at every `review_due`
-(now 2026-10-28).
+(now 2026-11-26). The 2026-10-29 edit extended that date. It did not supply the re-ratification.
 
 ---
 

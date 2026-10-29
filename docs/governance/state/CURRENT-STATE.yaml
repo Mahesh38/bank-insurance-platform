@@ -14,6 +14,20 @@ project:
   name: "Bank Insurance Platform"
   repository: "mahesh38/bank-insurance-platform"
 
+# Date extension, 2026-10-29. review_due 2026-10-28 had passed, so Rule CS-1 halted
+# new-work admission on every pull request. This extends state_as_of and review_due
+# only, on the same 28-day window as 2026-09-30 → 2026-10-28.
+#
+# WHAT THIS EXTENSION DID NOT TOUCH:
+#   * current_phase and stage_status — human only (04 section 5). Unchanged in all 3 workstreams.
+#   * gate `state` (OPEN / CANDIDATE / PASSED / BLOCKED) — unchanged.
+#   * criterion state MET or WAIVED — unchanged.
+#   * human signatures. `ratified_by` still records Mahesh's 2026-08-10 signature.
+#     This is not a T4 re-signature and not a joint re-ratification of stage values.
+#     PO counter-signature remains outstanding.
+#
+# The 2026-09-30 block below remains the prior evidence trail.
+#
 # R12 freshness refresh, 2026-09-30 — Delivery Lead (Kalpana) seat, agent-executed
 # under the 2026-09-30 AIGEM daily sign-off instruction. This is a real review
 # sweep, not a date bump: CR-016 was walked against current_scope (GOV flow only;
@@ -31,10 +45,11 @@ project:
 #     re-confirmed unchanged.
 #
 # Previous refresh (2026-09-11 / state_as_of 2026-09-13) remains the prior
-# evidence trail; this block supersedes the dates only.
-state_as_of: "2026-09-30" # quoted so the file validates directly against current-state.schema.json
-review_due: "2026-10-28"
-ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh and again at the 2026-09-30 AIGEM signoff implementation (CR-016 walked against current_scope; no stage-field change). Not a T4 human re-signature."
+# evidence trail; the 2026-09-30 block superseded those dates, and the 2026-10-29
+# extension supersedes the dates only.
+state_as_of: "2026-10-29" # quoted so the file validates directly against current-state.schema.json
+review_due: "2026-11-26"
+ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh and again at the 2026-09-30 AIGEM signoff implementation (CR-016 walked against current_scope; no stage-field change). Not a T4 human re-signature. Dates extended on 2026-10-29 (state_as_of and review_due only) after review_due 2026-10-28 passed. Not a stage re-ratification."
 provisional: false # ratified 2026-08-10; stage/scope values unchanged since; agents run the full pipeline
 
 # ---------------------------------------------------------------------------

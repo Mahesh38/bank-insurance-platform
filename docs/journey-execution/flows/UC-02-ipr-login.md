@@ -3,12 +3,13 @@
 **Actor:** Insurance Partner Rep (`INSURER_PARTNER_REP`) · **Entry:** same endpoints as `UC-01`
 **Status:** `AI-DRAFTED` · Security review required · Slice 1
 
-> This file is the partner OIDC ceremony. It is not the Login BRD v3.1 Insurance RM, who signs in
-> with a platform password through [`LOGIN-BRD-V31-API-FLOWS.md`](./LOGIN-BRD-V31-API-FLOWS.md).
+> This file is the insurance-user authorization-code ceremony. The Login BRD v3.1 password form
+> checks that same user's password at Keycloak
+> ([`LOGIN-BRD-V31-API-FLOWS.md`](./LOGIN-BRD-V31-API-FLOWS.md)).
 
 The **authentication ceremony is identical to [`UC-01`](./UC-01-rm-login.md)** — *"the
 representative authenticates using the same authorization-code, PKCE, and token-hiding BFF flow"*
-([auth SSOT §5.2](../../platform/authentication-authorization/README.md#52-insurer-partner-representative-keycloak-oidc)).
+([auth SSOT §5.2](../../platform/authentication-authorization/README.md#52-insurance-user-authorization-code-keycloak-oidc)).
 This file states only what differs: **how the identity came to exist**, and **what the resulting
 principal may do**.
 

@@ -19,7 +19,7 @@ schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
 document_count: 880
-total_bytes: 23626876
+total_bytes: 23633923
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -3493,7 +3493,7 @@ documents:
     persona: null
     title: "01 — Current State (Context Resolution)"
     answers: "Pipeline step: 1 — Context Resolution"
-    bytes: 24047
+    bytes: 24939
   - path: docs/governance/02-PROJECT_SCOPE.md
     bucket: governance
     authority: binding-process
@@ -4277,7 +4277,7 @@ documents:
     persona: null
     title: "Suggestion Register"
     answers: "Every input that could become work gets a row here — admitted, parked, rejected, or escalated."
-    bytes: 478610
+    bytes: 482714
   - path: docs/governance/runbooks/AUTOPILOT-FAILURE-RUNBOOK.md
     bucket: governance
     authority: binding-process
@@ -4517,7 +4517,7 @@ documents:
     persona: null
     title: "CURRENT STATE"
     answers: "AIGEM — Machine-readable current state"
-    bytes: 42364
+    bytes: 43334
   - path: docs/governance/state/GATE-EVIDENCE.yaml
     bucket: governance
     authority: binding-process
@@ -4685,7 +4685,7 @@ documents:
     persona: engineering
     title: "Login BRD v3.1 — API flows"
     answers: "Work item: SUG-20261023-e2e · Behaviour: Login BRD v3.1"
-    bytes: 19739
+    bytes: 19835
   - path: docs/journey-execution/flows/UC-01-rm-login.md
     bucket: platform
     authority: ai-drafted
@@ -4701,7 +4701,7 @@ documents:
     persona: engineering
     title: "UC-02 — Insurance Partner Representative login"
     answers: "Actor: Insurance Partner Rep (INSURERPARTNERREP) · Entry: same endpoints as UC-01"
-    bytes: 7485
+    bytes: 7502
   - path: docs/journey-execution/flows/UC-03-session-status-and-refresh.md
     bucket: platform
     authority: ai-drafted
@@ -4765,7 +4765,7 @@ documents:
     persona: null
     title: "Current State Dashboard"
     answers: "Generated, committed view. CI regenerates this file from governance/state/CURRENT-STATE.yaml and fails if it drifts. The YAML remains authoritative."
-    bytes: 5322
+    bytes: 5450
   - path: docs/knowledge-base/generated/decision-index.md
     bucket: root
     authority: navigation
@@ -5445,7 +5445,7 @@ documents:
     persona: security
     title: "Workforce Authentication and Authorization — Service SSOT"
     answers: "Primary identity provider for development: Keycloak (partners; workforce AD-verify is the bank API)"
-    bytes: 21071
+    bytes: 21834
   - path: docs/platform/contracts/1sb-integration-service/BUILD-BRIEF.md
     bucket: platform
     authority: approved-spec
@@ -6421,7 +6421,7 @@ documents:
     persona: architecture
     title: "workforce-access-bff — low-level design"
     answers: "Contract (authoritative) · API portal page ·"
-    bytes: 16859
+    bytes: 16936
   - path: docs/platform/contracts/workforce-access-bff/openapi.yaml
     bucket: platform
     authority: approved-spec

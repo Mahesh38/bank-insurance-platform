@@ -1,6 +1,7 @@
 package com.bank.identity.authz.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.bank.identity.authz.domain.IdentityTypes.UserType;
 import com.bank.identity.authz.persistence.BusinessUserEntity;
@@ -63,6 +64,26 @@ class PlatformLoginServiceTest {
     assertThat(login.recordInsurancePasswordResult(partner.getId(), false).account().route())
         .isEqualTo("LOCKED_PASSWORD");
     assertThat(login.recordInsurancePasswordResult(partner.getId(), true).accepted()).isFalse();
+    int failures = users.findById(partner.getId()).orElseThrow().getFailedPasswordCount();
+    login.recordInsurancePasswordResult(partner.getId(), false);
+    assertThat(users.findById(partner.getId()).orElseThrow().getFailedPasswordCount())
+        .isEqualTo(failures);
+  }
+
+  @Test
+  void passwordResultRejectsTheOtherPopulationAndAFirstLoginSuccessStaysClosed() {
+    BusinessUserEntity bank =
+        users.save(
+            BusinessUserEntity.bankEmployee("BANK_AD", "e-kc", "E300", "e300@aubank.in", "E300"));
+    assertThatThrownBy(() -> login.recordInsurancePasswordResult(bank.getId(), true))
+        .isInstanceOf(IllegalArgumentException.class);
+    BusinessUserEntity partner = users.save(insurance("fresh@aubank.in"));
+    assertThatThrownBy(() -> login.recordBankPasswordResult(partner.getId(), true))
+        .isInstanceOf(IllegalArgumentException.class);
+
+    var first = login.recordInsurancePasswordResult(partner.getId(), true);
+    assertThat(first.accepted()).isFalse();
+    assertThat(first.account().route()).isEqualTo("FIRST_TIME");
   }
 
   @Test

@@ -370,6 +370,29 @@ class LoginJourneyIT {
     }
 
     @Test
+    void disabledKeycloakAccountStopsBeforeTheLockCounter() throws Exception {
+      AUTHZ.stubFor(
+          WireMock.post(urlEqualTo("/internal/v1/login/preview"))
+              .willReturn(json(INSURANCE_ACCOUNT)));
+      ADAPTER.stubFor(
+          WireMock.post(urlEqualTo("/internal/v1/auth/keycloak-password"))
+              .willReturn(
+                  aResponse()
+                      .withHeader("Content-Type", "application/json")
+                      .withBody("{\"authenticated\":false,\"accountActive\":false}")));
+      String[] captcha = captcha();
+
+      mockMvc
+          .perform(loginJson("INSURANCE_RM", "fls.rm@example.test", "Horse#99", captcha))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.code").value("VAL-007"))
+          .andExpect(cookie().doesNotExist("WORKFORCE_SESSION"));
+
+      AUTHZ.verify(
+          exactly(0), postRequestedFor(urlEqualTo("/internal/v1/login/insurance-password-result")));
+    }
+
+    @Test
     void unknownPartnerEmailStopsWithoutPlatformPasswordCheck() throws Exception {
       AUTHZ.stubFor(
           WireMock.post(urlEqualTo("/internal/v1/login/preview"))

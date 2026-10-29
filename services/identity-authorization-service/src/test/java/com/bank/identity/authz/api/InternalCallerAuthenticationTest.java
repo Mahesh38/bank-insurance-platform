@@ -199,6 +199,58 @@ class InternalCallerAuthenticationTest {
   }
 
   @Test
+  void leadKeyCannotRecordAnInsurancePasswordResult() throws Exception {
+    mockMvc
+        .perform(
+            post("/internal/v1/login/insurance-password-result")
+                .header(HEADER, LEAD_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"businessUserId":"%s","accepted":true}
+                    """
+                        .formatted(UUID.randomUUID())))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+  }
+
+  @Test
+  void bffKeyRecordsAnInsurancePasswordResult() throws Exception {
+    AuthzFixtures.insurer(jdbc, "ICICI_PRU");
+    UUID partner =
+        AuthzFixtures.activeUser(
+            jdbc, "kc.partner", "INSURER_REPRESENTATIVE", "ICICI_PRU", "PARTNER_SR");
+
+    mockMvc
+        .perform(
+            post("/internal/v1/login/insurance-password-result")
+                .header(HEADER, BFF_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"businessUserId":"%s","accepted":true}
+                    """
+                        .formatted(partner)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.accepted").value(true))
+        .andExpect(jsonPath("$.account.route").value("READY"));
+
+    mockMvc
+        .perform(
+            post("/internal/v1/login/insurance-password-result")
+                .header(HEADER, BFF_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"businessUserId":"%s","accepted":false}
+                    """
+                        .formatted(partner)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.accepted").value(false))
+        .andExpect(jsonPath("$.account.route").value("PASSWORD_REJECTED"));
+  }
+
+  @Test
   void profileReturnsRoleCodes() throws Exception {
     UUID subject =
         AuthzFixtures.activeUser(jdbc, "profile.rm", "BANK_EMPLOYEE", null, "RELATIONSHIP_MANAGER");

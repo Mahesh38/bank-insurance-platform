@@ -1,5 +1,6 @@
 package com.bank.identity.provider.api;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
@@ -48,6 +49,78 @@ class AdVerifyControllerTest {
         .andExpect(jsonPath("$.authenticated").value(true))
         .andExpect(jsonPath("$.accountActive").value(true))
         .andExpect(jsonPath("$.password").doesNotExist())
+        .andExpect(content().string(not(containsString("Horse#99"))));
+    assertThat(
+            new IdentityProviderController.KeycloakPasswordRequest(
+                    "fls.rm@example.test", "Horse#99")
+                .toString())
+        .doesNotContain("Horse#99")
+        .contains("username-present=true");
+    assertThat(new IdentityProviderController.KeycloakPasswordRequest(null, "Horse#99").toString())
+        .contains("username-present=false");
+    assertThat(new IdentityProviderController.KeycloakPasswordRequest(" ", "Horse#99").toString())
+        .contains("username-present=false");
+    assertThat(
+            new IdentityProviderController.AdVerifyRequest("EMP001", "local-stub-password")
+                .toString())
+        .doesNotContain("local-stub-password")
+        .contains("employeeId-present=true");
+    assertThat(
+            new IdentityProviderController.AdVerifyRequest(null, "local-stub-password").toString())
+        .contains("employeeId-present=false");
+    assertThat(
+            new IdentityProviderController.AdVerifyRequest(" ", "local-stub-password").toString())
+        .contains("employeeId-present=false");
+  }
+
+  @Test
+  void stubKeycloakPasswordRejectsAWrongPasswordWithoutLockingTheAccount() throws Exception {
+    mockMvc
+        .perform(keycloakPassword("fls.rm@example.test", "nope"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.authenticated").value(false))
+        .andExpect(jsonPath("$.accountActive").value(true))
+        .andExpect(content().string(not(containsString("nope"))));
+  }
+
+  @Test
+  void stubKeycloakPasswordResetReplacesTheValueUsedByTheNextCheck() throws Exception {
+    mockMvc
+        .perform(keycloakPassword("new.rm@example.test", "Zebra#99"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.authenticated").value(false));
+
+    mockMvc
+        .perform(
+            post("/internal/v1/auth/keycloak-password/reset")
+                .header(InternalAuthProperties.HEADER, INTERNAL_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"username":"new.rm@example.test","password":"Zebra#99"}
+                    """))
+        .andExpect(status().isNoContent());
+
+    mockMvc
+        .perform(keycloakPassword("new.rm@example.test", "Zebra#99"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.authenticated").value(true))
+        .andExpect(jsonPath("$.accountActive").value(true))
+        .andExpect(content().string(not(containsString("Zebra#99"))));
+  }
+
+  @Test
+  void keycloakPasswordRequiresTheInternalKey() throws Exception {
+    mockMvc
+        .perform(
+            post("/internal/v1/auth/keycloak-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"username":"fls.rm@example.test","password":"Horse#99"}
+                    """))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("UNAUTHORIZED"))
         .andExpect(content().string(not(containsString("Horse#99"))));
   }
 
@@ -130,6 +203,17 @@ class AdVerifyControllerTest {
   @Test
   void livenessDoesNotRequireInternalKey() throws Exception {
     mockMvc.perform(get("/actuator/health/liveness")).andExpect(status().isOk());
+  }
+
+  private static MockHttpServletRequestBuilder keycloakPassword(String username, String password) {
+    return post("/internal/v1/auth/keycloak-password")
+        .header(InternalAuthProperties.HEADER, INTERNAL_KEY)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(
+            """
+            {"username":"%s","password":"%s"}
+            """
+                .formatted(username, password));
   }
 
   private static MockHttpServletRequestBuilder adVerify(String body) {

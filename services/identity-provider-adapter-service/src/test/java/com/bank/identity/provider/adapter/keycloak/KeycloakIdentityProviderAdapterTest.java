@@ -4,13 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withCreatedEntity;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withUnauthorizedRequest;
 
 import com.bank.common.error.ErrorCodes;
 import com.bank.common.error.PlatformLayer;
@@ -295,6 +298,110 @@ class KeycloakIdentityProviderAdapterTest {
 
     assertThat(check.authenticated()).isFalse();
     assertThat(check.accountActive()).isFalse();
+  }
+
+  @Test
+  void wrongPasswordStaysActiveAndAGrantWithoutARefreshTokenIsNotRevoked() {
+    TestClient wrongPassword = testClient();
+    wrongPassword
+        .server()
+        .expect(requestTo(PROPERTIES.tokenUri()))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(
+            withUnauthorizedRequest()
+                .body(
+                    "{\"error\":\"invalid_grant\",\"error_description\":\"Invalid user credentials\"}"));
+
+    var rejected = wrongPassword.adapter().verifyPassword("fls.rm@example.test", "nope");
+    assertThat(rejected.authenticated()).isFalse();
+    assertThat(rejected.accountActive()).isTrue();
+
+    TestClient noRefresh = testClient();
+    noRefresh
+        .server()
+        .expect(requestTo(PROPERTIES.tokenUri()))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(
+            withSuccess(
+                "{\"access_token\":\"access-1\",\"expires_in\":300}", MediaType.APPLICATION_JSON));
+
+    var accepted = noRefresh.adapter().verifyPassword("fls.rm@example.test", "Horse#99");
+    assertThat(accepted.authenticated()).isTrue();
+    assertThat(accepted.accountActive()).isTrue();
+    noRefresh.server().verify();
+  }
+
+  @Test
+  void passwordGrantFailureThatIsNotACredentialRejectionIsUnavailable() {
+    TestClient test = testClient();
+    test.server()
+        .expect(requestTo(PROPERTIES.tokenUri()))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(withServerError());
+
+    assertThatThrownBy(() -> test.adapter().verifyPassword("fls.rm@example.test", "Horse#99"))
+        .isInstanceOf(ServiceException.class)
+        .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
+        .isEqualTo(ErrorCodes.IDENTITY_PROVIDER_UNAVAILABLE);
+  }
+
+  @Test
+  void replacePasswordResetsTheMatchedKeycloakUser() {
+    TestClient test = testClient();
+    expectAdminToken(test.server());
+    test.server()
+        .expect(requestTo(PROPERTIES.adminUsersUri() + "?username=fls.rm&exact=true"))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(withSuccess("[{\"id\":\"provider-9\"}]", MediaType.APPLICATION_JSON));
+    test.server()
+        .expect(requestTo(PROPERTIES.adminUsersUri() + "/provider-9/reset-password"))
+        .andExpect(method(HttpMethod.PUT))
+        .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer admin-access"))
+        .andExpect(
+            content().json("{\"type\":\"password\",\"value\":\"Zebra#99\",\"temporary\":false}"))
+        .andRespond(withNoContent());
+
+    test.adapter().replacePassword("fls.rm", "Zebra#99");
+
+    test.server().verify();
+  }
+
+  @Test
+  void replacePasswordFailsWhenKeycloakHasNoMatchingUser() {
+    TestClient empty = testClient();
+    expectAdminToken(empty.server());
+    empty
+        .server()
+        .expect(requestTo(PROPERTIES.adminUsersUri() + "?username=fls.rm&exact=true"))
+        .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
+
+    assertThatThrownBy(() -> empty.adapter().replacePassword("fls.rm", "Zebra#99"))
+        .isInstanceOf(ServiceException.class)
+        .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
+        .isEqualTo(ErrorCodes.RESOURCE_NOT_FOUND);
+
+    TestClient missing = testClient();
+    expectAdminToken(missing.server());
+    missing
+        .server()
+        .expect(requestTo(PROPERTIES.adminUsersUri() + "?username=fls.rm&exact=true"))
+        .andRespond(withSuccess("null", MediaType.APPLICATION_JSON));
+
+    assertThatThrownBy(() -> missing.adapter().replacePassword("fls.rm", "Zebra#99"))
+        .isInstanceOf(ServiceException.class)
+        .extracting(ex -> ((ServiceException) ex).getErrorResponse().getCode())
+        .isEqualTo(ErrorCodes.RESOURCE_NOT_FOUND);
+
+    TestClient blankId = testClient();
+    expectAdminToken(blankId.server());
+    blankId
+        .server()
+        .expect(requestTo(PROPERTIES.adminUsersUri() + "?username=fls.rm&exact=true"))
+        .andRespond(withSuccess("[{\"id\":\"\"}]", MediaType.APPLICATION_JSON));
+
+    assertThatThrownBy(() -> blankId.adapter().replacePassword("fls.rm", "Zebra#99"))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("missing");
   }
 
   private static void expectTokens(MockRestServiceServer server) {

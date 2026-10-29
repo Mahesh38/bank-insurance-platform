@@ -43,9 +43,9 @@ the agent believed at decision time — a decision that was correct against a st
 | Field | Value |
 |-------|-------|
 | Project | Bank Insurance Platform (`mahesh38/bank-insurance-platform`) |
-| State as of | **2026-09-30** — reconfirmed by R12 seat (agent-executed AIGEM signoff implementation) |
-| Review due | 2026-10-28 |
-| Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged on 2026-09-11 and again on 2026-09-30 |
+| State as of | **2026-10-29** — R12 seat, code-alignment refresh against `origin/main` `0f2c23c7` |
+| Review due | 2026-11-12 |
+| Ratified by | **Mahesh (Solution Architect), 2026-08-10** (GOV-004) — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged on 2026-09-11, 2026-09-30 and 2026-10-29 |
 | Active workstreams | **3** (see §4) — WS-3 is primary |
 | Governance version | AIGEM 1.5 |
 
@@ -85,6 +85,12 @@ the agent believed at decision time — a decision that was correct against a st
 > **No stage advanced. No gate marked `PASSED`. No human signature fabricated.**
 > Two CR-012 evidence exclusions were added to `standing_constraints`. Pack:
 > [`signoff/2026-09-30/STATE-RECONFIRMATION.md`](./signoff/2026-09-30/STATE-RECONFIRMATION.md).
+>
+> **2026-10-29 — R12 code-alignment refresh.** `review_due` 2026-10-28 had passed, so
+> FreshnessCheck exited 2 and agents could not admit work. The sweep re-read the Gradle
+> tree and the gate tables. `state_as_of` is 2026-10-29 and `review_due` is 2026-11-12.
+> **No stage advanced. No gate marked `PASSED`. No criterion newly marked `MET`. No human
+> signature fabricated.** The code delta is §4.2.
 
 ---
 
@@ -128,6 +134,23 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 4. ~~**No shared integration harness** (S08-G6)~~ — **closed 2026-09-13** (`bank-common-test` +
    Testcontainers/WireMock proving ITs; TD-014 Closed; S08-G6 MET).
 
+### 4.2 What the code shows on 2026-10-29
+
+Read this before trusting the September sentences above. Counted on `origin/main` `0f2c23c7`.
+None of these facts move a stage or close a criterion.
+
+| # | Fact | Evidence |
+|---|------|----------|
+| 1 | The root build is **32 modules: 21 services and 11 libraries** (`bank-common-*` ×10 and `bank-rule-engine`). The "6 libraries / 27 modules" line in §4.1 is the September scaffold, not today's tree. | `settings.gradle.kts` |
+| 2 | Populated services, main Java files: 1sb-integration 136, consent 81, quotation 70, proposal 56, lead 54, workforce-access-bff 47, integration-hub 42, bank-persistence 40, suitability 37, identity-authorization 29, administration-config 28, customer 23, identity-provider-adapter 13. | `src/main/java` file count |
+| 3 | Eight services are still 8-file scaffolds: audit, direct-insurer, journey, notification, payment, policy, catalogue, reporting. A module is not a delivered bounded context. | same count |
+| 4 | Since 2026-09-30 the tree holds EPIC-007 (coding standard), consent evidence, the rule engine, lead activity, quotation/proposal working state, and EPIC-008 LifeSave Savings quote stitch (2026-10-28). | git log from 2026-09-30 |
+| 5 | **GATE-P4 did not move.** 4.1, 4.3 and 4.6 stay BLOCKED. 4.2 stays PARTIAL. 4.4 and 4.5 stay OPEN. 4.7 stays MET. No Term sandbox E2E suite and no 1SB 401/5xx runbook were found. `1sb-integration-service` main sources contain no Flyway and no JPA. | code search, 2026-10-29 |
+| 6 | **WS-2 is no longer "no dedicated effort".** Login BRD v3.1 is implemented on the BFF and identity-authorization (through PR #165). Test files: BFF 23, authorization 20, provider adapter 7. **A.1–A.6 stay OPEN.** Code landing is not gate evidence. | same count; `SUG-20261028-1lg` |
+| 7 | **S09 has not started.** This sweep did not find IaC, environment provisioning, or the ap-south-1 retention path. | absence in the tree read |
+| 8 | `04-STAGE_GATES.md` still said criterion 4.7 was Partial. That contradicted the 2026-09-13 QA declaration. The row now says MET. GATE-S08 still has no table in that file. | [04 §6](./04-STAGE_GATES.md#6-project-gates-l3) |
+| 9 | **QA-014 expires 2026-10-31.** It stays in `known_open_debt`. This refresh does not extend it. | [TECH-DEBT.md](../1sb-insurance-integration/service-ssot/TECH-DEBT.md) |
+
 ### WS-3 · AU Bank Insurance Distribution Platform — **primary**
 
 | Field | Value |
@@ -137,7 +160,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | **Stage status** | IN_PROGRESS |
 | **Current objective** | `R0-ASSISTED-LIFE-SALE` — one RM sells a complete Life policy (Term or Savings/ULIP) to one ETB customer, end to end, with consent and suitability evidence, payment on the customer's own device, and a complete audit trail (CR-015 CANDIDATE transcribed 2026-09-12; HUMAN T4 outstanding) |
 | **Deliverable** | Application CI with enforced quality, security and architecture gates (S08); IaC, environments, secrets, observability and 7-year write-once retention in ap-south-1 (S09); consent and suitability rule packs, R0 acceptance criteria, product matrix and service blueprint in parallel |
-| **Delivered so far** | Application CI and security scanning pipelines; 21 services and 6 libraries scaffolded with ArchUnit boundary tests; EPIC-001 error contract; EPIC-003 lead API contract |
+| **Delivered so far** | Application CI and security scanning pipelines; 21 services and 11 libraries on the root build; populated lead, consent, suitability, quotation, proposal, customer, hub, persistence, admin and workforce/identity services (see §4.2); eight services still scaffolds; EPIC-001 error contract; EPIC-003 lead API contract; EPIC-007 coding standard; EPIC-008 Savings quote stitch |
 | **Not yet started** | All of S09 — IaC, environments, secrets management, the ap-south-1 retention path |
 | **Gate** | `GATE-S08` · `CANDIDATE` · 10 of 10 criteria MET — Architect + PO human PASS outstanding; S09 entry blocked by `DEP-20260824-cst` |
 | **Next stage** | S09 — Platform & Environment Foundation |
@@ -169,7 +192,7 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | **Current objective** | Term path signed off for UAT use by at least one bank caller |
 | **Deliverable** | Hardened Term vertical slice: sandbox E2E evidence, published OpenAPI, compliance-reviewed audit schema, runbook, performance smoke |
 | **Completed** | Phases 0–3. Term path FUNC-001…007, FUNC-009 delivered and TL-approved (`phase-3/STATUS.md`, `phase-4/STATUS.md`). COMP-003 raw-payload encryption, JaCoCo gates, Docker packaging, OpenAPI publication landed (commit `79c65f4`). **EPIC-002 Life LOB adapter coverage delivered on main 2026-09-03** — typed Term, Saving and ULIP handlers, bank domain model extracted, circuit breaker corrected for 422 business errors, QA-012 WireMock regression (CR-014). |
-| **Not yet done in this phase** | Sandbox E2E suite in CI (4.1), bank consumer spike (4.3), compliance review of audit schema (4.4), ops runbook (4.5), performance smoke (4.6). **None of the seven criteria closed between 2026-08-10 and 2026-09-11.** Adapter capability grew; gate closure did not. Criterion 4.7 moved BLOCKED → 🟡 Partial because application CI now executes the coverage gate on every PR, which is the condition the state file had already recorded. |
+| **Not yet done in this phase** | Sandbox E2E suite in CI (4.1), bank consumer spike (4.3), compliance review of audit schema (4.4), ops runbook (4.5), performance smoke (4.6). Re-checked 2026-10-29: those five are unchanged. Criterion 4.7 has been MET since 2026-09-13. EPIC-008 does not close GATE-P4. |
 | **Gate state** | `BLOCKED` since 2026-08-16 on four blockers (`GATE-4.1-SANDBOX-E2E`, `DEP-001`, `DEP-002`, `DEP-003`) whose follow-up dates had all passed by 12–21 days. Re-dated 2026-09-11 against their named owners. |
 | **Next stage** | Phase 5 — Expand LOBs (Health → Motor) |
 | **Authority** | [ACTION-PLAN.md](../1sb-insurance-integration/service-ssot/ACTION-PLAN.md) · [PRODUCT-BACKLOG.md](../1sb-insurance-integration/service-ssot/PRODUCT-BACKLOG.md) |
@@ -191,8 +214,8 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 | **Stage status** | IN_PROGRESS |
 | **Current objective** | Provider-neutral workforce identity: BFF token-hiding session, Keycloak adapter, business authorization service |
 | **Deliverable** | `workforce-access-bff`, `identity-provider-adapter-service`, `identity-authorization-service` meeting the accepted decisions in the SSOT |
-| **Completed** | Architecture baseline approved; foundation services scaffolded with PDP, provisioning outbox, Keycloak realm config (commit `cd40460`) |
-| **Movement since 2026-08-10** | **None.** All six criteria A.1–A.6 remain OPEN with no evidence attached and no blockers recorded. The only commits touching the three services were cross-cutting (the EPIC-001 error handler, CI dependency fixes). Six criteria with no blockers and no progress is an unstaffed workstream, not a blocked one. |
+| **Completed** | Architecture baseline approved; foundation services on the root build; Login BRD v3.1 journey implemented on the BFF and identity-authorization through PR #165 (2026-10-29). Keycloak stays behind the provider adapter. |
+| **Movement since 2026-08-10** | The September "no dedicated effort" line is stale. Dedicated login work landed from 2026-10-08 through 2026-10-29 (IAM-001, the v3.1 journey, the Postgres login defects, one login surface). Test files are now 23 / 20 / 7, not 6 / 2 / 5. **A.1–A.6 remain OPEN.** This refresh attaches no gate evidence and does not mark them MET. |
 | **Why it matters to WS-3** | WS-2 is the ENABLER for bounded context #3 behind interface IF-2. A.1 (BFF token-hiding) is the criterion the WS-3 RM journey cannot be evidenced without, so a WS-2 stall surfaces later as a WS-3 slip. Sequencing it against WS-3 R0 is a Product and Architecture call. |
 | **Next stage** | Phase 2 — Federation with bank AD + production provider decision |
 | **Authority** | [authentication-authorization/README.md](../platform/authentication-authorization/README.md) |
@@ -204,8 +227,8 @@ LOB, lead contract) is real, and none of it was gate-closing work.
 |-------|-------|
 | Platform architecture baseline | [architecture-review/](../platform/architecture-review/README.md) — target microservices, comms patterns, AWS infra, data, security/NFR, ADR log |
 | Business requirement baseline | [au-bank-insurance-platform/requirements/](../au-bank-insurance-platform/requirements/) — R0 scope, BRD/PRD |
-| Shared libraries | `libs/bank-common-{error,domain,security,audit,observability,secrets}` — changes here affect every workstream and always require an Architecture verdict. `bank-common-domain` was added by EPIC-002 to hold the bank-owned model extracted out of `1sb-integration-service`. |
-| Service estate | 21 services on the root build (`settings.gradle.kts`), scaffolded 2026-09-02 from the architecture catalogue. **A module's presence is not delivery of its bounded context** — each scaffolded service carries 2 test files. Do not read the module list as capability. |
+| Shared libraries | Eleven on the root build: `bank-common-{error,domain,apigee,security,audit,observability,secrets,test,architecture,events}` and `bank-rule-engine`. Changes here affect every workstream and always require an Architecture verdict. `bank-common-domain` holds the bank-owned model extracted out of `1sb-integration-service`. |
+| Service estate | 21 services on the root build (`settings.gradle.kts`). Thirteen now carry real use-case code; eight are still 8-file scaffolds (§4.2). **A module's presence is not delivery of its bounded context.** |
 
 ---
 
@@ -292,19 +315,29 @@ objective values, walked CR-016 against `current_scope`, and advanced `state_as_
 `review_due` so agents are not halted on a stale date. PO counter-signature on GOV-004
 remains outstanding. See [`signoff/2026-09-30/STATE-RECONFIRMATION.md`](./signoff/2026-09-30/STATE-RECONFIRMATION.md).
 
-**Outstanding, with required-by dates set by R12 on 2026-09-11 and still owed on 2026-09-30:**
+**The 2026-10-29 refresh did not re-ratify it either.** Rule PA-1 still holds: R12 may compel
+the review and may not supply the signature. The sweep re-confirmed that `current_phase`,
+`stage_status`, gate state, scope and objective are the same values Mahesh signed on
+2026-08-10, plus the CR-015/CR-016 transcriptions already in the file. It advanced
+`state_as_of` to 2026-10-29 and `review_due` to 2026-11-12 because those dates had halted
+admission. That lift is a freshness repair. It is not a T4 signature and it does not mark
+GATE-S08 `PASSED`.
+
+**Outstanding, with required-by dates set by R12. Still owed on 2026-10-29:**
 
 | Owed | Owner | Required by | If it does not arrive |
 |------|-------|-------------|-----------------------|
-| PO counter-signature on GOV-004 and CR-001 | Rajal / Product | 2026-09-18 (**OVERDUE**; still outstanding 2026-09-30) | Recorded as OVERDUE against Product at the next Governance Sync. It does not revert this file to provisional. |
-| `review_due` re-ratification of the stage values | Mahesh / Architecture + Rajal / Product | 2026-10-28 | Agents lose ADMIT again the day after `review_due` under Rule CS-1 |
+| PO counter-signature on GOV-004 and CR-001 | Rajal / Product | 2026-09-18 (**OVERDUE**; still outstanding 2026-10-29) | Recorded as OVERDUE against Product. It does not revert this file to provisional. |
+| Human re-ratification of the stage values | Mahesh / Architecture + Rajal / Product | 2026-11-12 | The 2026-10-28 date passed with no human re-signature. R12 refreshed freshness on 2026-10-29 so admission is not halted on a stale date. The signature itself is still owed. The day after `review_due`, agents lose ADMIT again under Rule CS-1. |
+| GATE-S08 table in `04-STAGE_GATES.md` | Mahesh / Architecture | 2026-11-12 | Agents keep reading the criteria from `CURRENT-STATE.yaml`. The ratified gate document still omits the primary workstream's open gate. |
+| QA-014 package-floor decision | Swapnali / QA | 2026-10-31 | Expiry is unchanged. This refresh does not extend it. |
 
-R12 sets these dates and names the owner. R12 does not decide either matter, and neither date is a
-default answer standing in for a signature. If the PO disagrees with any stage or scope value, that
-is a `CR` against this file — not a reversion to provisional.
+R12 sets these dates and names the owner. R12 does not decide any of them, and none of the
+dates is a default answer standing in for a signature. If the PO disagrees with any stage or
+scope value, that is a `CR` against this file — not a reversion to provisional.
 
 **Re-ratification** is required whenever a stage transitions, and at every `review_due`
-(now 2026-10-28).
+(now 2026-11-12).
 
 ---
 

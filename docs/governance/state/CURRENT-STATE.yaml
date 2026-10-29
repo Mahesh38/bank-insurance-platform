@@ -14,27 +14,30 @@ project:
   name: "Bank Insurance Platform"
   repository: "mahesh38/bank-insurance-platform"
 
-# R12 freshness refresh, 2026-09-30 — Delivery Lead (Kalpana) seat, agent-executed
-# under the 2026-09-30 AIGEM daily sign-off instruction. This is a real review
-# sweep, not a date bump: CR-016 was walked against current_scope (GOV flow only;
-# no product-scope change); external dependencies were reviewed and left OPEN;
-# repository-owned CR conditions were implemented. Findings are in
-# docs/governance/signoff/2026-09-30/.
+# R12 freshness refresh, 2026-10-29 — Delivery Lead (Kalpana) seat, agent-executed
+# because the repository owner directed the freshness update after FreshnessCheck
+# exited 2 (review_due 2026-10-28). This is a code-alignment sweep, not a date bump
+# and not a stage transition.
+#
+# What was re-read against the tree on origin/main (0f2c23c7):
+#   * settings.gradle.kts — 21 services + 11 libraries = 32 modules
+#   * src/main/java and src/test/java file counts per module
+#   * 1sb-integration-service main sources for Flyway / JPA (none)
+#   * presence of a Term sandbox E2E suite and a 1SB 401/5xx runbook (neither found)
+#   * 04-STAGE_GATES.md section 6 against this file's criterion states
 #
 # WHAT THIS REFRESH DID NOT TOUCH, and cannot:
 #   * current_phase and stage_status — human only (04 section 5). Unchanged in all 3 workstreams.
 #   * gate `state` (OPEN / CANDIDATE / PASSED / BLOCKED) — unchanged.
-#   * criterion state MET or WAIVED — unchanged.
+#   * criterion state MET or WAIVED — unchanged. No criterion was newly closed.
 #   * human signatures. `ratified_by` still records Mahesh's 2026-08-10 signature.
 #     PO counter-signature remains outstanding. Stage, scope and objective values
-#     he ratified, plus CR-015/CR-016 transcriptions already in this file, are
-#     re-confirmed unchanged.
+#     are re-confirmed unchanged. This is not a T4 human re-signature.
 #
-# Previous refresh (2026-09-11 / state_as_of 2026-09-13) remains the prior
-# evidence trail; this block supersedes the dates only.
-state_as_of: "2026-09-30" # quoted so the file validates directly against current-state.schema.json
-review_due: "2026-10-28"
-ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh and again at the 2026-09-30 AIGEM signoff implementation (CR-016 walked against current_scope; no stage-field change). Not a T4 human re-signature."
+# Previous refresh (2026-09-30) remains the prior evidence trail.
+state_as_of: "2026-10-29" # quoted so the file validates directly against current-state.schema.json
+review_due: "2026-11-12" # next Governance Sync; state_as_of warns on the same horizon (14 days)
+ratified_by: "Mahesh (Solution Architect), 2026-08-10 — PO counter-signature outstanding; stage, scope and objective values re-confirmed unchanged at the 2026-09-11 R12 refresh, at the 2026-09-30 AIGEM signoff implementation (CR-016 walked against current_scope; no stage-field change), and at the 2026-10-29 R12 code-alignment refresh. Not a T4 human re-signature."
 provisional: false # ratified 2026-08-10; stage/scope values unchanged since; agents run the full pipeline
 
 # ---------------------------------------------------------------------------
@@ -96,19 +99,23 @@ workstreams:
         write-once retention in ap-south-1 (S09). Product-side in parallel: consent and
         suitability rule packs, R0 acceptance criteria and traceability, R0 product matrix
         and quote rules, and the R0 service blueprint, screen inventory and design system.
-      # Progress read at the 2026-09-11 R12 refresh (delivery fact, not a gate declaration):
-      #   * Application CI exists and runs green on every push and pull request
-      #     (.github/workflows/application-ci.yml, c4e8d9f 2026-08-16). 348 recorded runs.
-      #   * Security scanning pipeline exists: gitleaks (blocking), CodeQL Java SAST, Trivy SCA,
-      #     scheduled full-history secret scan, SBOM (.github/workflows/security-scanning.yml).
-      #   * Service estate scaffolded from the architecture catalogue: 21 services + 6 shared
-      #     libraries on the root build (settings.gradle.kts, b6d4304/b9040c3 2026-09-02), each
-      #     carrying an ArchUnit ServiceArchitectureTest.
-      #   * EPIC-001 platform error contract delivered across the shared libraries (ADR-017).
-      #   * EPIC-003 NIP BFF lead landing and create API contract published (888096f..ba20387).
+      # Progress read at the 2026-10-29 R12 refresh (delivery fact, not a gate declaration).
+      # The 2026-09-11 note (CI, security scanning, EPIC-001, EPIC-003) still holds.
+      # Code count on origin/main 0f2c23c7, src/main/java:
+      #   * Root build is 32 modules: 21 services + 11 libraries (bank-common-* x10 and
+      #     bank-rule-engine). The older "6 libraries / 27 modules" description is stale.
+      #   * Populated services, main Java files: 1sb-integration 136, consent 81, quotation 70,
+      #     proposal 56, lead 54, workforce-access-bff 47, integration-hub 42,
+      #     bank-persistence 40, suitability 37, identity-authorization 29,
+      #     administration-config 28, customer 23, identity-provider-adapter 13.
+      #   * Still 8-file scaffolds: audit-compliance, direct-insurer-adapter, journey-orchestration,
+      #     notification, payment, policy-issuance, product-catalogue, reporting-mis.
+      #     A module on the build is not delivery of its bounded context.
+      #   * Since 2026-09-30 the tree also holds the coding-standard alignment (EPIC-007),
+      #     consent evidence, the rule engine, lead activity, quotation/proposal Dynamo working
+      #     state, and the LifeSave Savings quote stitch (EPIC-008, 2026-10-28).
       # Not yet started in this increment: S09 IaC, environments, secrets management and the
-      # ap-south-1 retention path. The scaffolded services are skeletons — presence of a module
-      # is not delivery of its bounded context.
+      # ap-south-1 retention path. This sweep did not find them. GATE-S08 stays CANDIDATE.
 
     current_scope:
       in_scope:
@@ -306,17 +313,15 @@ workstreams:
         consumer collection, compliance-reviewed audit schema, operations runbook,
         performance smoke measurement; plus admitted EPIC-002 Life LOB adapter work
         (Savings + ULIP handlers, bank-model extraction, typed 1SB payloads, resilience).
-      # Progress read at the 2026-09-11 R12 refresh (delivery fact, not a gate declaration):
-      #   * EPIC-002 has landed on main: typed Life quote and proposal handlers for Term, Saving
-      #     and ULIP (e273a82, 0f407b9), bank domain model extracted to libs/bank-common-domain,
-      #     1SB Life paths aligned to the gateway portal docs (a866143), circuit breaker that no
-      #     longer opens on 422 business errors (59f193c), QA-012 Life LOB WireMock regression
-      #     (eb1dbc0). Adapter coverage is delivered; the Term UAT exit criteria below are not
-      #     replaced by it. WS-3 R0 assisted journey for Term + Savings/ULIP is CR-015 /
-      #     EPIC-004 (CANDIDATE transcribed 2026-09-12; HUMAN T4 outstanding).
-      #   * None of the seven GATE-P4 criteria closed in this period. The gate has been BLOCKED
-      #     since 2026-08-16 on four blockers whose follow-up dates are all now past — that, not
-      #     adapter capability, is what is holding Phase 4.
+      # Progress read at the 2026-10-29 R12 refresh (delivery fact, not a gate declaration):
+      #   * EPIC-002 remains on main (typed Term, Saving and ULIP handlers; bank model in
+      #     libs/bank-common-domain). EPIC-008 (LifeSave Savings quote stitch) landed 2026-10-28.
+      #     Neither replaces the Term UAT exit criteria below.
+      #   * Criterion states re-checked, not changed: 4.1 BLOCKED, 4.2 PARTIAL, 4.3 BLOCKED,
+      #     4.4 OPEN, 4.5 OPEN, 4.6 BLOCKED, 4.7 MET. No Term sandbox E2E suite and no 1SB
+      #     401/5xx runbook were found. OpenApiConfig.java exists; portal publication was not
+      #     re-evidenced. No Flyway or JPA type in 1sb-integration-service main sources.
+      #   * The gate stays BLOCKED. Adapter and quote-stitch code is not gate closure.
 
     current_scope:
       in_scope:
@@ -437,17 +442,19 @@ workstreams:
       description: >
         workforce-access-bff, identity-provider-adapter-service and
         identity-authorization-service meeting the SSOT's accepted decisions.
-      # 2026-09-11 (R12 refresh): NO criterion movement in this period. All three services exist
-      # on the root build and carry the EPIC-001 error contract, but their test depth is thin
-      # (6 / 2 / 5 test files) and not one of A.1-A.6 has evidence attached. The only commits
-      # touching them since 2026-08-10 were cross-cutting — the shared error handler and CI
-      # dependency fixes — so WS-2 has had no dedicated effort for a month.
+      # 2026-09-11 said these three services had no dedicated effort. That sentence is stale.
+      # 2026-10-29 code read (delivery fact, not a gate declaration):
+      #   * Login BRD v3.1 is on the BFF and identity-authorization (IAM-001 from 2026-10-08,
+      #     SUG-20261023 journey, SUG-20261026-pgl Postgres defects, SUG-20261028-1lg / PR #165
+      #     one login surface). Keycloak stays behind the adapter.
+      #   * Test files: workforce-access-bff 23, identity-authorization 20,
+      #     identity-provider-adapter 7. Main files: 47, 29, 13.
+      #   * A.1–A.6 stay OPEN. This sweep did not attach gate evidence and does not mark them MET.
       #
-      # Delivery consequence, stated because it is easy to miss: WS-2 is an ENABLER for WS-3,
-      # delivering the workforce half of bounded context #3 behind IF-2. A.1 (BFF token-hiding)
-      # is the one WS-3's RM journey cannot be evidenced without. A stalled enabler does not
-      # announce itself — it surfaces as a WS-3 slip later. Named for the Governance Sync;
-      # sequencing WS-2 against WS-3 R0 is a Product and Architecture call, not R12's.
+      # Delivery consequence: WS-2 is the ENABLER for WS-3 bounded context #3 behind IF-2.
+      # A.1 (BFF token-hiding) is still the criterion the RM journey cannot be evidenced
+      # without. Code landing is not that evidence. Sequencing remains a Product and
+      # Architecture call, not R12's.
 
     current_scope:
       in_scope:

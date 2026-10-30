@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261030-pkg | 2026-10-30 | human:session | Move workforce-access-bff HTTP-pipeline types out of `api` into `config`. Do not reshape `client` / `customer` / `lead` / `session`. Not started. | SF5 | SC0 | COULD | REFACTOR | P4 / P4 | ADMITTED | [detail](#sug-20261030-pkg--bff-http-pipeline-types-into-config) |
 | SUG-20261028-1lg | 2026-10-28 | human:repository-owner | One Login BRD v3.1 surface: Captcha+OTP for Bank RM and Insurance RM/FLS; smooth-merge `/login`←journey, retire IAM-001 session bypass; Keycloak IPR stays separate | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261028-1lg--one-login-brd-surface) · implemented on PR #165; Deepali A3 outstanding |
 | SUG-20261028-qst | 2026-10-28 | human:repository-owner | Stitch quotation + journey-orchestration + integration-hub + 1sb-integration for bank-side LifeSave / Savings quote APIs after lead + suitability (premium, PT, PPT) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [EPIC-008](../../platform/ws3-platform/EPIC-008.work-item.yaml) · [detail](#sug-20261028-qst--lifesave-savings-quote-stitch) |
 | SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
@@ -173,6 +174,128 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261030-pkg · BFF HTTP-pipeline types into config
+
+```yaml
+# schema: triage-record
+id: SUG-20261030-pkg
+raised_at: "2026-10-30"
+raised_by: "human:session"
+source: "Question on workforce-access-bff package grouping"
+input: >
+  Do we need refactoring here? Filters, the interceptor, and configuration
+  (AuthRateLimitFilter, BffExceptionHandler, BffSessionInterceptor,
+  BffWebMvcConfig) sit under com.bank.workforce.bff.api.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1 token-hiding BFF session"
+  state_as_of: "2026-10-29"
+  state_provisional: false
+  active_work_item: "BFF package-placement explanation"
+
+stage_fit:
+  code: SF5
+  rationale: >
+    Package placement does not block GATE-IAM-P1 A.1–A.6 or GATE-S08.
+    CODING-STANDARD.md §5 already names the destination. The move is
+    dependency-safe and off the critical path. A behaviour-preserving
+    relocation does not alter a G1–G10 control (11 §3 RG-5).
+  parallel_test:
+    off_critical_path: true
+    dependency_safe: true
+    in_scope: true
+    standing_constraint_clean: true
+    separate_lane: "Engineering / BFF package placement"
+    no_silent_trust_boundary_change: true
+  lane: "Engineering / BFF package placement"
+
+scope:
+  code: SC0
+  business_scope: "in scope — workforce-access-bff is the token-hiding BFF (02 §7)"
+  serves: []
+  failure_without_it: "No journey, security control, or open gate criterion fails. The standard breach is real and the architecture test does not see it."
+  minimal: true
+  authority: "docs/governance/CODING-STANDARD.md §5; 02-PROJECT_SCOPE.md §7"
+
+necessity:
+  now: COULD
+  future_necessity: COULD
+  target_stage: "L7 — Hardening, only if a lane picks up debt repayment"
+  binds_when: "Never required for GATE-IAM-P1. Optional whenever those types are already being edited."
+  evidence_tier: E1
+  evidence:
+    - "CODING-STANDARD.md §5: error handler and application-wide beans live in config; a cross-cutting servlet filter lives in config or libs"
+    - "AuthRateLimitFilter, BffExceptionHandler, BffSessionInterceptor, BffWebMvcConfig, BffSessionAuthenticationFilter, BffSessionAuthenticationEntryPoint, BffSessionCredentials declare package com.bank.workforce.bff.api"
+    - "HexagonalArchitecture.checkBaseline only forbids a package named adapter; this module has no adapter package, so the test stays green"
+    - "consent-service PublicLinkRateLimitFilter already lives in config"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: false
+    X3_cheap_later: true
+    X5_stage_necessity: false
+    X6_simplest_sufficient: true
+    X9_problem_observed: true
+    X10_do_nothing: "Runtime behaviour is unchanged. Agents can keep calling a green baseline well segregated."
+
+action: ADMIT
+action_rationale: >
+  SF5 + COULD admits at P4 on a separate lane (00 §6, PRI-9). Necessity is
+  not MUST or SHOULD: nothing is incorrect, unsafe, or ungatable. X3 says
+  the move is cheap later, so it must not preempt IAM-P1. Not started
+  in the triage turn. Related closed work: SUG-20261026-cds and
+  SUG-20261026-ur9 delivered the standard and the three-rule ArchUnit
+  baseline; this is the residual those rules do not check.
+
+classification:
+  type: REFACTOR
+  also: []
+  breakdown: STORY
+  epic: null
+  risk_tier: T1
+  tier_note: "RG-5: behaviour-preserving package move inside the session filter. G1 does not fire if logic, order, and status codes stay the same."
+
+priority:
+  now: P4
+  at_target: P4
+  factors: { N: 1, S: 2, B: 0, R: 0, D: 0, E: 0 }
+  score: 6
+  matrix_default: "P3–P4"
+  consistency: OK
+  overrides_applied: []
+  caps_applied: [PRI-9]
+  rationale: "COULD, off critical path, no decay. Score 6 is P4."
+
+dependencies:
+  edges: []
+  state: READY
+  enablement_count: 0
+  earliest_start: "Separate Engineering lane; do not take the IAM-P1 lane"
+  cycles: none
+
+breakdown:
+  children: []
+  completion_definition: >
+    The seven pipeline types and their tests live in com.bank.workforce.bff.config.
+    Controllers stay in api. Existing workforce-access-bff tests pass.
+    The BFF architecture test fails if a OncePerRequestFilter, HandlerInterceptor,
+    RestControllerAdvice, or WebMvcConfigurer configuration is added back under api.
+  not_included:
+    - "Renaming client, customer, lead, or session into adapter or domain"
+    - "Inventing a domain model for a BFF that has no aggregate"
+    - "Any change to session bind, rate-limit thresholds, CSRF, or error redaction"
+
+outcome:
+  registered_in: "registers/SUGGESTION-REGISTER.md"
+  work_item_id: null
+  plan_id: null
+  status: ADMITTED
+  closed_reason: null
+```
 
 ### SUG-20261028-1lg · One Login BRD surface
 

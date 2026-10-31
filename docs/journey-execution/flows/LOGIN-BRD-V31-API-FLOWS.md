@@ -25,7 +25,7 @@ Bank employee. The user selects AU Bank RM and enters the employee ID, the netwo
 
 Non-bank employee. The user selects Insurance Partner and enters the corporate email, the platform password and the captcha. Forgot password is on this form only. An unknown email is `VAL-006`. Captcha, first-time, lock, inactivity and login-OTP rules are the same as for the bank employee. First-time unlock continues to Set New Password and does not create a session. Forgot password starts on its own email-and-captcha screen and does not clear a lock. The platform password expires 60 days after it was set. Expiry is detected only after the entered password matches, then OTP and Set New Password. No session exists until the next sign-in.
 
-The sequences below are that flow.
+The sequences below are that flow. The screen reference is [`docs/figma/login-brd-v3.1/`](../../figma/login-brd-v3.1/README.md).
 
 The app calls only `workforce-access-bff` (`/api/v1/auth/**`). The BFF calls `identity-authorization-service` with `X-Internal-Service-Key`. Bank sign-in also calls `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify`. Captcha and OTP live in the BFF process. They are not written to the database.
 

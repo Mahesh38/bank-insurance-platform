@@ -10,6 +10,7 @@ Accepted Login BRD v3.1 (17 October 2026). User-visible copy is the design text.
 - Screen rule: a screen the v3.1 design notes say is absent is not required. Do not invent one.
 - What this acceptance does not do: it does not build Captcha, OTP, lock, Unlock, Forgot Password or expiry on `workforce-access-bff`. That remainder stays parked at `SUG-20261008-otp`. It does not add mPIN. It does not create, reset or change a Bank RM network password.
 - User-type rule (`D-029`, 31 October 2026): this module has exactly two login user types. Bank RM is the bank employee. Insurance RM, shown on the screen as Insurance Partner, is the non-bank employee. FLS, insurer partner representative and IPR are names for that non-bank employee, not a third person who can sign in. Specified Person remains a certification, not a login type. This rule does not change any screen label or sentence in this BRD.
+- Screen reference: [`docs/figma/login-brd-v3.1/`](../../../figma/login-brd-v3.1/README.md). The pictures show layout and the two switches. This BRD remains the behaviour source (`D-012`).
 - Approvals: Business, Information Security, Technology and QA rows are still blank. This acceptance is the repository-owner ratification of the text. It is not those four signatures.
 
 ## 1. Document control

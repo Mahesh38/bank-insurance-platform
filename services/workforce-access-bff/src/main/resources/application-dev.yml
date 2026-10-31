@@ -1,4 +1,10 @@
-# Dev profile only. prod and uat refuse to start when this pin is set.
+# Dev profile only. prod and uat refuse to start when the pin is set, the session cookie is not
+# Secure, or a browser origin is allowed.
 workforce:
   login:
     otp-code: "482913"
+  session:
+    cookie-secure: false
+  cors:
+    allowed-origins:
+      - http://localhost:3000

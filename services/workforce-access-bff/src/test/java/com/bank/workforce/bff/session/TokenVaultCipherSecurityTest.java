@@ -147,7 +147,8 @@ class TokenVaultCipherSecurityTest {
         Duration.ofMinutes(5),
         Duration.ofMinutes(1),
         Duration.ofHours(8),
-        Set.of("https://bank.example/return"));
+        Set.of("https://bank.example/return"),
+        true);
   }
 
   private static String base64Key(byte fill) {

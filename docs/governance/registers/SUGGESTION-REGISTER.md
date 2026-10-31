@@ -43,6 +43,7 @@ Rules: [../state/CURRENT-STATE.yaml](../state/CURRENT-STATE.yaml) `id_allocation
 
 | ID | Date | Source | Summary | SF | SC | Necessity | Type | P now / target | Action | Ref |
 |----|------|--------|---------|----|----|-----------|------|----------------|--------|-----|
+| SUG-20261031-dvc | 2026-10-31 | human:repository-owner | Dev profile allows credentialed CORS from an explicit local origin and stores the session cookie without Secure; prod and uat refuse both | SF1 | SC1 | SHOULD | SEC | P3 / P3 | ADMITTED | [detail](#sug-20261031-dvc--dev-cors-and-cookie-secure) |
 | SUG-20261028-1lg | 2026-10-28 | human:repository-owner | One Login BRD v3.1 surface: Captcha+OTP for Bank RM and Insurance RM/FLS; smooth-merge `/login`←journey, retire IAM-001 session bypass; Keycloak IPR stays separate | SF1 | SC0 | MUST | ARCH | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261028-1lg--one-login-brd-surface) · implemented on PR #165; Deepali A3 outstanding |
 | SUG-20261028-qst | 2026-10-28 | human:repository-owner | Stitch quotation + journey-orchestration + integration-hub + 1sb-integration for bank-side LifeSave / Savings quote APIs after lead + suitability (premium, PT, PPT) | SF1 | SC0 | MUST | FUNC | P2 / P1 | ADMITTED | [EPIC-008](../../platform/ws3-platform/EPIC-008.work-item.yaml) · [detail](#sug-20261028-qst--lifesave-savings-quote-stitch) |
 | SUG-20261027-brd | 2026-10-27 | human:repository-owner | Align suitability and consent with the updated Suitability BRD current design, including the section 9.10 customer consent link. | SF3 | SC1 | MUST | FUNC | P2 / P1 | ADMIT-BYPASS | [detail](#sug-20261027-brd--suitability-brd-current-design) |
@@ -173,6 +174,76 @@ Row format:
 
 Detail blocks live here for every non-trivial triage. Format:
 [../templates/TRIAGE-RECORD.md](../templates/TRIAGE-RECORD.md).
+
+### SUG-20261031-dvc · Dev CORS and cookie Secure
+
+```yaml
+# schema: triage-record
+id: SUG-20261031-dvc
+raised_at: "2026-10-31"
+raised_by: "human:repository-owner"
+source: "Owner asked to stop blocking cross-origin and HTTP browser calls for local and dev"
+input: >
+  Want that dev-only CORS and cookie-secure flag added.
+
+context:
+  workstream: WS-2
+  current_phase: "Phase 1 — Foundation implementation"
+  canonical_stage: "L4/L6 — Foundation into first vertical slice"
+  current_objective: "IAM-P1"
+  state_as_of: "2026-10-29"
+  state_provisional: false
+  active_work_item: SUG-20261023-dev
+
+stage_fit:
+  code: SF1
+  rationale: "The dev profile already completes local login. A browser on another localhost port cannot call the BFF until CORS is present, and a Secure cookie is dropped on plain HTTP off localhost."
+  target_stage: null
+  unpark_trigger: null
+
+scope:
+  code: SC1
+  business_scope: "Workforce BFF local browser access"
+  serves: ["SUG-20261023-dev"]
+  failure_without_it: "A local UI on http://localhost:3000 cannot read BFF responses, and the session cookie is not stored on plain HTTP except by browsers that treat localhost as trustworthy."
+  minimal: true
+  authority: "workforce-access-bff README dev profile"
+
+necessity:
+  now: SHOULD
+  future_necessity: SHOULD
+  target_stage: "Phase 1 — Foundation implementation"
+  binds_when: "a browser on another origin calls the local BFF over HTTP"
+  evidence_tier: E2
+  evidence:
+    - "BffSecurityConfig had no CORS mapping"
+    - "Session cookies were hardcoded Secure in AuthenticationController and LoginJourneyController"
+  confidence: C4
+  assumptions: []
+  anti_over_engineering:
+    X1_named_consumer: true
+    X3_cheap_later: true
+    X5_stage_necessity: true
+    X9_problem_observed: true
+
+action: ADMIT
+action_rationale: "On the current dev-login path. prod and uat keep Secure cookies and no CORS via ProductionSafetyGuard."
+duplicate_of: null
+conflicts: []
+
+classification:
+  type: SEC
+  risk_tier: T2
+  rationale: "Relaxes a browser trust boundary only when the dev profile sets it, and the deployed profiles refuse those settings at startup."
+
+priority:
+  now: P3
+  at_target: P3
+  score_note: "Local browser access. Does not change the prod/uat control."
+
+dependencies: []
+acceptance: "With the dev profile, a browser origin http://localhost:3000 receives credentialed CORS headers and the session cookie omits Secure. Without that profile, CORS headers are absent and the cookie stays Secure. prod and uat fail startup if cookie-secure is false or any CORS origin is set."
+```
 
 ### SUG-20261028-1lg · One Login BRD surface
 

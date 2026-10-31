@@ -12,7 +12,6 @@ import java.net.URI;
 import java.util.UUID;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -72,7 +71,8 @@ public class AuthenticationController {
         ResponseEntity.status(HttpStatus.FOUND).location(redirect);
     if (completion.clientType() == ClientType.WEB) {
       response.header(
-          HttpHeaders.SET_COOKIE, sessionCookie(completion.browserSessionId()).toString());
+          HttpHeaders.SET_COOKIE,
+          WorkforceSessionCookie.issue(properties, completion.browserSessionId()).toString());
     }
     return response.build();
   }
@@ -106,7 +106,7 @@ public class AuthenticationController {
           String browserHandle) {
     loginService.logout(requireHandle(nativeHandle, browserHandle));
     return ResponseEntity.noContent()
-        .header(HttpHeaders.SET_COOKIE, expiredSessionCookie().toString())
+        .header(HttpHeaders.SET_COOKIE, WorkforceSessionCookie.clear(properties).toString())
         .build();
   }
 
@@ -116,26 +116,6 @@ public class AuthenticationController {
       throw new SessionInvalidException("Session handle is required");
     }
     return handle;
-  }
-
-  private ResponseCookie sessionCookie(String value) {
-    return ResponseCookie.from(properties.cookieName(), value)
-        .httpOnly(true)
-        .secure(true)
-        .sameSite("Strict")
-        .path("/")
-        .maxAge(properties.sessionTtl())
-        .build();
-  }
-
-  private ResponseCookie expiredSessionCookie() {
-    return ResponseCookie.from(properties.cookieName(), "")
-        .httpOnly(true)
-        .secure(true)
-        .sameSite("Strict")
-        .path("/")
-        .maxAge(0)
-        .build();
   }
 
   private static URI appendQuery(String returnUri, String name, String value) {

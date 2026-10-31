@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -100,19 +99,11 @@ public class LoginJourneyController {
   private ResponseEntity<JourneyBody> respond(LoginJourneyService.JourneyResult result) {
     ResponseEntity.BodyBuilder response = ResponseEntity.ok();
     if (result.browserSessionId() != null) {
-      response.header(HttpHeaders.SET_COOKIE, sessionCookie(result.browserSessionId()).toString());
+      response.header(
+          HttpHeaders.SET_COOKIE,
+          WorkforceSessionCookie.issue(properties, result.browserSessionId()).toString());
     }
     return response.body(result.body());
-  }
-
-  private ResponseCookie sessionCookie(String value) {
-    return ResponseCookie.from(properties.cookieName(), value)
-        .httpOnly(true)
-        .secure(true)
-        .sameSite("Strict")
-        .path("/")
-        .maxAge(properties.sessionTtl())
-        .build();
   }
 
   public record SignInRequest(

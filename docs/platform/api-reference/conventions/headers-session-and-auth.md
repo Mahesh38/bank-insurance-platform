@@ -36,12 +36,14 @@ tokens stay inside that encrypted record and never leave the BFF.
 | Attribute | Value | Why |
 |---|---|---|
 | `HttpOnly` | true | JavaScript cannot read the handle |
-| `Secure` | true | HTTPS only |
+| `Secure` | true | HTTPS only. The `dev` profile sets `workforce.session.cookie-secure=false` so a browser on plain HTTP can store the cookie. `prod` and `uat` refuse to start with that value |
 | `SameSite` | `Strict` | No cross-site sends |
 | `Path` | `/` | |
 | `Max-Age` | `workforce.session.session-ttl` (default **8 h**) | Same TTL as the vault record |
 
 On logout the BFF sends the same cookie with `Max-Age=0`.
+
+CORS is off unless `workforce.cors.allowed-origins` lists explicit `http` or `https` origins (no wildcard, no path). The `dev` profile lists `http://localhost:3000` and allows credentials. `prod` and `uat` refuse to start when the list is non-empty. `SameSite=Strict` still withholds the cookie from a different site, so the local UI uses `localhost` rather than `127.0.0.1`.
 
 ### 1.3 CSRF (web only)
 

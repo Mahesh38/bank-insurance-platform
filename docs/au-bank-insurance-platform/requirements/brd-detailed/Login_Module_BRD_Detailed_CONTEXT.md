@@ -9,6 +9,7 @@ Accepted Login BRD v3.1 (17 October 2026). User-visible copy is the design text.
 - Control rule: Sign in, Get OTP, Verify and Set Password stay disabled until their mandatory inputs are present. Blank-field sentences are not shown.
 - Screen rule: a screen the v3.1 design notes say is absent is not required. Do not invent one.
 - What this acceptance does not do: it does not build Captcha, OTP, lock, Unlock, Forgot Password or expiry on `workforce-access-bff`. That remainder stays parked at `SUG-20261008-otp`. It does not add mPIN. It does not create, reset or change a Bank RM network password.
+- User-type rule (`D-029`, 31 October 2026): this module has exactly two login user types. Bank RM is the bank employee. Insurance RM, shown on the screen as Insurance Partner, is the non-bank employee. FLS, insurer partner representative and IPR are names for that non-bank employee, not a third person who can sign in. Specified Person remains a certification, not a login type. This rule does not change any screen label or sentence in this BRD.
 - Approvals: Business, Information Security, Technology and QA rows are still blank. This acceptance is the repository-owner ratification of the text. It is not those four signatures.
 
 ## 1. Document control
@@ -29,6 +30,7 @@ Accepted Login BRD v3.1 (17 October 2026). User-visible copy is the design text.
 | 3.0 | 17-Oct-2026 | One-page credential entry. | Product Team |
 | 3.1 | 17-Oct-2026 | Insurance RM Forgot Password uses its own Email ID and Captcha screen before OTP and password reset. | Product Team |
 | 3.1-repo | 23-Oct-2026 | Design text accepted as the user-visible copy. v1.0 context replaced. | Repository owner |
+| 3.1-repo-2 | 31-Oct-2026 | Recorded the two columns as the only login user types: bank employee and non-bank employee (`D-029`). Screen copy unchanged. | Repository owner |
 
 ## 2. Purpose
 
@@ -78,6 +80,8 @@ There is no separate Login ID screen and no separate Password screen.
 - A dedicated service-error or no-internet screen.
 
 ## 5. User and authentication model
+
+These two columns are the only workforce login user types (`D-029`). Bank RM is the bank employee. Insurance RM is the non-bank employee. The screen calls them **AU Bank RM** and **Insurance Partner**.
 
 | Requirement | Bank RM | Insurance RM |
 |---|---|---|

@@ -22,7 +22,8 @@ class BffSessionCredentialsTest {
           Duration.ofMinutes(10),
           Duration.ofMinutes(5),
           Duration.ofHours(8),
-          Set.of("https://bank.example/"));
+          Set.of("https://bank.example/"),
+          true);
 
   @Test
   void csrfSkipRequiresBearerOrSessionHandleWithoutCookie() {

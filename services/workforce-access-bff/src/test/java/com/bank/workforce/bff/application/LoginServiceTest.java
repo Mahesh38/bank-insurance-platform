@@ -51,7 +51,8 @@ class LoginServiceTest {
             Duration.ofMinutes(5),
             Duration.ofMinutes(1),
             Duration.ofHours(8),
-            Set.of("https://app.example.test/auth/complete", "bankinsurance://auth-complete"));
+            Set.of("https://app.example.test/auth/complete", "bankinsurance://auth-complete"),
+            true);
     service = new LoginService(provider, authorization, sessions, properties);
   }
 

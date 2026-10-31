@@ -24,7 +24,8 @@ class TokenVaultCipherTest {
             Duration.ofMinutes(5),
             Duration.ofMinutes(1),
             Duration.ofHours(8),
-            Set.of("https://example.test/complete"));
+            Set.of("https://example.test/complete"),
+            true);
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
     var cipher = new TokenVaultCipher(properties, objectMapper);
     var pending =

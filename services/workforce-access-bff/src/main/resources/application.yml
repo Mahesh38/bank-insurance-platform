@@ -45,9 +45,14 @@ workforce:
     pending-login-ttl: 5m
     completion-code-ttl: 1m
     session-ttl: 8h
+    # Secure cookies. application-dev.yml sets this false for plain HTTP. prod/uat refuse false.
+    cookie-secure: true
     allowed-return-uris:
       - ${WORKFORCE_WEB_RETURN_URI:http://localhost:3000/auth/complete}
       - ${WORKFORCE_NATIVE_RETURN_URI:bankinsurance://auth-complete}
+  # Empty keeps CORS off. application-dev.yml lists the local UI origin. prod/uat refuse a list.
+  cors:
+    allowed-origins: []
   # Login BRD v3.1 journey. otp-code stays unset so a code is generated and never returned.
   # WORKFORCE_LOGIN_OTP_CODE is a test pin; prod/uat refuse to start when it is set.
   login:

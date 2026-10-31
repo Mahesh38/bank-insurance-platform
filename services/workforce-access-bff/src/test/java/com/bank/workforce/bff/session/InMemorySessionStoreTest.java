@@ -31,7 +31,8 @@ class InMemorySessionStoreTest {
             Duration.ofMinutes(5),
             Duration.ofMinutes(1),
             Duration.ofHours(8),
-            Set.of("https://example.test/complete"));
+            Set.of("https://example.test/complete"),
+            true);
     var mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     store = new InMemorySessionStore(new TokenVaultCipher(properties, mapper));
   }

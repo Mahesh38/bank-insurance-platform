@@ -818,7 +818,7 @@ components:
       type: apiKey
       in: cookie
       name: WORKFORCE_SESSION
-      description: Browser transport (HttpOnly, Secure, SameSite=Strict, Path=/, Max-Age 8 h). Mutations need `X-XSRF-TOKEN`.
+      description: Browser transport (HttpOnly, Secure, SameSite=Strict, Path=/, Max-Age 8 h). The dev profile may set Secure false; prod and uat refuse to start when it does. Mutations need `X-XSRF-TOKEN`.
 
   parameters:
     CorrelationId:

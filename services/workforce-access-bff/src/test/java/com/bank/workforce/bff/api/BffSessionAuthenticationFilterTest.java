@@ -58,7 +58,8 @@ class BffSessionAuthenticationFilterTest {
             Duration.ofMinutes(5),
             Duration.ofMinutes(1),
             Duration.ofHours(8),
-            Set.of("http://localhost"));
+            Set.of("http://localhost"),
+            true);
     filter =
         new BffSessionAuthenticationFilter(
             sessions, properties, ServiceErrors.of("bff", PlatformLayer.L4), resolver);

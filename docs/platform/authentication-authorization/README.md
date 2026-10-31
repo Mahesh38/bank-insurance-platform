@@ -274,6 +274,10 @@ Keycloak owns a separate database managed only by Keycloak. No business service 
 
 ## 11. Initial service APIs
 
+User stories for the Bank RM and Insurance RM APIs in this section:
+[stories/README.md](./stories/README.md). One story per implemented operation.
+Partner Keycloak OIDC (`UC-02`) is a different ceremony and is not in that set.
+
 ### Public BFF
 
 - `POST /api/v1/auth/captcha` → `POST /api/v1/auth/login` → `POST /api/v1/auth/otp/verify` — Login BRD v3.1 for Bank RM and Insurance RM/FLS (session only after OTP)

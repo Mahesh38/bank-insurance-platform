@@ -28,7 +28,7 @@ This document is the single source of truth for workforce authentication and aut
 3. Keycloak is the initial provider and runs privately. Provider-specific behavior is isolated behind `identity-provider-adapter-service` so Cognito or another standards-compliant provider can replace it.
 4. `identity-authorization-service` is the business source of truth for partner users, roles, permissions, insurer/branch scopes, hierarchy, certification metadata, grants, and denials.
 5. Keycloak owns credentials, authentication ceremonies, provider sessions, MFA, and token issuance. It is not the source of truth for business authorization.
-6. Phase 1 supports bank employees and insurer representatives. Customer identity is a later bounded context.
+6. Workforce login has exactly two user types (`D-029`): a bank employee and a non-bank employee. Customer identity is a later bounded context. A job title or a certification is not a third login type.
 7. Bank Active Directory remains the workforce source of record (`TI-01`). R0 reaches it through the **existing bank AD-verify API via Apigee private** (`ADR-020`). LDAP from EKS to AD is forbidden. Partners never enter AD.
 8. Authentication and administrative events are retained for seven years initially; retention remains configurable pending Compliance confirmation.
 9. Bulk identity and privileged-access changes use maker-checker approval.
@@ -38,9 +38,11 @@ This document is the single source of truth for workforce authentication and aut
 
 | Term | Meaning |
 |---|---|
-| RM | Bank Relationship Manager. An RM may also hold a valid IRDAI Specified Person qualification. |
-| SP | Specified Person qualification/certificate; it is an attribute, not a synonym for RM. |
-| SR | Insurer Sales Representative. Partner certification is optional in Phase 1 but is modelled for later enforcement. |
+| Bank employee | The bank login user. Screen label **AU Bank RM**. API `BANK_RM`. Domain `BANK_EMPLOYEE`. Login ID is the employee ID. Password is the bank network password, checked by AD-verify and not stored here. |
+| Non-bank employee | The only other login user. Screen label **Insurance Partner**. API `INSURANCE_RM`. Domain `INSURER_REPRESENTATIVE`. Login ID is the corporate email. Password is the platform password. Insurance RM, FLS, insurer partner representative and IPR are this user (`D-029`). |
+| RM | Bank Relationship Manager. A job of a bank employee. An RM may also hold a valid IRDAI Specified Person qualification. |
+| SP | Specified Person qualification/certificate. An attribute of a bank employee, not a login user and not a synonym for RM. |
+| SR | Insurer Sales Representative. A name for the non-bank employee. Partner certification is optional in Phase 1 but is modelled for later enforcement. |
 | BFF | Backend for Frontend used by NIP-APP. Client source is not in this repository (`DOC-006`). |
 | IdP | Identity provider: Keycloak initially; Cognito or another OIDC provider may replace it. |
 | PEP | Policy Enforcement Point in the BFF and each business service. |
@@ -119,7 +121,7 @@ Keycloak is a separately deployed product, not one of the three custom Spring se
 
 ## 5. Authentication flows
 
-### 5.1 Bank employee and Insurance RM (Login BRD v3.1)
+### 5.1 Bank employee and non-bank employee (Login BRD v3.1)
 
 `SUG-20261028-1lg` — single NIP password-login surface. IAM-001 immediate-session login is retired.
 
@@ -132,11 +134,13 @@ Keycloak is a separately deployed product, not one of the three custom Spring se
    `identity-authorization-service`.
 3. On success the BFF issues a login OTP challenge (`OTP_SENT`). The opaque platform session is
    created only by `POST /api/v1/auth/otp/verify` after a correct OTP.
-4. Partner Keycloak OIDC is §5.2 via `POST /api/v1/auth/partner/authorization` — not this form.
+4. The non-bank employee may also start the Keycloak ceremony in §5.2 at `POST /api/v1/auth/partner/authorization`. That route is another ceremony for the same user type, not a third login user.
 
 NIP-APP / Fireframe remains the UI chrome. Direct credential forwarding to AD from EKS is still forbidden. External Captcha/SMS-email OTP gateway remains parked (`SUG-20261008-otp` remainder).
 
-### 5.2 Insurer partner representative (Keycloak OIDC)
+### 5.2 Non-bank employee Keycloak ceremony (OIDC)
+
+This ceremony authenticates the non-bank employee (`INSURER_REPRESENTATIVE`). It is not a third login user type (`D-029`). The password form for that same user is §5.1.
 
 1. A bank admin creates the partner business identity in `identity-authorization-service` (E5).
 2. An outbox command provisions the provider identity through `identity-provider-adapter-service`.
@@ -171,7 +175,7 @@ Every business identity has:
 
 - immutable platform user ID;
 - provider and provider subject ID;
-- user type (`BANK_EMPLOYEE` or `INSURER_REPRESENTATIVE`);
+- user type (`BANK_EMPLOYEE` for the bank employee, or `INSURER_REPRESENTATIVE` for the non-bank employee — these are the only two, `D-029`);
 - lifecycle state (`PENDING`, `ACTIVE`, `SUSPENDED`, `DISABLED`, `EXPIRED`);
 - employee ID or partner personnel reference;
 - insurer tenancy for partner users;

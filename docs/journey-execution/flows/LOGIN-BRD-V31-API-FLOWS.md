@@ -8,12 +8,24 @@
 login is this journey on `POST /api/v1/auth/login`. `UC-02` partner OIDC begins at
 `POST /api/v1/auth/partner/authorization`.
 
-Two workforce users use the journey below.
+Workforce login has exactly two user types (`D-029`, recorded 31 October 2026). A job title is not another person who can sign in.
 
-| BRD user | API `userType` | Login ID | Password checked by |
-|---|---|---|---|
-| Bank RM | `BANK_RM` | Employee ID | Bank AD-verify. The platform does not store it. |
-| Insurance RM | `INSURANCE_RM` | Corporate email | Platform PBKDF2 hash on `identity-authorization-service` |
+| User type | Screen label | API `userType` | Domain `userType` | Login ID | Password checked by |
+|---|---|---|---|---|---|
+| Bank employee | AU Bank RM | `BANK_RM` | `BANK_EMPLOYEE` | Employee ID | Bank AD-verify. The platform does not store it. |
+| Non-bank employee | Insurance Partner | `INSURANCE_RM` | `INSURER_REPRESENTATIVE` | Corporate email | Platform PBKDF2 hash on `identity-authorization-service` |
+
+Insurance RM, FLS, insurer partner representative and IPR are names for the non-bank employee. Specified Person is a certification a bank employee may hold. The sign-in page has only these two switches. `WorkforceLoginUser` has the same two constants, and `platformType()` maps them onto the domain values above.
+
+### Recorded screen flow
+
+Both types use one page, **Sign in to Insurance Hub**. Sign in stays disabled until Login ID, Password and Captcha are filled. Unlock account is always shown under Sign in. Web receives `WORKFORCE_SESSION` only after the login OTP. Native receives `sessionHandle` only then. Neither response carries an OAuth token.
+
+Bank employee. The user selects AU Bank RM and enters the employee ID, the network password and the captcha. There is no Forgot password link. Captcha is checked first (`VAL-004` does not count as a password failure). An unknown employee ID is `VAL-005` and does not count. First-time and locked accounts go to Unlock before the password is checked. A ready account is checked with AD-verify. The first wrong password is `VAL-008` (2 attempts left), the second is `VAL-009` (1 left), and the third locks the platform account (`VAL-010`). Thirty days without a successful login locks it (`VAL-011`). Unlock sends an OTP, leaves the network password unchanged, and does not create a session. A successful login OTP creates the session and the client shows Welcome back, then the dashboard after 2 seconds.
+
+Non-bank employee. The user selects Insurance Partner and enters the corporate email, the platform password and the captcha. Forgot password is on this form only. An unknown email is `VAL-006`. Captcha, first-time, lock, inactivity and login-OTP rules are the same as for the bank employee. First-time unlock continues to Set New Password and does not create a session. Forgot password starts on its own email-and-captcha screen and does not clear a lock. The platform password expires 60 days after it was set. Expiry is detected only after the entered password matches, then OTP and Set New Password. No session exists until the next sign-in.
+
+The sequences below are that flow. The screen reference is [`docs/figma/login-brd-v3.1/`](../../figma/login-brd-v3.1/README.md).
 
 The app calls only `workforce-access-bff` (`/api/v1/auth/**`). The BFF calls `identity-authorization-service` with `X-Internal-Service-Key`. Bank sign-in also calls `identity-provider-adapter-service` `POST /internal/v1/auth/ad-verify`. Captcha and OTP live in the BFF process. They are not written to the database.
 
@@ -408,13 +420,14 @@ Blank-field sentences from older copy are not returned. A missing JSON field fai
 
 ---
 
-## 14. Partner OIDC (not the BRD password form)
+## 14. Keycloak ceremony for the non-bank employee
 
 IAM-001 immediate-session login (`identitySource=BANK_AD` on `/auth/login`) is retired
 (`SUG-20261028-1lg`). A body that still sends `identitySource` / `employeeId` without the BRD
-fields returns `422 VALIDATION_ERROR`. Partner Keycloak OIDC begins at
-`POST /api/v1/auth/partner/authorization`; `GET /api/v1/auth/callback` finishes it (`UC-02`).
-That partner is not the BRD Insurance RM / FLS toggle.
+fields returns `422 VALIDATION_ERROR`. `POST /api/v1/auth/partner/authorization` and
+`GET /api/v1/auth/callback` remain (`UC-02`). They resolve domain user type
+`INSURER_REPRESENTATIVE`. That is the non-bank employee, the same type as Insurance Partner on
+the password form. It is not a third login user type (`D-029`).
 
 ---
 

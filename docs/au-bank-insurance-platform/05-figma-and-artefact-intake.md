@@ -43,6 +43,7 @@
 | 10 | `Phase_4_Business_Rules_Information_Model_and_Governance_v0.1_*.pdf` | 2026-07-31 | Rule categories, canonical objects, governance | **Adopt** structure | KB 07 |
 | 11 | `Phase_5_Solution_Architecture_Blueprint_v0.1_*.pdf` | 2026-07-31 | Domains, integration phases A–C, flow | **Adopt** as advisory blueprint | KB 08 |
 | 12 | Rajal detailed module BRD pack (9 DOCX → context MD) | 2026-09-28 | Login, Lead, Suitability (Savings/ULIP), Savings listing/details/quote, Pitch Deck, Customer Buying Journey v1.2, Exception Handling | **Adopt** as module-behaviour SSOT (`DOC-005`). Conflicts/TBDs not closed. | [brd-detailed/](./requirements/brd-detailed/README.md) · [alignment](./requirements/BRD-ALIGNMENT-2026-09-28.md) |
+| 13 | Login BRD v3.1 screen export (11 PNGs) | 2026-10-31 | AU Bank RM and Insurance Partner sign-in, errors, unlock, OTP, set password, expiry, forgot password | **Reference** (`D-012`). Behaviour stays Login BRD v3.1. Two login user types (`D-029`). | [login-brd-v3.1/](../figma/login-brd-v3.1/README.md) |
 
 **Location:** `docs/au-bank-insurance-platform/artefacts/uploads/`
 

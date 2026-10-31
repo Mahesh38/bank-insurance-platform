@@ -148,7 +148,9 @@ assists an RM or a customer; they are not a Specified Person, hold no regulated-
 see only their own insurer's records, only once the RM has completed need analysis and suitability.
 The accountable SP on a record is the originating RM and is immutable. Normative statement:
 [`ws3-platform/01 §2.4`](../../../platform/ws3-platform/01-domain-model-and-invariants.md); decision
-`ADR-004`.
+`ADR-004`. This actor is the non-bank employee from workforce login, not a third person who signs in (`D-029`).
+
+**Rule ID-15c — workforce login has two user types, and this list is not a third sign-in option** (`D-029`). The sign-in page accepts a bank employee (`BANK_EMPLOYEE` / `BANK_RM`) or a non-bank employee (`INSURER_REPRESENTATIVE` / `INSURANCE_RM` / `INSURER_PARTNER_REP`). Insurance RM, FLS and insurer partner representative are the non-bank employee. Specified Person is a certification on the bank employee. `CUSTOMER`, `CALL_CENTRE_AGENT` and `SERVICE` in the request above are authorization classifications. They are not switches on the workforce login page. Customer authentication stays a later bounded context.
 
 **Rule ID-16 — precedence is fixed and non-negotiable:**
 

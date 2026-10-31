@@ -18,8 +18,8 @@
 schema_version: "1.0"
 generated_by: "scripts/context/build-doc-map.py"
 source_of_rules: "docs/context/AGENT-CONTEXT-INDEX.yaml#doc_routing"
-document_count: 901
-total_bytes: 23720852
+document_count: 902
+total_bytes: 23764918
 
 documents:
   - path: docs/1sb-insurance-integration/01-executive-overview.md
@@ -2277,7 +2277,7 @@ documents:
     persona: null
     title: "DOC MAP"
     answers: "============================================================================="
-    bytes: 316258
+    bytes: 316720
   - path: docs/context/README.md
     bucket: context
     authority: non-binding-context
@@ -5453,7 +5453,7 @@ documents:
     persona: business-analysis
     title: "Bank RM and Insurance RM — authentication API stories"
     answers: "One user story for each API that implements the Login BRD v3.1 journey for a Bank RM"
-    bytes: 4629
+    bytes: 4997
   - path: docs/platform/authentication-authorization/stories/WS2-LOGIN-S01-csrf.md
     bucket: platform
     authority: ai-drafted
@@ -5614,6 +5614,14 @@ documents:
     title: "Story — WS2-LOGIN-S20 Store an Insurance RM platform password"
     answers: "The BFF needs the new Insurance RM password stored after the rules pass, so that first-time, forgot, and expiry continuations change the hash without…"
     bytes: 3991
+  - path: docs/platform/authentication-authorization/stories/WS2-LOGIN-jira-import.csv
+    bucket: platform
+    authority: ai-drafted
+    capsules: [business-analysis, security-review, code-change]
+    persona: business-analysis
+    title: "WS2 LOGIN jira import"
+    answers: "CSV columns: ﻿Issue Id,Issue Type,Summary,Epic Name,Parent,Epic Link,Description,Acceptance Criteria,API,Priority,Source Priority,Labels,Story Points,Size,Workstre"
+    bytes: 43236
   - path: docs/platform/contracts/1sb-integration-service/BUILD-BRIEF.md
     bucket: platform
     authority: approved-spec

@@ -1,0 +1,1012 @@
+﻿Issue Id,Issue Type,Summary,Epic Name,Parent,Epic Link,Description,Acceptance Criteria,API,Priority,Source Priority,Labels,Story Points,Size,Workstream,Owner,Implementation Status,Traces To
+WS2-LOGIN,Epic,Bank RM and Insurance RM authentication,Bank RM and Insurance RM authentication,,,"Login BRD v3.1 authentication for a Bank RM (userType BANK_RM, employee ID, bank AD-verify) and an Insurance RM (userType INSURANCE_RM, corporate email, platform password), including FLS.
+
+The workforce app calls only workforce-access-bff. A session is created only after a successful login OTP. Internal operations are called by the BFF with X-Internal-Service-Key.
+
+Partner Keycloak OIDC (UC-02) is a separate ceremony and is not in this epic.
+
+Source: docs/platform/authentication-authorization/stories/README.md",,,High,P2,"login-brd,bank-rm,insurance-rm,ws-2",,,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S01,Story,WS2-LOGIN-S01 Issue the login CSRF token,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As a Bank RM or Insurance RM on the web app, I need a CSRF token before any login POST, so that another site cannot submit the login journey with my browser cookies.
+
+GET /api/v1/auth/csrf on workforce-access-bff. No session. No downstream call.
+
+Acceptance criteria
+
+AC1
+  Given the web app has not signed in
+  When it calls GET /api/v1/auth/csrf
+  Then the response is 200 with headerName and token
+  And the response sets cookie WORKFORCE-XSRF
+
+AC2
+  Given a web POST to /api/v1/auth/** without X-XSRF-TOKEN
+  When the BFF checks CSRF
+  Then Spring Security refuses the request
+  And the problem+json code CSRF_REJECTED is not implemented yet
+
+AC3
+  Given a request that already carries X-Session-Handle or Authorization Bearer
+  When CSRF is evaluated
+  Then CSRF is skipped for that request","AC1
+  Given the web app has not signed in
+  When it calls GET /api/v1/auth/csrf
+  Then the response is 200 with headerName and token
+  And the response sets cookie WORKFORCE-XSRF
+
+AC2
+  Given a web POST to /api/v1/auth/** without X-XSRF-TOKEN
+  When the BFF checks CSRF
+  Then Spring Security refuses the request
+  And the problem+json code CSRF_REJECTED is not implemented yet
+
+AC3
+  Given a request that already carries X-Session-Handle or Authorization Bearer
+  When CSRF is evaluated
+  Then CSRF is skipped for that request",GET /api/v1/auth/csrf,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",2,S,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S02,Story,WS2-LOGIN-S02 Issue a single-use login captcha,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As a Bank RM or Insurance RM, I need a single-use captcha before sign-in, unlock, or forgot password, so that a script cannot spend a password or an unlock attempt without solving it.
+
+POST /api/v1/auth/captcha. In-process on the BFF. No session is created.
+
+Acceptance criteria
+
+AC1
+  Given a caller with a valid CSRF token on web
+  When they POST /api/v1/auth/captcha
+  Then outcome is CAPTCHA with captchaId, display, and expiresInSeconds 300
+
+AC2
+  Given a captcha that is wrong, expired, missing, or already used
+  When it is presented to login, unlock, or forgot-password
+  Then the response is MESSAGE VAL-004
+  And the password is not checked and the failure counter does not move
+
+AC3
+  Given a captcha that matched
+  When the same captchaId is presented again
+  Then it is rejected as already used","AC1
+  Given a caller with a valid CSRF token on web
+  When they POST /api/v1/auth/captcha
+  Then outcome is CAPTCHA with captchaId, display, and expiresInSeconds 300
+
+AC2
+  Given a captcha that is wrong, expired, missing, or already used
+  When it is presented to login, unlock, or forgot-password
+  Then the response is MESSAGE VAL-004
+  And the password is not checked and the failure counter does not move
+
+AC3
+  Given a captcha that matched
+  When the same captchaId is presented again
+  Then it is rejected as already used",POST /api/v1/auth/captcha,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",2,S,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1, SUG-20261008-otp"
+WS2-LOGIN-S03,Story,WS2-LOGIN-S03 Sign in with captcha and password,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As a Bank RM or Insurance RM, I need to submit my login id and password with a captcha, so that a correct credential starts a login OTP and no session exists until that OTP is verified.
+
+POST /api/v1/auth/login.
+
+| User | userType | Login ID | Password checked by |
+|---|---|---|---|
+| Bank RM | BANK_RM | Employee ID | S13 AD-verify, then S14 |
+| Insurance RM | INSURANCE_RM | Corporate email | S15 platform hash |
+
+Body: clientType, userType, loginId, password, captchaId, captchaValue.
+
+Acceptance criteria
+
+AC1
+  Given a READY Bank RM and a matching captcha
+  When AD-verify accepts the network password and the directory account is active
+  Then outcome is OTP_SENT with challengeId, maskedMobile, and maskedEmail
+  And no WORKFORCE_SESSION cookie and no sessionHandle are set
+
+AC2
+  Given a READY Insurance RM and a matching captcha
+  When the platform password matches and is inside 60 days
+  Then outcome is OTP_SENT
+  And no AD-verify call is made
+
+AC3
+  Given captcha failure, unknown id, first login, inactive, or a lock
+  When login is submitted
+  Then outcome is MESSAGE with VAL-004, VAL-005, VAL-006, VAL-012, VAL-007, VAL-010, or VAL-011
+  And the password is not counted when the stop is before the password check
+
+AC4
+  Given a wrong password on a READY account
+  When the attempt is the first, second, or third
+  Then the message is VAL-008, VAL-009, or VAL-010
+  And the third failure locks the account as PASSWORD
+
+AC5
+  Given an Insurance RM whose password matches and password_changed_at plus 60 days is not after now
+  When login is submitted
+  Then outcome is PASSWORD_EXPIRED with an expiry ticket
+  And the failure counter does not move and no OTP is sent
+
+AC6
+  Given a body that still uses IAM-001 fields without the BRD fields
+  When login is submitted
+  Then the response is 422 VALIDATION_ERROR","AC1
+  Given a READY Bank RM and a matching captcha
+  When AD-verify accepts the network password and the directory account is active
+  Then outcome is OTP_SENT with challengeId, maskedMobile, and maskedEmail
+  And no WORKFORCE_SESSION cookie and no sessionHandle are set
+
+AC2
+  Given a READY Insurance RM and a matching captcha
+  When the platform password matches and is inside 60 days
+  Then outcome is OTP_SENT
+  And no AD-verify call is made
+
+AC3
+  Given captcha failure, unknown id, first login, inactive, or a lock
+  When login is submitted
+  Then outcome is MESSAGE with VAL-004, VAL-005, VAL-006, VAL-012, VAL-007, VAL-010, or VAL-011
+  And the password is not counted when the stop is before the password check
+
+AC4
+  Given a wrong password on a READY account
+  When the attempt is the first, second, or third
+  Then the message is VAL-008, VAL-009, or VAL-010
+  And the third failure locks the account as PASSWORD
+
+AC5
+  Given an Insurance RM whose password matches and password_changed_at plus 60 days is not after now
+  When login is submitted
+  Then outcome is PASSWORD_EXPIRED with an expiry ticket
+  And the failure counter does not move and no OTP is sent
+
+AC6
+  Given a body that still uses IAM-001 fields without the BRD fields
+  When login is submitted
+  Then the response is 422 VALIDATION_ERROR",POST /api/v1/auth/login,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",5,L,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S04,Story,WS2-LOGIN-S04 Verify a workforce OTP challenge,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As a Bank RM or Insurance RM, I need to submit the one-time code for the challenge I was given, so that login opens a session and every other purpose finishes without a session.
+
+POST /api/v1/auth/otp/verify with challengeId and otp. One operation for purposes LOGIN, UNLOCK, FORGOT, and EXPIRY.
+
+Acceptance criteria
+
+AC1
+  Given a LOGIN challenge whose six digits match and are inside 10 minutes
+  When the caller verifies it
+  Then outcome is AUTHENTICATED
+  And WEB receives Set-Cookie WORKFORCE_SESSION (HttpOnly, Secure, SameSite Strict)
+  And NATIVE receives sessionHandle and no cookie
+  And the body contains no OAuth token
+  And a second verify of the same challenge is VAL-015
+
+AC2
+  Given an UNLOCK challenge that matches
+  When the caller verifies it
+  Then a Bank RM who was first-time receives COMPLETED and no session
+  And an Insurance RM who was first-time receives CONTINUATION purpose FIRST_TIME and a reset token
+  And a locked user receives COMPLETED and no session
+
+AC3
+  Given a FORGOT or EXPIRY challenge that matches
+  When the caller verifies it
+  Then outcome is CONTINUATION with a single-use reset token
+  And no session is created
+
+AC4
+  Given a wrong code with attempts left
+  When the caller verifies it
+  Then the response is VAL-014 and the challenge remains
+
+AC5
+  Given the fifth wrong code
+  When the caller verifies it
+  Then the response is VAL-016, the challenge is deleted, and the account is unchanged","AC1
+  Given a LOGIN challenge whose six digits match and are inside 10 minutes
+  When the caller verifies it
+  Then outcome is AUTHENTICATED
+  And WEB receives Set-Cookie WORKFORCE_SESSION (HttpOnly, Secure, SameSite Strict)
+  And NATIVE receives sessionHandle and no cookie
+  And the body contains no OAuth token
+  And a second verify of the same challenge is VAL-015
+
+AC2
+  Given an UNLOCK challenge that matches
+  When the caller verifies it
+  Then a Bank RM who was first-time receives COMPLETED and no session
+  And an Insurance RM who was first-time receives CONTINUATION purpose FIRST_TIME and a reset token
+  And a locked user receives COMPLETED and no session
+
+AC3
+  Given a FORGOT or EXPIRY challenge that matches
+  When the caller verifies it
+  Then outcome is CONTINUATION with a single-use reset token
+  And no session is created
+
+AC4
+  Given a wrong code with attempts left
+  When the caller verifies it
+  Then the response is VAL-014 and the challenge remains
+
+AC5
+  Given the fifth wrong code
+  When the caller verifies it
+  Then the response is VAL-016, the challenge is deleted, and the account is unchanged",POST /api/v1/auth/otp/verify,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",5,L,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S05,Story,WS2-LOGIN-S05 Resend an OTP without resetting attempts,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As a Bank RM or Insurance RM waiting on an OTP, I need to ask for a new code, so that I can finish the challenge without resetting the attempts I already used.
+
+POST /api/v1/auth/otp/resend with challengeId. Same operation for every OTP purpose.
+
+Acceptance criteria
+
+AC1
+  Given a live challenge younger than 2 minutes
+  When the caller resends
+  Then outcome is WAIT with resendAvailableInSeconds
+  And the current code still verifies
+
+AC2
+  Given a live challenge at least 2 minutes old and fewer than 3 resends used
+  When the caller resends
+  Then outcome is OTP_SENT
+  And the previous code no longer verifies
+  And attempts used are unchanged
+
+AC3
+  Given three resends already used
+  When the caller resends again
+  Then the response is VAL-017 and the challenge is deleted","AC1
+  Given a live challenge younger than 2 minutes
+  When the caller resends
+  Then outcome is WAIT with resendAvailableInSeconds
+  And the current code still verifies
+
+AC2
+  Given a live challenge at least 2 minutes old and fewer than 3 resends used
+  When the caller resends
+  Then outcome is OTP_SENT
+  And the previous code no longer verifies
+  And attempts used are unchanged
+
+AC3
+  Given three resends already used
+  When the caller resends again
+  Then the response is VAL-017 and the challenge is deleted",POST /api/v1/auth/otp/resend,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",2,S,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S06,Story,WS2-LOGIN-S06 Start unlock for a Bank RM or Insurance RM,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As a Bank RM or Insurance RM who cannot sign in yet, I need to start unlock with my login id and a new captcha, so that a locked or first-time account can receive an unlock OTP without being logged in.
+
+POST /api/v1/auth/unlock. Body: clientType, userType, loginId, captchaId, captchaValue. No password field. The login page does not carry the login id into this screen.
+
+Acceptance criteria
+
+AC1
+  Given a locked or first-time Bank RM or Insurance RM and a matching captcha
+  When unlock is submitted
+  Then outcome is OTP_SENT with purpose UNLOCK
+  And no session is created
+
+AC2
+  Given an account that is already active, not first-time, and not locked
+  When unlock is submitted
+  Then outcome is NOT_REQUIRED and the body has no screen copy
+
+AC3
+  Given an inactive account
+  When unlock is submitted
+  Then the response is VAL-007
+
+AC4
+  Given an unknown Insurance email
+  When unlock is submitted
+  Then the response is VAL-006
+
+AC5
+  Given a wrong or reused captcha
+  When unlock is submitted
+  Then the response is VAL-004 and the account is unchanged","AC1
+  Given a locked or first-time Bank RM or Insurance RM and a matching captcha
+  When unlock is submitted
+  Then outcome is OTP_SENT with purpose UNLOCK
+  And no session is created
+
+AC2
+  Given an account that is already active, not first-time, and not locked
+  When unlock is submitted
+  Then outcome is NOT_REQUIRED and the body has no screen copy
+
+AC3
+  Given an inactive account
+  When unlock is submitted
+  Then the response is VAL-007
+
+AC4
+  Given an unknown Insurance email
+  When unlock is submitted
+  Then the response is VAL-006
+
+AC5
+  Given a wrong or reused captcha
+  When unlock is submitted
+  Then the response is VAL-004 and the account is unchanged",POST /api/v1/auth/unlock,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",3,M,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S07,Story,WS2-LOGIN-S07 Start Insurance RM forgot password,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As an Insurance RM who has forgotten the platform password, I need to submit my corporate email and a captcha, so that an eligible account can start a reset without revealing a password and without a session.
+
+POST /api/v1/auth/forgot-password. Body: clientType, email, captchaId, captchaValue. There is no Bank RM operation.
+
+Acceptance criteria
+
+AC1
+  Given an active or first-time Insurance RM and a matching captcha
+  When forgot-password is submitted
+  Then outcome is OTP_SENT with purpose FORGOT
+  And the current password hash is unchanged
+
+AC2
+  Given an email that is not a business user
+  When forgot-password is submitted
+  Then the response is VAL-023
+
+AC3
+  Given a locked Insurance RM
+  When forgot-password is submitted
+  Then the response is FORGOT_LOCKED and no OTP is sent
+
+AC4
+  Given an inactive Insurance RM
+  When forgot-password is submitted
+  Then the response is FORGOT_INACTIVE
+
+AC5
+  Given a Bank RM employee id
+  When it is sent to this operation
+  Then this operation does not reset a network password","AC1
+  Given an active or first-time Insurance RM and a matching captcha
+  When forgot-password is submitted
+  Then outcome is OTP_SENT with purpose FORGOT
+  And the current password hash is unchanged
+
+AC2
+  Given an email that is not a business user
+  When forgot-password is submitted
+  Then the response is VAL-023
+
+AC3
+  Given a locked Insurance RM
+  When forgot-password is submitted
+  Then the response is FORGOT_LOCKED and no OTP is sent
+
+AC4
+  Given an inactive Insurance RM
+  When forgot-password is submitted
+  Then the response is FORGOT_INACTIVE
+
+AC5
+  Given a Bank RM employee id
+  When it is sent to this operation
+  Then this operation does not reset a network password",POST /api/v1/auth/forgot-password,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",3,M,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S08,Story,WS2-LOGIN-S08 Send the OTP after Insurance RM password expiry,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As an Insurance RM whose platform password has expired, I need to ask for an OTP with the expiry ticket from sign-in, so that a code is sent only after I choose to continue.
+
+POST /api/v1/auth/password-expired/send-otp with expiryTicket. Bank RM does not use this operation. The network password does not expire here.
+
+Acceptance criteria
+
+AC1
+  Given sign-in returned PASSWORD_EXPIRED with an expiry ticket
+  When this operation is called with that ticket
+  Then outcome is OTP_SENT with purpose EXPIRY
+  And no session is created
+
+AC2
+  Given a missing, expired, or already used ticket
+  When this operation is called
+  Then the challenge is not issued
+
+AC3
+  Given the user has not called this operation
+  When they only hold the expiry ticket
+  Then set-password rejects that ticket","AC1
+  Given sign-in returned PASSWORD_EXPIRED with an expiry ticket
+  When this operation is called with that ticket
+  Then outcome is OTP_SENT with purpose EXPIRY
+  And no session is created
+
+AC2
+  Given a missing, expired, or already used ticket
+  When this operation is called
+  Then the challenge is not issued
+
+AC3
+  Given the user has not called this operation
+  When they only hold the expiry ticket
+  Then set-password rejects that ticket",POST /api/v1/auth/password-expired/send-otp,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",2,S,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S09,Story,WS2-LOGIN-S09 Set or reset an Insurance RM platform password,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As an Insurance RM continuing from first-time unlock, forgot password, or expiry, I need to submit a new platform password and its confirmation, so that the next sign-in uses that password and this call does not open a session.
+
+POST /api/v1/auth/password with resetToken, newPassword, confirmPassword. The token's purpose is FIRST_TIME, FORGOT, or EXPIRY. Bank RM has no set-password step.
+
+Acceptance criteria
+
+AC1
+  Given a single-use reset token inside 10 minutes and a password that passes every rule
+  When set-password is submitted
+  Then outcome is PASSWORD_SET
+  And no session cookie or sessionHandle is returned
+  And the next sign-in must still pass captcha, password, and a login OTP
+
+AC2
+  Given new and confirm differ
+  When set-password is submitted
+  Then the response is VAL-019 and the hash is unchanged
+
+AC3
+  Given the new value is exactly 123456, outside 8–16 characters, contains whitespace, contains the registered email, or misses uppercase, lowercase, digit, or a non-alphanumeric character
+  When set-password is submitted
+  Then the first failing rule is returned and the hash is unchanged
+
+AC4
+  Given the new password matches the current hash
+  When set-password is submitted
+  Then the response is VAL-020
+
+AC5
+  Given purpose FORGOT while the account is locked
+  When set-password is submitted
+  Then the response is FORGOT_LOCKED and the hash is unchanged","AC1
+  Given a single-use reset token inside 10 minutes and a password that passes every rule
+  When set-password is submitted
+  Then outcome is PASSWORD_SET
+  And no session cookie or sessionHandle is returned
+  And the next sign-in must still pass captcha, password, and a login OTP
+
+AC2
+  Given new and confirm differ
+  When set-password is submitted
+  Then the response is VAL-019 and the hash is unchanged
+
+AC3
+  Given the new value is exactly 123456, outside 8–16 characters, contains whitespace, contains the registered email, or misses uppercase, lowercase, digit, or a non-alphanumeric character
+  When set-password is submitted
+  Then the first failing rule is returned and the hash is unchanged
+
+AC4
+  Given the new password matches the current hash
+  When set-password is submitted
+  Then the response is VAL-020
+
+AC5
+  Given purpose FORGOT while the account is locked
+  When set-password is submitted
+  Then the response is FORGOT_LOCKED and the hash is unchanged",POST /api/v1/auth/password,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",3,M,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S10,Story,WS2-LOGIN-S10 Read the workforce session,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As a Bank RM or Insurance RM who has completed the login OTP, I need to read who the session belongs to, so that the app can show my workspace without receiving a provider token.
+
+GET /api/v1/auth/session. Handle from X-Session-Handle, otherwise cookie WORKFORCE_SESSION.
+
+Acceptance criteria
+
+AC1
+  Given a live session created by a successful login OTP
+  When GET /api/v1/auth/session is called with that handle
+  Then the response is 200 with businessUserId, username, userType, status, policyVersion, and insurerCode
+  And the body contains no access token or refresh token
+
+AC2
+  Given no handle
+  When the session is read
+  Then the response is 400 SCHEMA_INVALID
+
+AC3
+  Given a handle that is unknown or expired
+  When the session is read
+  Then the response is 400 SCHEMA_INVALID
+  And the call does not contact the identity provider or the authorization service","AC1
+  Given a live session created by a successful login OTP
+  When GET /api/v1/auth/session is called with that handle
+  Then the response is 200 with businessUserId, username, userType, status, policyVersion, and insurerCode
+  And the body contains no access token or refresh token
+
+AC2
+  Given no handle
+  When the session is read
+  Then the response is 400 SCHEMA_INVALID
+
+AC3
+  Given a handle that is unknown or expired
+  When the session is read
+  Then the response is 400 SCHEMA_INVALID
+  And the call does not contact the identity provider or the authorization service",GET /api/v1/auth/session,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",2,S,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, IAM-P1"
+WS2-LOGIN-S11,Story,WS2-LOGIN-S11 Log out and destroy the workforce session,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"As a Bank RM or Insurance RM, I need to log out, so that the opaque session can no longer call workforce APIs.
+
+POST /api/v1/auth/logout. Handle from X-Session-Handle, otherwise the session cookie.
+
+Acceptance criteria
+
+AC1
+  Given a live Bank RM or Insurance RM session
+  When POST /api/v1/auth/logout is called
+  Then the response is 204
+  And the session cookie is expired
+  And a later read of that handle is rejected
+
+AC2
+  Given the session was created by the Login BRD OTP and holds no provider refresh token
+  When logout runs
+  Then the vault record is deleted
+  And no Keycloak revoke call is required for that session
+
+AC3
+  Given logout is called without a handle
+  When the BFF requires a handle
+  Then the call fails as a missing session and does not create one","AC1
+  Given a live Bank RM or Insurance RM session
+  When POST /api/v1/auth/logout is called
+  Then the response is 204
+  And the session cookie is expired
+  And a later read of that handle is rejected
+
+AC2
+  Given the session was created by the Login BRD OTP and holds no provider refresh token
+  When logout runs
+  Then the vault record is deleted
+  And no Keycloak revoke call is required for that session
+
+AC3
+  Given logout is called without a handle
+  When the BFF requires a handle
+  Then the call fails as a missing session and does not create one",POST /api/v1/auth/logout,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,public-bff",2,S,WS-2,Rajal / Product,IMPLEMENTED,"SUG-20261028-1lg, IAM-P1"
+WS2-LOGIN-S12,Story,WS2-LOGIN-S12 Preview the account before a password is counted,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"The BFF needs the account route before it checks a password, so that an unknown, inactive, first-time, or locked user is stopped without incrementing the failure counter.
+
+This operation is not called by the app. The BFF calls it with X-Internal-Service-Key.
+A missing or unknown key is 401 UNAUTHORIZED. The privilege is LOGIN_ORCHESTRATE except where the story says otherwise.
+
+POST /internal/v1/login/preview on identity-authorization-service. Body: userType, loginId. Bank RM is sent as BANK_EMPLOYEE. Insurance RM is sent as INSURER_REPRESENTATIVE.
+
+Acceptance criteria
+
+AC1
+  Given no business_user for the login id
+  When preview is called
+  Then the route is UNKNOWN
+
+AC2
+  Given a user who is not active, except a pending first-time Insurance RM
+  When preview is called
+  Then the route is INACTIVE
+
+AC3
+  Given first_login is true
+  When preview is called
+  Then the route is FIRST_TIME
+  And a later password check is not started by this call
+
+AC4
+  Given a password lock
+  When preview is called
+  Then the route is LOCKED_PASSWORD
+
+AC5
+  Given the later of last successful login and lock_cleared_at plus 30 days is not after now
+  When preview is called for a user who is not first-time and not already locked
+  Then the account locks as INACTIVITY and the route is LOCKED_INACTIVITY
+
+AC6
+  Given none of those stops
+  When preview is called
+  Then the route is READY","AC1
+  Given no business_user for the login id
+  When preview is called
+  Then the route is UNKNOWN
+
+AC2
+  Given a user who is not active, except a pending first-time Insurance RM
+  When preview is called
+  Then the route is INACTIVE
+
+AC3
+  Given first_login is true
+  When preview is called
+  Then the route is FIRST_TIME
+  And a later password check is not started by this call
+
+AC4
+  Given a password lock
+  When preview is called
+  Then the route is LOCKED_PASSWORD
+
+AC5
+  Given the later of last successful login and lock_cleared_at plus 30 days is not after now
+  When preview is called for a user who is not first-time and not already locked
+  Then the account locks as INACTIVITY and the route is LOCKED_INACTIVITY
+
+AC6
+  Given none of those stops
+  When preview is called
+  Then the route is READY",POST /internal/v1/login/preview,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,internal-api",3,M,WS-2,Amit / Engineering,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S13,Story,WS2-LOGIN-S13 Verify a Bank RM password with the bank directory,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"The BFF needs the bank directory to accept or reject a Bank RM network password, so that the platform never stores that password and never binds LDAP from the cluster.
+
+This operation is not called by the app. The BFF calls it with X-Internal-Service-Key.
+A missing or unknown key is 401 UNAUTHORIZED. The privilege is LOGIN_ORCHESTRATE except where the story says otherwise.
+
+POST /internal/v1/auth/ad-verify on identity-provider-adapter-service. Body: employeeId, password. Response: authenticated, accountActive, employeeId, username, email. Privilege is the adapter internal service key, not LOGIN_ORCHESTRATE.
+
+Acceptance criteria
+
+AC1
+  Given a Bank RM preview route of READY
+  When the password matches an active directory account
+  Then authenticated is true and accountActive is true
+
+AC2
+  Given the directory account is inactive
+  When verify is called
+  Then accountActive is false
+  And the BFF returns VAL-007 without recording a password failure
+
+AC3
+  Given the password does not match
+  When verify is called
+  Then authenticated is false
+  And the BFF records the failure through S14
+
+AC4
+  Given an Insurance RM sign-in
+  When the BFF checks the password
+  Then this operation is not called
+
+AC5
+  Given the request is logged
+  When toString runs
+  Then the password is absent","AC1
+  Given a Bank RM preview route of READY
+  When the password matches an active directory account
+  Then authenticated is true and accountActive is true
+
+AC2
+  Given the directory account is inactive
+  When verify is called
+  Then accountActive is false
+  And the BFF returns VAL-007 without recording a password failure
+
+AC3
+  Given the password does not match
+  When verify is called
+  Then authenticated is false
+  And the BFF records the failure through S14
+
+AC4
+  Given an Insurance RM sign-in
+  When the BFF checks the password
+  Then this operation is not called
+
+AC5
+  Given the request is logged
+  When toString runs
+  Then the password is absent",POST /internal/v1/auth/ad-verify,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,internal-api",3,M,WS-2,Amit / Engineering,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S14,Story,WS2-LOGIN-S14 Record the Bank RM directory password result,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"The BFF needs to record whether AD-verify accepted the Bank RM, so that the failure counter and the password lock live on the business user and the network password is not stored.
+
+This operation is not called by the app. The BFF calls it with X-Internal-Service-Key.
+A missing or unknown key is 401 UNAUTHORIZED. The privilege is LOGIN_ORCHESTRATE except where the story says otherwise.
+
+POST /internal/v1/login/bank-password-result. Body: businessUserId, accepted.
+
+Acceptance criteria
+
+AC1
+  Given AD-verify returned authenticated true and accountActive true
+  When this operation is called with accepted true
+  Then the route stays READY and the failure counter is not incremented
+
+AC2
+  Given AD-verify returned authenticated false
+  When this operation is called with accepted false
+  Then the counter increments
+  And two attempts left is the source of VAL-008, one left is VAL-009, and the third lock is VAL-010
+
+AC3
+  Given the account is already password-locked
+  When a later correct directory password is reported
+  Then the lock is not cleared and another failure is not added
+
+AC4
+  Given the directory account was inactive
+  When the BFF handles that result
+  Then this operation is not called","AC1
+  Given AD-verify returned authenticated true and accountActive true
+  When this operation is called with accepted true
+  Then the route stays READY and the failure counter is not incremented
+
+AC2
+  Given AD-verify returned authenticated false
+  When this operation is called with accepted false
+  Then the counter increments
+  And two attempts left is the source of VAL-008, one left is VAL-009, and the third lock is VAL-010
+
+AC3
+  Given the account is already password-locked
+  When a later correct directory password is reported
+  Then the lock is not cleared and another failure is not added
+
+AC4
+  Given the directory account was inactive
+  When the BFF handles that result
+  Then this operation is not called",POST /internal/v1/login/bank-password-result,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,internal-api",2,S,WS-2,Amit / Engineering,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S15,Story,WS2-LOGIN-S15 Verify an Insurance RM platform password,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"The BFF needs the stored platform password checked for an Insurance RM, so that a match can start the login OTP and an expired match can start the expiry path without counting as a failure.
+
+This operation is not called by the app. The BFF calls it with X-Internal-Service-Key.
+A missing or unknown key is 401 UNAUTHORIZED. The privilege is LOGIN_ORCHESTRATE except where the story says otherwise.
+
+POST /internal/v1/login/verify-platform-password. Body: businessUserId, password. The password is omitted from toString.
+
+Acceptance criteria
+
+AC1
+  Given a READY Insurance RM and a matching PBKDF2 hash inside 60 days
+  When verify is called
+  Then accepted is true
+
+AC2
+  Given a wrong password
+  When verify is called
+  Then accepted is false and the counter increments toward the third-failure lock
+
+AC3
+  Given a matching hash and password_changed_at plus 60 days is not after now
+  When verify is called
+  Then the route is PASSWORD_EXPIRED and accepted is false
+  And the failure counter does not move
+
+AC4
+  Given a Bank RM sign-in
+  When the password is checked
+  Then this operation is not called","AC1
+  Given a READY Insurance RM and a matching PBKDF2 hash inside 60 days
+  When verify is called
+  Then accepted is true
+
+AC2
+  Given a wrong password
+  When verify is called
+  Then accepted is false and the counter increments toward the third-failure lock
+
+AC3
+  Given a matching hash and password_changed_at plus 60 days is not after now
+  When verify is called
+  Then the route is PASSWORD_EXPIRED and accepted is false
+  And the failure counter does not move
+
+AC4
+  Given a Bank RM sign-in
+  When the password is checked
+  Then this operation is not called",POST /internal/v1/login/verify-platform-password,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,internal-api",3,M,WS-2,Amit / Engineering,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S16,Story,WS2-LOGIN-S16 Complete login after the login OTP,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"The BFF needs the business user updated after a correct login OTP, so that the failure count clears and last successful login moves, and a first-login flag is not cleared by this call alone.
+
+This operation is not called by the app. The BFF calls it with X-Internal-Service-Key.
+A missing or unknown key is 401 UNAUTHORIZED. The privilege is LOGIN_ORCHESTRATE except where the story says otherwise.
+
+POST /internal/v1/login/complete. Body: businessUserId. Called only after purpose LOGIN verifies.
+
+Acceptance criteria
+
+AC1
+  Given a correct LOGIN OTP
+  When complete is called
+  Then failed-password count is reset
+  And last successful login is now
+  And the BFF may then create the workforce session
+
+AC2
+  Given a user who was inactivity-locked and later unlocked
+  When complete runs after the next successful login OTP
+  Then the inactivity baseline moves because last successful login moved
+
+AC3
+  Given an unlock OTP or a forgot OTP
+  When the BFF finishes that challenge
+  Then this operation is not called","AC1
+  Given a correct LOGIN OTP
+  When complete is called
+  Then failed-password count is reset
+  And last successful login is now
+  And the BFF may then create the workforce session
+
+AC2
+  Given a user who was inactivity-locked and later unlocked
+  When complete runs after the next successful login OTP
+  Then the inactivity baseline moves because last successful login moved
+
+AC3
+  Given an unlock OTP or a forgot OTP
+  When the BFF finishes that challenge
+  Then this operation is not called",POST /internal/v1/login/complete,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,internal-api",2,S,WS-2,Amit / Engineering,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S17,Story,WS2-LOGIN-S17 Assess whether unlock may start,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"The BFF needs an unlock decision before it issues an unlock OTP, so that an already usable account gets no screen and an inactive account is refused.
+
+This operation is not called by the app. The BFF calls it with X-Internal-Service-Key.
+A missing or unknown key is 401 UNAUTHORIZED. The privilege is LOGIN_ORCHESTRATE except where the story says otherwise.
+
+POST /internal/v1/login/unlock/assess. Body: userType, loginId.
+
+Acceptance criteria
+
+AC1
+  Given a locked account or first_login true
+  When assess is called
+  Then the route is UNLOCK_OK
+
+AC2
+  Given an active account that is not first-time and not locked
+  When assess is called
+  Then the route is NOT_REQUIRED and no field changes
+
+AC3
+  Given an inactive account
+  When assess is called
+  Then the route is INACTIVE
+
+AC4
+  Given no business_user
+  When assess is called
+  Then the route is UNKNOWN","AC1
+  Given a locked account or first_login true
+  When assess is called
+  Then the route is UNLOCK_OK
+
+AC2
+  Given an active account that is not first-time and not locked
+  When assess is called
+  Then the route is NOT_REQUIRED and no field changes
+
+AC3
+  Given an inactive account
+  When assess is called
+  Then the route is INACTIVE
+
+AC4
+  Given no business_user
+  When assess is called
+  Then the route is UNKNOWN",POST /internal/v1/login/unlock/assess,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,internal-api",2,S,WS-2,Amit / Engineering,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S18,Story,WS2-LOGIN-S18 Finish unlock after the unlock OTP,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"The BFF needs unlock finished after a correct unlock OTP, so that a Bank RM is activated or unlocked and an Insurance RM who is first-time is sent to set a password, still without a session.
+
+This operation is not called by the app. The BFF calls it with X-Internal-Service-Key.
+A missing or unknown key is 401 UNAUTHORIZED. The privilege is LOGIN_ORCHESTRATE except where the story says otherwise.
+
+POST /internal/v1/login/unlock/complete. Body: businessUserId.
+
+Acceptance criteria
+
+AC1
+  Given a first-time Bank RM and a correct unlock OTP
+  When complete is called
+  Then the result is ACTIVATED and first_login is false
+  And no platform password is created
+
+AC2
+  Given a first-time Insurance RM and a correct unlock OTP
+  When complete is called
+  Then the result is SET_PASSWORD and first_login stays true
+
+AC3
+  Given a password lock or an inactivity lock and a correct unlock OTP
+  When complete is called
+  Then the result is UNLOCKED
+  And the failure counter is reset and lock_cleared_at is now
+  And the password hash is unchanged
+  And last successful login is unchanged
+
+AC4
+  Given the account is already usable
+  When complete is called
+  Then the result is NOT_REQUIRED or INACTIVE and nothing is changed","AC1
+  Given a first-time Bank RM and a correct unlock OTP
+  When complete is called
+  Then the result is ACTIVATED and first_login is false
+  And no platform password is created
+
+AC2
+  Given a first-time Insurance RM and a correct unlock OTP
+  When complete is called
+  Then the result is SET_PASSWORD and first_login stays true
+
+AC3
+  Given a password lock or an inactivity lock and a correct unlock OTP
+  When complete is called
+  Then the result is UNLOCKED
+  And the failure counter is reset and lock_cleared_at is now
+  And the password hash is unchanged
+  And last successful login is unchanged
+
+AC4
+  Given the account is already usable
+  When complete is called
+  Then the result is NOT_REQUIRED or INACTIVE and nothing is changed",POST /internal/v1/login/unlock/complete,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,internal-api",3,M,WS-2,Amit / Engineering,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S19,Story,WS2-LOGIN-S19 Assess Insurance RM forgot password,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"The BFF needs a forgot-password decision for an Insurance RM email, so that a locked or inactive account is refused and the password hash stays as it is.
+
+This operation is not called by the app. The BFF calls it with X-Internal-Service-Key.
+A missing or unknown key is 401 UNAUTHORIZED. The privilege is LOGIN_ORCHESTRATE except where the story says otherwise.
+
+POST /internal/v1/login/forgot/assess. Body: email. Bank employee ids are not a forgot-password key.
+
+Acceptance criteria
+
+AC1
+  Given an active or first-time Insurance RM email
+  When assess is called
+  Then the route is OK and the hash is unchanged
+
+AC2
+  Given an unknown email
+  When assess is called
+  Then the route is UNKNOWN and the BFF shows VAL-023
+
+AC3
+  Given an inactive account
+  When assess is called
+  Then the route is INACTIVE
+
+AC4
+  Given a locked account
+  When assess is called
+  Then the route is LOCKED and the lock is not cleared","AC1
+  Given an active or first-time Insurance RM email
+  When assess is called
+  Then the route is OK and the hash is unchanged
+
+AC2
+  Given an unknown email
+  When assess is called
+  Then the route is UNKNOWN and the BFF shows VAL-023
+
+AC3
+  Given an inactive account
+  When assess is called
+  Then the route is INACTIVE
+
+AC4
+  Given a locked account
+  When assess is called
+  Then the route is LOCKED and the lock is not cleared",POST /internal/v1/login/forgot/assess,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,internal-api",2,S,WS-2,Amit / Engineering,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"
+WS2-LOGIN-S20,Story,WS2-LOGIN-S20 Store an Insurance RM platform password,Bank RM and Insurance RM authentication,WS2-LOGIN,Bank RM and Insurance RM authentication,"The BFF needs the new Insurance RM password stored after the rules pass, so that first-time, forgot, and expiry continuations change the hash without opening a session.
+
+This operation is not called by the app. The BFF calls it with X-Internal-Service-Key.
+A missing or unknown key is 401 UNAUTHORIZED. The privilege is LOGIN_ORCHESTRATE except where the story says otherwise.
+
+POST /internal/v1/login/password. Body: businessUserId, newPassword, confirmPassword, purpose. Password fields are omitted from toString.
+
+Acceptance criteria
+
+AC1
+  Given purpose FIRST_TIME and a password that passes the rules
+  When set is called
+  Then the result is SET
+  And the hash is PBKDF2, first_login is false, and a PENDING Insurance RM becomes ACTIVE
+
+AC2
+  Given purpose FORGOT and the account is not locked
+  When set is called
+  Then the result is SET and the previous hash is replaced
+
+AC3
+  Given purpose FORGOT and the account is locked
+  When set is called
+  Then the result is LOCKED_UNCHANGED and the hash is unchanged
+
+AC4
+  Given purpose EXPIRY and a password that passes the rules, including difference from the current hash
+  When set is called
+  Then the result is SET and password_changed_at is now
+
+AC5
+  Given the new password fails confirm, the default value 123456, length, whitespace, email inclusion, character class, or equality with the current hash
+  When set is called
+  Then the first failure is returned and the hash is unchanged","AC1
+  Given purpose FIRST_TIME and a password that passes the rules
+  When set is called
+  Then the result is SET
+  And the hash is PBKDF2, first_login is false, and a PENDING Insurance RM becomes ACTIVE
+
+AC2
+  Given purpose FORGOT and the account is not locked
+  When set is called
+  Then the result is SET and the previous hash is replaced
+
+AC3
+  Given purpose FORGOT and the account is locked
+  When set is called
+  Then the result is LOCKED_UNCHANGED and the hash is unchanged
+
+AC4
+  Given purpose EXPIRY and a password that passes the rules, including difference from the current hash
+  When set is called
+  Then the result is SET and password_changed_at is now
+
+AC5
+  Given the new password fails confirm, the default value 123456, length, whitespace, email inclusion, character class, or equality with the current hash
+  When set is called
+  Then the first failure is returned and the hash is unchanged",POST /internal/v1/login/password,High,P2,"login-brd,bank-rm,insurance-rm,ws-2,internal-api",3,M,WS-2,Amit / Engineering,IMPLEMENTED,"SUG-20261028-1lg, Login BRD v3.1"

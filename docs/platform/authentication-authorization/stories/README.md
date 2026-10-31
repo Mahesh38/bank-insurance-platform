@@ -9,6 +9,11 @@ Story shape: [STORY.md](../../../application-lifecycle-bible/templates/STORY.md)
 
 `WS2-LOGIN` is a story grouping for workstream WS-2. It is not a minted `EPIC-nnn`.
 
+Jira import file: [WS2-LOGIN-jira-import.csv](./WS2-LOGIN-jira-import.csv) (UTF-8).
+Map `Issue Id` and `Parent` so the twenty stories sit under the epic row.
+Map `Acceptance Criteria` only when the project has that custom field; the same text is also in `Description`.
+Leave `Implementation Status` unmapped to Jira Status unless the workflow already has that value.
+
 The workforce app calls only `workforce-access-bff`. Internal operations are called by the
 BFF with `X-Internal-Service-Key`. They are never exposed to the app, and they never return
 an OAuth access or refresh token.

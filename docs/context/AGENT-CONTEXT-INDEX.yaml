@@ -241,6 +241,13 @@ doc_routing:
       persona: null
 
     # --- platform: cross-cutting, applies to every service -----------------
+    - match: ["docs/platform/authentication-authorization/stories/*"]
+      bucket: platform
+      authority: ai-drafted
+      capsules: [business-analysis, security-review, code-change]
+      persona: business-analysis
+      note: "One Login BRD v3.1 user story per Bank RM / Insurance RM API. Behaviour SSOT remains the auth README and LOGIN-BRD-V31-API-FLOWS.md."
+
     - match: ["docs/platform/authentication-authorization/*"]
       bucket: platform
       authority: approved-spec
